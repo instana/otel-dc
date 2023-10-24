@@ -1,0 +1,135 @@
+# How to create a new data collector
+
+## Overview
+
+A general idea to support a new Data Collector is to extends the AbstractDbDc class. By doing this, you can easily support all 
+predefined [Semantic Conventions](https://github.com/instana/otel-database-dc/tree/main/docs/semconv). You can also add your own custom metrics.
+Please refer to [code here](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DamengDc.java) as a good example.
+The second step is to add one line like [what DaMeng does to register a new Data Collector](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DbDcRegistry.java#L17) 
+with a new name of `db.system`. Then the Data Collector is available to users. 
+If you revise the `db.system` parameter of the configuration file `config/config.properties` to be the new name of `db.system`,
+then the new Data Collector is in use.
+
+## How to extend the AbstractDbDc class
+
+### Refine the code of constructor
+
+The constructor of AbstractDbDc class fetch all database and OTel related parameters from "config/config.properties" file. 
+All Data Collectors should extend AbstractDbDc class. The constructor of the Data Collectors should call the constructor of AbstractDbDc class, 
+and add its own logic if required. Here is the example code:
+```Java
+    public DamengDc(Properties properties) throws SQLException, ClassNotFoundException {
+        super(properties);
+        getDbNameAndVersion();
+        if (getServiceInstanceId() == null) {
+            setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
+        }
+    }
+
+    private void getDbNameAndVersion() throws SQLException, ClassNotFoundException {
+        try (Connection connection = getConnection()) {
+            ResultSet rs = DbDcUtil.executeQuery(connection, DB_NAME_VERSION_SQL);
+            rs.next();
+            setDbName(rs.getString(1));
+            setDbVersion(rs.getString(2));
+        }
+    }
+```
+
+Here is the list of redefined database and OTel parameters:
+
+| Parameter                | Description                                          | Example (case insensitive) |
+|--------------------------|------------------------------------------------------|----------------------------|
+| db.system                | The target database system (case insensitive)        | dameng                     |  
+| db.driver                | The JDBC Java class                                  | dm.jdbc.driver.DmDriver    |  
+| db.address               | The IP address of the target database                | 1.2.3.4                    |  
+| db.port                  | The IP port of the target database                   | 5236                       |  
+| db.username              | The user name of the target database                 | SYSDBA                     |  
+| db.password              | The password of the target database                  | xxxx                       |  
+| db.connection.url        | The connection URL of the target database            | jdbc:dm://9.46.118.22:5236 |  
+| db.name                  | The name of the target database                      | MYDB                       |  
+| db.version               | The version of the target database                   | V8                         |  
+| otel.backend.url         | The otlp/grpc URL of the OTel Backend                | http://127.0.0.1:4317      |  
+| otel.service.name        | The OTel Service name                                | DamengDC                   |  
+| otel.service.instance.id | The OTel Service instance ID                         | 1.2.3.4:5236@MYDB          |  
+| poll.interval            | The time interval in seconds to query metrics        | 20                         |  
+| callback.interval        | The time interval in seconds to post data to backend | 30                         |  
+
+Note: All Database parameters are optional. The only requirement is to successfully make the JDBC connection. 
+Some parameters can be generated from parameters provided in "config/config.properties" file. 
+The above parameters are used to create OTel resource attributes along with the OTel metrics.   
+
+### Add the code to get database connection
+
+Simply implement the `getConnection()` method of AbstractDbDc class. Here is the example code:
+```Java
+    @Override
+    public Connection getConnection() throws SQLException, ClassNotFoundException {
+        Connection connection = DriverManager.getConnection(getDbConnUrl(), getDbUserName(), getDbPassword());
+        Class.forName(getDbDriver());
+        return connection;
+    }
+```
+
+### Add additional actions after OTel metrics registration
+
+The `AbstractDbDc.registerMetrics()` method registers all metrics in predefined [Semantic Conventions]. So, you need to call 
+`super.registerMetrics();` if you want to overwrite this method.
+You can also add your own customer metrics. And if you want to calculate the rate value instead of using the raw data, 
+you need to call `getRawMetric(xxx).setCalculationMode(CalculationMode.RATE);`.
+Here is the example code:
+```Java
+    @Override
+    public void registerMetrics() {
+        super.registerMetrics();
+        getRawMetric(DB_TRANSACTION_RATE_NAME).setCalculationMode(CalculationMode.RATE);
+        getRawMetric(DB_SQL_RATE_NAME).setCalculationMode(CalculationMode.RATE);
+        getRawMetric(DB_IO_READ_RATE_NAME).setCalculationMode(CalculationMode.RATE);
+        getRawMetric(DB_IO_WRITE_RATE_NAME).setCalculationMode(CalculationMode.RATE);
+    }
+```
+
+### Add code to retrieve metrics from the database
+
+Then we are going to implement the most complex part of the work: to fetch metrics from the database and assign the values to the registered metrics.
+What you need to do is to implement `collectData()` method to add code to retrieve various metrics. Sample code can be found in [DamengDc](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DamengDc.java).
+
+#### Scenario 1: The metric is a simple value:
+
+Here is the example code:
+```Java
+getRawMetric(DB_STATUS_NAME).setValue(1);
+```
+
+#### Scenario 2: The metric is a simple value returned from a SQL statement:
+
+Here is the example code:
+```Java
+getRawMetric(DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, INSTANCE_COUNT_SQL));
+```
+
+#### Scenario 3: The metric is an array of data points with values and attributes 
+
+Here is an example code of metric having data points with value and single attribute which is the key:
+```Java
+getRawMetric(DB_CACHE_HIT_NAME).setValue(getMetricWithSql(con, CACHE_HIT_SQL, DB_CACHE_HIT_KEY));
+```
+
+Here is an example code of metric having data points with value and multiple attributes, the first is the key:
+```Java
+getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(con, SQL_ELAPSED_TIME_SQL, DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
+```
+
+*Note: If the SQL statement returns an array, the first column must be the value, the second column must be the key (String type).* 
+
+#### Scenario 4: Use the result of SQL statement to calculate the metrics
+
+If the SQL statement returns single row, use `getSimpleListWithSql()` method to get a list of result objects.
+
+Here is an example code to create a simple metric:
+```Java
+    List<Long> listMemData = getSimpleListWithSql(con, MEM_UTILIZATION_SQL);
+    if (listMemData != null) {
+        getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((double) listMemData.get(0) / listMemData.get(1));
+    }
+```
