@@ -46,7 +46,7 @@ public class DbRawMetricRegistry {
         put(DB_DISK_UTILIZATION_NAME, new RawMetric(GAUGE, DB_DISK_UTILIZATION_NAME, DB_DISK_UTILIZATION_DESC, UNIT_1, false, DB_DISK_UTILIZATION_KEY));
         put(DB_DISK_USAGE_NAME, new RawMetric(UPDOWN_COUNTER, DB_DISK_USAGE_NAME, DB_DISK_USAGE_DESC, UNIT_BY, true, DB_DISK_USAGE_KEY));
 
-        put(DB_BACKUP_CYCLE_NAME, new RawMetric(UPDOWN_COUNTER, DB_BACKUP_CYCLE_NAME, DB_BACKUP_CYCLE_DESC, UNIT_S, true, null));
+        put(DB_BACKUP_CYCLE_NAME, new RawMetric(GAUGE, DB_BACKUP_CYCLE_NAME, DB_BACKUP_CYCLE_DESC, UNIT_S, true, null));
     }};
 
     public Map<String, RawMetric> getMap() {
