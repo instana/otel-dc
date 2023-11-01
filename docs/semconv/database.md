@@ -94,7 +94,7 @@ All metrics in `db.instance` instruments should be attached to a [Instance resou
 
 | Name                   | Description                                                    | Unit | Instrument Type | Value Type | Requirement Level | Attribute Key(s)    | Attribute Values |
 |------------------------|----------------------------------------------------------------|------|-----------------|------------|-------------------|---------------------|------------------|
-| `db.backup.cycle`      | Backup cycle.                                                  | s    | UpDownCounter   | Int64      | Recommended       |                     |                  |
+| `db.backup.cycle`      | Backup cycle.                                                  | s    | Gauge           | Int64      | Recommended       |                     |                  |
 
 # Custom metrics
 
