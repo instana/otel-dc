@@ -13,6 +13,7 @@ import io.opentelemetry.api.metrics.ObservableDoubleMeasurement;
 import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import io.opentelemetry.sdk.resources.Resource;
 
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -159,4 +160,19 @@ public class DcUtil {
         }
     }
 
+    public static long getPid() {
+        // While this is not strictly defined, almost all commonly used JVMs format this as
+        // pid@hostname.
+        String runtimeName = ManagementFactory.getRuntimeMXBean().getName();
+        int atIndex = runtimeName.indexOf('@');
+        if (atIndex >= 0) {
+            String pidString = runtimeName.substring(0, atIndex);
+            try {
+                return Long.parseLong(pidString);
+            } catch (NumberFormatException ignored) {
+                // Ignore parse failure.
+            }
+        }
+        return -1;
+    }
 }

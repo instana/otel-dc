@@ -27,6 +27,7 @@ public class DamengDc extends AbstractDbDc {
 
     public DamengDc(Properties properties) throws SQLException, ClassNotFoundException {
         super(properties);
+        setDbPassword(DamengUtil.decodePassword(getDbPassword()));
         getDbNameAndVersion();
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
@@ -37,7 +38,8 @@ public class DamengDc extends AbstractDbDc {
         try (Connection connection = getConnection()) {
             ResultSet rs = DbDcUtil.executeQuery(connection, DB_NAME_VERSION_SQL);
             rs.next();
-            setDbName(rs.getString(1));
+            if (getDbName() == null)
+                setDbName(rs.getString(1));
             setDbVersion(rs.getString(2));
         }
     }

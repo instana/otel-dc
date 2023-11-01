@@ -6,6 +6,7 @@ package com.instana.dc.rdb;
 
 import com.instana.dc.DcUtil;
 import com.instana.dc.RawMetric;
+import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
@@ -13,6 +14,8 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -66,6 +69,23 @@ public abstract class AbstractDbDc implements IDbDc {
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.INSTANA_PLUGIN,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DATABASE
                 )));
+
+        try {
+            resource = resource.merge(
+                    Resource.create(Attributes.of(ResourceAttributes.HOST_NAME, InetAddress.getLocalHost().getHostName()))
+            );
+        } catch (UnknownHostException e) {
+            // Ignore
+        }
+
+        long pid = DcUtil.getPid();
+        if (pid >= 0) {
+            resource = resource.merge(
+                    Resource.create(Attributes.of(ResourceAttributes.PROCESS_PID, pid))
+            );
+        }
+
+        resource = resource.merge(ContainerResource.get());
         return mergeResourceAttributesFromEnv(resource);
     }
 

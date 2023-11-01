@@ -4,6 +4,8 @@
  */
 package com.instana.dc.rdb.impl;
 
+import java.util.Base64;
+
 public class DamengUtil {
     public static final String DB_NAME_VERSION_SQL = "select (select name from v$database) name, (select substr(banner, instr(banner, ' ', -1) + 1) version from v$version where rownum < 2) version from dual";
 
@@ -22,7 +24,7 @@ public class DamengUtil {
 
     public static final String CACHE_HIT_SQL = "SELECT SUM(rat_hit) / COUNT(*), name FROM v$bufferpool GROUP BY name";
     public static final String SQL_ELAPSED_TIME_SQL =
-            "SELECT T as execute_time, SESS_ID as sql_id, SQL_TEXT as sql_text FROM (SELECT timestampdiff (second, s.last_recv_time, sysdate) T, S.* FROM v$sessions S limit 50)";
+            "SELECT EXEC_TIME as ELAPSED_TIME_MILLIS, SQL_ID as sql_id, SQL_TEXT as sql_text FROM V$SYSTEM_LONG_EXEC_SQLS ORDER BY EXEC_TIME DESC LIMIT 20";
     public static final String LOCK_COUNT_SQL = "select count(*), ltype from v$lock where blocked =1 group by ltype";
     public static final String LOCK_TIME_SQL = "SELECT timestampdiff(second, DS.create_time, sysdate) AS metric_value, L.ADDR AS lock_id, DS.SESS_ID AS blocking_sess_id, SS.SESS_ID AS blocker_sess_id, obj.OBJECT_NAME AS locked_obj_name FROM v$lock L LEFT JOIN v$sessions DS ON DS.TRX_ID = L.TRX_ID LEFT JOIN v$sessions SS ON SS.TRX_ID = L.TID LEFT JOIN dba_objects obj ON L.TABLE_ID = obj.OBJECT_ID WHERE L.BLOCKED = 1 LIMIT 50";
 
@@ -33,4 +35,8 @@ public class DamengUtil {
     public static final String MEM_UTILIZATION_SQL = "SELECT (SELECT stat_val FROM v$sysstat WHERE name = 'memory used bytes' ) AS USED_MEM_SIZE, (SELECT stat_val FROM v$sysstat WHERE name = 'memory pool size in bytes') AS TOTAL_MEM_SIZE FROM dual";
     public static final String CPU_UTILIZATION_SQL = "SELECT (CPU_USER_RATE + CPU_SYSTEM_RATE)/100 AS CPU_UTILIZATION FROM V$SYSTEMINFO";
     public static final String DISK_USAGE_SQL = "SELECT FREE_DISK_SIZE, TOTAL_DISK_SIZE FROM V$SYSTEMINFO";
+
+    public static String decodePassword(String encodedPwd) {
+        return new String(Base64.getDecoder().decode(encodedPwd));
+    }
 }

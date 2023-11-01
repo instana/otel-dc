@@ -4,7 +4,7 @@
 **[Support](docs/support/README.md)** |
 **[Changelog](CHANGELOG.md)** |
 **[Contributing](CONTRIBUTING.md)** |
-**[License](LICENSE.md)**
+**[License](LICENSE)**
 
 ---
 ODCD (OTel based Data Collector for database) is the tool or template to generate OpenTelemetry metrics for various
