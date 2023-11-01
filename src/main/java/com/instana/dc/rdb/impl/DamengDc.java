@@ -27,6 +27,7 @@ public class DamengDc extends AbstractDbDc {
 
     public DamengDc(Properties properties) throws SQLException, ClassNotFoundException {
         super(properties);
+        setDbPassword(DamengUtil.decodePassword(getDbPassword()));
         getDbNameAndVersion();
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
