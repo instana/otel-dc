@@ -10,24 +10,31 @@ import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.Map;
-import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import static com.instana.dc.DcUtil.OTEL_SERVICE_INSTANCE_ID;
-import static com.instana.dc.DcUtil.mergeResourceAttributesFromEnv;
+import static com.instana.dc.DcUtil.*;
 import static com.instana.dc.rdb.DbDcUtil.*;
 
 public abstract class AbstractDbDc implements IDbDc {
     private static final Logger logger = Logger.getLogger(AbstractDbDc.class.getName());
 
-    private String dbDriver;
+    private final String dbSystem;
+    private final String dbDriver;
     private String dbAddress;
     private long dbPort;
     private String dbConnUrl;
@@ -36,26 +43,43 @@ public abstract class AbstractDbDc implements IDbDc {
     private String dbName;
     private String dbVersion;
     private String dbEntityType;
+
+    private final String otelBackendUrl;
+    private final int pollInterval;
+    private final int callbackInterval;
+    private final String serviceName;
     private String serviceInstanceId;
 
+    private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     private Meter meter;
     private final Map<String, RawMetric> rawMetricsMap = new DbRawMetricRegistry().getMap();
 
-    public AbstractDbDc(Properties properties) {
-        dbDriver = properties.getProperty(DB_DRIVER);
-        dbAddress = properties.getProperty(DB_ADDRESS);
-        dbPort = Long.parseLong(properties.getProperty(DB_PORT));
-        dbConnUrl = properties.getProperty(DB_CONN_URL);
-        dbUserName = properties.getProperty(DB_USERNAME);
-        dbPassword = properties.getProperty(DB_PASSWORD);
-        dbEntityType = properties.getProperty(DB_ENTITY_TYPE, DEFAULT_DB_ENTITY_TYPE);
-        dbName = properties.getProperty(DB_NAME);
-        dbVersion = properties.getProperty(DB_VERSION);
-        serviceInstanceId = properties.getProperty(OTEL_SERVICE_INSTANCE_ID);
+    public AbstractDbDc(Map<String, String> properties, String dbSystem, String dbDriver) {
+        this.dbSystem = dbSystem;
+        this.dbDriver = dbDriver;
+
+        String pollInt = properties.get(POLLING_INTERVAL);
+        pollInterval = pollInt == null ? DEFAULT_POLL_INTERVAL : Integer.parseInt(properties.get(POLLING_INTERVAL));
+        String callbackInt = properties.get(CALLBACK_INTERVAL);
+        callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(properties.get(CALLBACK_INTERVAL));
+        otelBackendUrl = properties.get(OTEL_BACKEND_URL);
+        serviceName = properties.get(OTEL_SERVICE_NAME);
+        serviceInstanceId = properties.get(OTEL_SERVICE_INSTANCE_ID);
+
+        dbAddress = properties.get(DB_ADDRESS);
+        dbPort = Long.parseLong(properties.get(DB_PORT));
+        dbConnUrl = properties.get(DB_CONN_URL);
+        dbUserName = properties.get(DB_USERNAME);
+        dbPassword = properties.get(DB_PASSWORD);
+        dbEntityType = properties.get(DB_ENTITY_TYPE);
+        if (dbEntityType == null) {
+            dbEntityType = DEFAULT_DB_ENTITY_TYPE;
+        }
+        dbName = properties.get(DB_NAME);
+        dbVersion = properties.get(DB_VERSION);
     }
 
-    @Override
-    public Resource getResourceAttributes(String serviceName, String dbSystem) {
+    private Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName,
                         SemanticAttributes.DB_SYSTEM, dbSystem,
@@ -90,7 +114,7 @@ public abstract class AbstractDbDc implements IDbDc {
     }
 
     @Override
-    public void initializeMeter(OpenTelemetry openTelemetry) {
+    public void initMeter(OpenTelemetry openTelemetry) {
         meter = openTelemetry.meterBuilder(DEFAULT_INSTRUMENTATION_SCOPE)
                 .setInstrumentationVersion(DEFAULT_INSTRUMENTATION_SCOPE_VER).build();
     }
@@ -107,17 +131,8 @@ public abstract class AbstractDbDc implements IDbDc {
     }
 
 
-    @Override
-    public Meter getDefaultMeter() {
-        return meter;
-    }
-
     public String getDbDriver() {
         return dbDriver;
-    }
-
-    public void setDbDriver(String dbDriver) {
-        this.dbDriver = dbDriver;
     }
 
     public String getDbAddress() {
@@ -180,15 +195,31 @@ public abstract class AbstractDbDc implements IDbDc {
         return dbEntityType;
     }
 
-    public void setDbEntityType(String dbEntityType) {
-        this.dbEntityType = dbEntityType;
-    }
-
     public String getServiceInstanceId() {
         return serviceInstanceId;
     }
 
     public void setServiceInstanceId(String serviceInstanceId) {
         this.serviceInstanceId = serviceInstanceId;
+    }
+
+    public void setDbEntityType(String dbEntityType) {
+        this.dbEntityType = dbEntityType;
+    }
+
+    @Override
+    public void initDC() throws Exception {
+        Resource resource = getResourceAttributes();
+        SdkMeterProvider sdkMeterProvider = SdkMeterProvider.builder().setResource(resource)
+                .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
+                .build();
+        OpenTelemetry openTelemetry = OpenTelemetrySdk.builder().setMeterProvider(sdkMeterProvider).build();
+        initMeter(openTelemetry);
+        registerMetrics();
+    }
+
+    @Override
+    public void start() {
+        exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
     }
 }

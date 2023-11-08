@@ -18,6 +18,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-sdk:1.28.0")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.28.0")
     implementation("io.opentelemetry:opentelemetry-semconv:1.28.0-alpha")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
 
     implementation(files("DmJdbcDriver18.jar"))
     implementation(files("otel-sensorsdk-database-1.0.2.jar"))

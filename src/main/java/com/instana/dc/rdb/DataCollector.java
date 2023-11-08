@@ -4,26 +4,20 @@
  */
 package com.instana.dc.rdb;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.instana.dc.rdb.impl.DbDcRegistry;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.metrics.SdkMeterProvider;
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
-import io.opentelemetry.sdk.resources.Resource;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.instana.dc.DcUtil.*;
-import static com.instana.dc.rdb.DbDcUtil.DB_SYSTEM;
+import static com.instana.dc.DcUtil.CONFIG_YAML;
+import static com.instana.dc.DcUtil.LOGGING_PROP;
 
 public class DataCollector {
     static {
@@ -32,56 +26,81 @@ public class DataCollector {
 
     private static final Logger logger = Logger.getLogger(DataCollector.class.getName());
 
-    private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-    private IDbDc dc;
+    private final DcConfig dcConfig;
 
-    private String dbSystem;
-    private String otelBackendUrl;
-    private int pollInterval;
-    private int callbackInterval;
-    private String serviceName;
+    private final List<IDbDc> dcs;
 
-
-    private void getConfiguration() throws Exception {
-        Properties properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(CONFIG_PROP)) {
-            properties.load(fis);
-            String pollInt = properties.getProperty(POLLING_INTERVAL);
-            pollInterval = pollInt == null ? DEFAULT_POLL_INTERVAL : Integer.parseInt(properties.getProperty(POLLING_INTERVAL));
-            String callbackInt = properties.getProperty(CALLBACK_INTERVAL);
-            callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(properties.getProperty(CALLBACK_INTERVAL));
-            dbSystem = properties.getProperty(DB_SYSTEM).toUpperCase();
-            logger.info("Find DC for dbSystem: " + dbSystem);
-            otelBackendUrl = properties.getProperty(OTEL_BACKEND_URL);
-            serviceName = properties.getProperty(OTEL_SERVICE_NAME);
-            dc = new DbDcRegistry().findDatabaseDc(dbSystem).getConstructor(Properties.class).newInstance(properties);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to read in or parse the configuration");
-            throw e;
+    private DataCollector() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        dcConfig = objectMapper.readValue(new File(CONFIG_YAML), DcConfig.class);
+        int n = dcConfig.getInstances().size();
+        dcs = new ArrayList<>(n);
+        for (Map<String, String> props : dcConfig.getInstances()) {
+            dcs.add(newDc(props));
+        }
+        if (!dcs.isEmpty()) {
+            dcs.get(0).initOnce();
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        logger.info("Instana DC for Database is started...");
-
-        DataCollector dcol = new DataCollector();
-        dcol.initDC();
-        dcol.startCollect();
-
-        logger.info("Instana DC for Database is ended...");
+    private IDbDc newDc(Map<String, String> props) throws Exception {
+        return new DbDcRegistry().findDatabaseDc(dcConfig.getDbSystem()).getConstructor(Map.class, String.class, String.class)
+                .newInstance(props, dcConfig.getDbSystem(), dcConfig.getDbDriver());
     }
 
-    private void initDC() throws Exception {
-        getConfiguration();
-        Resource resource = dc.getResourceAttributes(serviceName, dbSystem);
-        SdkMeterProvider sdkMeterProvider = SdkMeterProvider.builder().registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).build()).setInterval(Duration.ofSeconds(callbackInterval)).build()).setResource(resource).build();
-        OpenTelemetry openTelemetry = OpenTelemetrySdk.builder().setMeterProvider(sdkMeterProvider).buildAndRegisterGlobal();
-        dc.initializeMeter(openTelemetry);
-        dc.registerMetrics();
+    public static void main(String[] args) {
+        try {
+            DataCollector dcol = new DataCollector();
+            dcol.initDcs();
+            dcol.startCollect();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+        }
+    }
+
+    private void initDcs() throws Exception {
+        int i = 0;
+        for (IDbDc dc : dcs) {
+            dc.initDC();
+            logger.info("DC No." + ++i + " is initialized");
+        }
     }
 
     private void startCollect() {
-        exec.scheduleWithFixedDelay(dc::collectData, 1, pollInterval, TimeUnit.SECONDS);
+        int i = 1;
+        for (IDbDc dc : dcs) {
+            logger.info("DC No." + i + " is collecting data...");
+            dc.start();
+            i++;
+        }
+    }
+
+    static class DcConfig {
+        @JsonProperty("db.system")
+        private String dbSystem;
+        @JsonProperty("db.driver")
+        private String dbDriver;
+        private final List<Map<String, String>> instances = new ArrayList<>();
+
+        public String getDbSystem() {
+            return dbSystem;
+        }
+
+        public String getDbDriver() {
+            return dbDriver;
+        }
+
+        public List<Map<String, String>> getInstances() {
+            return instances;
+        }
+
+        public void setDbSystem(String dbSystem) {
+            this.dbSystem = dbSystem;
+        }
+
+        public void setDbDriver(String dbDriver) {
+            this.dbDriver = dbDriver;
+        }
     }
 
 }

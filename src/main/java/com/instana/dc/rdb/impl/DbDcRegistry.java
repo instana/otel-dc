@@ -18,7 +18,7 @@ public class DbDcRegistry {
     }};
 
     public Class<? extends AbstractDbDc> findDatabaseDc(String dbSystem) throws DcException {
-        Class<? extends AbstractDbDc> cls = map.get(dbSystem);
+        Class<? extends AbstractDbDc> cls = map.get(dbSystem.toUpperCase());
         if (cls != null) {
             return cls;
         } else {

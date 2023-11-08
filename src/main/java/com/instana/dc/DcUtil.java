@@ -39,6 +39,7 @@ public class DcUtil {
     //Configuration files;
     public static final String LOGGING_PROP = "config/logging.properties";
     public static final String CONFIG_PROP = "config/config.properties";
+    public static final String CONFIG_YAML = "config/config.yaml";
 
 
     /* Data Collector Utilities:
