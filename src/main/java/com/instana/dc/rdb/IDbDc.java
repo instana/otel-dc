@@ -12,10 +12,14 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public interface IDbDc {
-    Connection getConnection() throws SQLException, ClassNotFoundException;
-    Resource getResourceAttributes(String serviceName, String dbSystem);
-    void initializeMeter(OpenTelemetry openTelemetry);
-    Meter getDefaultMeter();
+    void initOnce() throws ClassNotFoundException;
+    void initDC() throws Exception;
+
+    Connection getConnection() throws SQLException;
+
+    void initMeter(OpenTelemetry openTelemetry);
     void registerMetrics();
+
     void collectData();
+    void start();
 }

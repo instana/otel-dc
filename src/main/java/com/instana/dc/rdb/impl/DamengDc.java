@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,8 +26,8 @@ import static com.instana.dc.rdb.impl.DamengUtil.*;
 public class DamengDc extends AbstractDbDc {
     private static final Logger logger = Logger.getLogger(DamengDc.class.getName());
 
-    public DamengDc(Properties properties) throws SQLException, ClassNotFoundException {
-        super(properties);
+    public DamengDc(Map<String, String> properties, String dbSystem, String dbDriver) throws SQLException {
+        super(properties, dbSystem, dbDriver);
         setDbPassword(DamengUtil.decodePassword(getDbPassword()));
         getDbNameAndVersion();
         if (getServiceInstanceId() == null) {
@@ -34,7 +35,7 @@ public class DamengDc extends AbstractDbDc {
         }
     }
 
-    private void getDbNameAndVersion() throws SQLException, ClassNotFoundException {
+    private void getDbNameAndVersion() throws SQLException {
         try (Connection connection = getConnection()) {
             ResultSet rs = DbDcUtil.executeQuery(connection, DB_NAME_VERSION_SQL);
             rs.next();
@@ -45,10 +46,13 @@ public class DamengDc extends AbstractDbDc {
     }
 
     @Override
-    public Connection getConnection() throws SQLException, ClassNotFoundException {
-        Connection connection = DriverManager.getConnection(getDbConnUrl(), getDbUserName(), getDbPassword());
+    public void initOnce() throws ClassNotFoundException {
         Class.forName(getDbDriver());
-        return connection;
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(getDbConnUrl(), getDbUserName(), getDbPassword());
     }
 
     @Override
@@ -107,5 +111,4 @@ public class DamengDc extends AbstractDbDc {
             getRawMetric(DB_STATUS_NAME).setValue(0);
         }
     }
-
 }
