@@ -14,6 +14,7 @@ import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import io.opentelemetry.sdk.resources.Resource;
 
 import java.lang.management.ManagementFactory;
+import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -39,6 +40,7 @@ public class DcUtil {
     //Configuration files;
     public static final String LOGGING_PROP = "config/logging.properties";
     public static final String CONFIG_YAML = "config/config.yaml";
+    public static final String CONFIG_ENV = "DC_CONFIG";
 
 
     /* Data Collector Utilities:
@@ -174,5 +176,9 @@ public class DcUtil {
             }
         }
         return -1;
+    }
+
+    public static String base64Decode(String encodedStr) {
+        return new String(Base64.getDecoder().decode(encodedStr));
     }
 }

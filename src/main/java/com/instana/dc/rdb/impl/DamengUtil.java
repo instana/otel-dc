@@ -4,8 +4,6 @@
  */
 package com.instana.dc.rdb.impl;
 
-import java.util.Base64;
-
 public class DamengUtil {
     public static final String DB_NAME_VERSION_SQL = "select (select name from v$database) name, (select substr(banner, instr(banner, ' ', -1) + 1) version from v$version where rownum < 2) version from dual";
 
@@ -36,7 +34,4 @@ public class DamengUtil {
     public static final String CPU_UTILIZATION_SQL = "SELECT (CPU_USER_RATE + CPU_SYSTEM_RATE)/100 AS CPU_UTILIZATION FROM V$SYSTEMINFO";
     public static final String DISK_USAGE_SQL = "SELECT FREE_DISK_SIZE, TOTAL_DISK_SIZE FROM V$SYSTEMINFO";
 
-    public static String decodePassword(String encodedPwd) {
-        return new String(Base64.getDecoder().decode(encodedPwd));
-    }
 }
