@@ -20,6 +20,9 @@ import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -29,6 +32,7 @@ import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.*;
 import static com.instana.dc.rdb.DbDcUtil.*;
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 public abstract class AbstractDbDc implements IDbDc {
     private static final Logger logger = Logger.getLogger(AbstractDbDc.class.getName());
@@ -43,12 +47,15 @@ public abstract class AbstractDbDc implements IDbDc {
     private String dbName;
     private String dbVersion;
     private String dbEntityType;
+    private String dbTenantId;
+    private String dbTenantName;
 
     private final String otelBackendUrl;
     private final int pollInterval;
     private final int callbackInterval;
     private final String serviceName;
     private String serviceInstanceId;
+    private String dbEntityParentId;
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     private Meter meter;
@@ -65,6 +72,7 @@ public abstract class AbstractDbDc implements IDbDc {
         otelBackendUrl = properties.get(OTEL_BACKEND_URL);
         serviceName = properties.get(OTEL_SERVICE_NAME);
         serviceInstanceId = properties.get(OTEL_SERVICE_INSTANCE_ID);
+        dbEntityParentId = properties.get(DB_ENTITY_PARENT_ID);
 
         dbAddress = properties.get(DB_ADDRESS);
         dbPort = Long.parseLong(properties.get(DB_PORT));
@@ -75,6 +83,9 @@ public abstract class AbstractDbDc implements IDbDc {
         if (dbEntityType == null) {
             dbEntityType = DEFAULT_DB_ENTITY_TYPE;
         }
+        dbEntityType = dbEntityType.toUpperCase();
+        dbTenantId = properties.get(DB_TENANT_ID);
+        dbTenantName = properties.get(DB_TENANT_NAME);
         dbName = properties.get(DB_NAME);
         dbVersion = properties.get(DB_VERSION);
     }
@@ -100,6 +111,20 @@ public abstract class AbstractDbDc implements IDbDc {
             );
         } catch (UnknownHostException e) {
             // Ignore
+        }
+
+        String tenantName = this.getDbTenantName();
+        if (tenantName != null) {
+            resource = resource.merge(
+                    Resource.create(Attributes.of(stringKey("tenant.name"), tenantName))
+            );
+        }
+
+        String entityParentId = this.getDbEntityParentId();
+        if (entityParentId != null) {
+            resource = resource.merge(
+                    Resource.create(Attributes.of(com.instana.agent.sensorsdk.semconv.ResourceAttributes.DB_ENTITY_PARENT_ID, entityParentId))
+            );
         }
 
         long pid = DcUtil.getPid();
@@ -207,15 +232,49 @@ public abstract class AbstractDbDc implements IDbDc {
         this.dbEntityType = dbEntityType;
     }
 
+    public String getDbTenantId() {
+        return dbTenantId;
+    }
+
+    public void setDbTenantId(String dbTenantId) {
+        this.dbTenantId = dbTenantId;
+    }
+
+    public String getDbTenantName() {
+        return dbTenantName;
+    }
+
+    public void setDbTenantName(String dbTenantName) {
+        this.dbTenantName = dbTenantName;
+    }
+
+    public String getDbEntityParentId() {
+        return dbEntityParentId;
+    }
+
+    public void setDbEntityParentId(String dbEntityParentId) {
+        this.dbEntityParentId = dbEntityParentId;
+    }
+
     @Override
     public void initDC() throws Exception {
         Resource resource = getResourceAttributes();
         SdkMeterProvider sdkMeterProvider = SdkMeterProvider.builder().setResource(resource)
-                .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
+                .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(10, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
                 .build();
         OpenTelemetry openTelemetry = OpenTelemetrySdk.builder().setMeterProvider(sdkMeterProvider).build();
         initMeter(openTelemetry);
         registerMetrics();
+    }
+
+    @Override
+    public void initOnce() throws ClassNotFoundException {
+        Class.forName(getDbDriver());
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(getDbConnUrl(), getDbUserName(), getDbPassword());
     }
 
     @Override

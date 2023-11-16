@@ -33,7 +33,9 @@ public class DbDcUtil {
     public static final String DEFAULT_DB_ENTITY_TYPE = "DATABASE";
     public static final String DB_NAME = "db.name";
     public static final String DB_VERSION = "db.version";
-
+    public static final String DB_TENANT_ID = "db.tenant.id";
+    public static final String DB_TENANT_NAME = "db.tenant.name";
+    public static final String DB_ENTITY_PARENT_ID = "db.entity.parent.id";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE = "instana.sensor-sdk.dc.db";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE_VER = "1.0.0";
 
@@ -171,6 +173,25 @@ public class DbDcUtil {
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "getSimpleMetricWithSql: Error occurred", e);
+            return null;
+        }
+    }
+
+    public static String getSimpleStringWithSql(Connection connection, String queryStr) {
+        try {
+            ResultSet rs = executeQuery(connection, queryStr);
+            if (rs.isClosed()) {
+                logger.severe("getSimpleStringWithSql: ResultSet is closed");
+                return null;
+            }
+            if (rs.next()) {
+                return rs.getString(1);
+            } else {
+                logger.log(Level.WARNING, "getSimpleStringWithSql: No result");
+                return null;
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "getSimpleStringWithSql: Error occurred", e);
             return null;
         }
     }

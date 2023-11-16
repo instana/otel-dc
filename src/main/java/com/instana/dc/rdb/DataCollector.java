@@ -16,8 +16,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.instana.dc.DcUtil.CONFIG_YAML;
-import static com.instana.dc.DcUtil.LOGGING_PROP;
+import static com.instana.dc.DcUtil.*;
 
 public class DataCollector {
     static {
@@ -32,7 +31,11 @@ public class DataCollector {
 
     private DataCollector() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-        dcConfig = objectMapper.readValue(new File(CONFIG_YAML), DcConfig.class);
+        String configFile = System.getenv(CONFIG_ENV);
+        if (configFile == null) {
+            configFile = CONFIG_YAML;
+        }
+        dcConfig = objectMapper.readValue(new File(configFile), DcConfig.class);
         int n = dcConfig.getInstances().size();
         dcs = new ArrayList<>(n);
         for (Map<String, String> props : dcConfig.getInstances()) {

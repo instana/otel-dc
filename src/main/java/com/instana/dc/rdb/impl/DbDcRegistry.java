@@ -15,6 +15,7 @@ public class DbDcRegistry {
     **/
     private final Map<String, Class<? extends AbstractDbDc>> map = new HashMap<String, Class<? extends AbstractDbDc>>() {{
         put("DAMENG", DamengDc.class);
+        put("OCEANBASE4", Oceanbase4Dc.class);
     }};
 
     public Class<? extends AbstractDbDc> findDatabaseDc(String dbSystem) throws DcException {

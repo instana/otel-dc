@@ -1,14 +1,15 @@
 #Database properties:
-db.system: dameng
-db.driver: dm.jdbc.driver.DmDriver
+db.system: Oceanbase4
+db.driver: com.mysql.jdbc.Driver
 
 instances:
   - db.address: 1.2.3.4
-    db.port: 5236
-    db.username: SYSDBA
-    db.password: VXMzcnBhODgq
-    db.connection.url: jdbc:dm://4.3.2.1:5236
-    db.name: myDB1
+    db.port: 2881
+    db.username: root@sys
+    db.password: MTIzNDU2
+    db.connection.url: jdbc:mysql://1.2.3.4:2881/oceanbase?autoReconnect=true&useSSL=false
+    db.name: oceanbase
+    db.entity.type: cluster
 
     #Data collector properties:
     poll.interval: 30
@@ -16,19 +17,25 @@ instances:
     otel.backend.url: http://127.0.0.1:4317
 
     #OTel properties:
-    otel.service.name: DamengDC1
+    otel.service.name: OBCluster1
+    otel.service.instance.id: cluster@OBCluster1
 
-  - db.address: 1.2.3.5
-    db.port: 5236
-    db.username: SYSDBA
-    db.password: VXMzcnBhODgq
-    db.connection.url: jdbc:dm://9.46.118.22:5236
-    db.name: myDB2
+  - db.address: 1.2.3.4
+    db.port: 2881
+    db.username: root@sys
+    db.password: MTIzNDU2
+    db.connection.url: jdbc:mysql://1.2.3.4:2881/oceanbase?autoReconnect=true&useSSL=false
+    db.name: oceanbase
+    db.entity.type: tenant
+    db.tenant.name: test
 
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
-    otel.backend.url: http://4.3.2.2:4317
+    otel.backend.url: http://127.0.0.1:4317
 
     #OTel properties:
-    otel.service.name: DamengDC2
+    otel.service.name: OBCluster1
+    otel.service.instance.id: test@OBCluster1
+    db.entity.parent.id: cluster@OBCluster1
+
