@@ -1,3 +1,7 @@
+/*
+ * (c) Copyright IBM Corp. 2023
+ * (c) Copyright Instana Inc.
+ */
 package com.instana.dc.rdb.impl;
 
 import com.instana.dc.CalculationMode;
@@ -82,6 +86,9 @@ public class Oceanbase4Dc extends AbstractDbDc {
                 getRawMetric(DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(conn, SQL_COUNT_SQL0));
                 getRawMetric(DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(conn, IO_READ_COUNT_SQL0));
                 getRawMetric(DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(conn, IO_WRITE_COUNT_SQL0));
+                getRawMetric(DB_TASK_WAIT_COUNT_NAME).setValue(getSimpleMetricWithSql(conn, TASK_WAIT_COUNT_SQL0));
+                getRawMetric(DB_TASK_AVG_WAIT_TIME_NAME).setValue(getSimpleMetricWithSql(conn, TASK_AVG_WAIT_TIME_SQL0));
+
                 getRawMetric(DB_CACHE_HIT_NAME).setValue(getMetricWithSql(conn, CACHE_HIT_SQL0, DB_CACHE_HIT_KEY));
                 getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(conn, SQL_ELAPSED_TIME_SQL0, DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
             } else if (isTenant) {
@@ -94,6 +101,9 @@ public class Oceanbase4Dc extends AbstractDbDc {
                 getRawMetric(DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(conn, withTenant(SQL_COUNT_SQL1)));
                 getRawMetric(DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(conn, withTenant(IO_READ_COUNT_SQL1)));
                 getRawMetric(DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(conn, withTenant(IO_WRITE_COUNT_SQL1)));
+                getRawMetric(DB_TASK_WAIT_COUNT_NAME).setValue(getSimpleMetricWithSql(conn, withTenant(TASK_WAIT_COUNT_SQL1)));
+                getRawMetric(DB_TASK_AVG_WAIT_TIME_NAME).setValue(getSimpleMetricWithSql(conn, withTenant(TASK_AVG_WAIT_TIME_SQL1)));
+
                 getRawMetric(DB_CACHE_HIT_NAME).setValue(getMetricWithSql(conn, withTenant(CACHE_HIT_SQL1), DB_CACHE_HIT_KEY));
                 getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(conn, withTenant(SQL_ELAPSED_TIME_SQL1), DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
             }

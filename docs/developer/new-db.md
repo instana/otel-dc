@@ -5,7 +5,7 @@
 A general idea to support a new Data Collector is to extends the AbstractDbDc class. By doing this, you can easily support all 
 predefined [Semantic Conventions](https://github.com/instana/otel-database-dc/tree/main/docs/semconv). You can also add your own custom metrics.
 Please refer to [code here](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DamengDc.java) as a good example.
-The second step is to add one line like [what DaMeng does to register a new Data Collector](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DbDcRegistry.java#L17) 
+The second step is to add one line like [How to register a new Data Collector named Dameng](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DbDcRegistry.java#L17) 
 with a new name of `db.system`. Then the Data Collector is available to users. 
 If you revise the `db.system` parameter of the configuration file `config/config.yaml` to be the new name of `db.system`,
 then the new Data Collector is in use.
@@ -20,14 +20,14 @@ and add its own logic if required. Here is the example code:
 ```java
 public DamengDc(Map<String, String> properties, String dbSystem, String dbDriver) throws SQLException {
     super(properties, dbSystem, dbDriver);
-    setDbPassword(DamengUtil.decodePassword(getDbPassword()));
-    getDbNameAndVersion();
-    if (getServiceInstanceId() == null)
+    setDbPassword(DcUtil.base64Decode(getDbPassword()));
+    findDbNameAndVersion();
+    if (getServiceInstanceId() == null) {
         setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
     }
 }
 
-private void getDbNameAndVersion() throws SQLException {
+private void findDbNameAndVersion() throws SQLException {
     try (Connection connection = getConnection()) {
         ResultSet rs = DbDcUtil.executeQuery(connection, DB_NAME_VERSION_SQL);
         rs.next();
@@ -40,36 +40,28 @@ private void getDbNameAndVersion() throws SQLException {
 
 Here is the list of redefined database and OTel parameters:
 
-| Parameter                | Description                                          | Example (case insensitive) |
-|--------------------------|------------------------------------------------------|----------------------------|
-| db.system                | The target database system (case insensitive)        | dameng                     |  
-| db.driver                | The JDBC Java class                                  | dm.jdbc.driver.DmDriver    |  
-| db.address               | The IP address of the target database                | 1.2.3.4                    |  
-| db.port                  | The IP port of the target database                   | 5236                       |  
-| db.username              | The user name of the target database                 | SYSDBA                     |  
-| db.password              | The password of the target database                  | xxxx                       |  
-| db.connection.url        | The connection URL of the target database            | jdbc:dm://9.46.118.22:5236 |  
-| db.name                  | The name of the target database                      | MYDB                       |  
-| db.version               | The version of the target database                   | V8                         |  
-| otel.backend.url         | The otlp/grpc URL of the OTel Backend                | http://127.0.0.1:4317      |  
-| otel.service.name        | The OTel Service name                                | DamengDC                   |  
-| otel.service.instance.id | The OTel Service instance ID                         | 1.2.3.4:5236@MYDB          |  
-| poll.interval            | The time interval in seconds to query metrics        | 20                         |  
-| callback.interval        | The time interval in seconds to post data to backend | 30                         |  
+| Parameter                | Description                                                                                                         | Example (case insensitive) |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------|----------------------------|
+| db.system                | The target database system (case insensitive)                                                                       | dameng                     |  
+| db.driver                | The JDBC Java class                                                                                                 | dm.jdbc.driver.DmDriver    |  
+| db.address               | The IP address of the target database                                                                               | 1.2.3.4                    |  
+| db.port                  | The IP port of the target database                                                                                  | 5236                       |  
+| db.username              | The user name of the target database                                                                                | SYSDBA                     |  
+| db.password              | The password of the target database                                                                                 | xxxx                       |  
+| db.connection.url        | The connection URL of the target database                                                                           | jdbc:dm://9.46.118.22:5236 |  
+| db.name                  | The name of the target database                                                                                     | MYDB                       |  
+| db.version               | The version of the target database (usually it can be read with code)                                               | V8                         |  
+| db.entity.type           | The default value is DATABASE. It can be any name like instance, cluster, tenant...                                 | database                   |  
+| otel.backend.url         | The otlp/grpc URL of the OTel Backend                                                                               | http://127.0.0.1:4317      |  
+| otel.service.name        | The OTel Service name (It is requred by OTel)                                                                       | DamengDC                   |  
+| otel.service.instance.id | The OTel Service instance ID (which is ID of this database entity. It can be generated by DC if it is not provided) | 1.2.3.4:5236@MYDB          |  
+| poll.interval            | The time interval in seconds to query metrics                                                                       | 20                         |  
+| callback.interval        | The time interval in seconds to post data to backend                                                                | 30                         |  
+| db.entity.parent.id      | It there is a parent of this entity, set to the otel.service.instance.id of the parent                              | cluster@OBCluster1         |  
 
 Note: All Database parameters are optional. The only requirement is to successfully make the JDBC connection. 
 Some parameters can be generated from parameters provided in "config/config.yaml" file. 
 The above parameters are used to create OTel resource attributes along with the OTel metrics.   
-
-### Add the code to get database connection
-
-Simply implement the `getConnection()` method of AbstractDbDc class. Here is the example code:
-```java
-@Override
-public Connection getConnection() throws SQLException, ClassNotFoundException {
-    return DriverManager.getConnection(getDbConnUrl(), getDbUserName(), getDbPassword());
-}
-```
 
 ### Add additional actions after OTel metrics registration
 
