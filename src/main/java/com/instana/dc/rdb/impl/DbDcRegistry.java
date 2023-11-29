@@ -6,15 +6,17 @@ package com.instana.dc.rdb.impl;
 
 import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.DcException;
+import com.instana.dc.rdb.impl.informix.InformixDc;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class DbDcRegistry {
     /* Add all DataCollector implementations here:
-    **/
+     **/
     private final Map<String, Class<? extends AbstractDbDc>> map = new HashMap<String, Class<? extends AbstractDbDc>>() {{
         put("DAMENG", DamengDc.class);
+        put("INFORMIX", InformixDc.class);
     }};
 
     public Class<? extends AbstractDbDc> findDatabaseDc(String dbSystem) throws DcException {

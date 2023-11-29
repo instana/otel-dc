@@ -11,6 +11,7 @@ import com.instana.dc.rdb.impl.DbDcRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -41,11 +42,21 @@ public class DataCollector {
         if (!dcs.isEmpty()) {
             dcs.get(0).initOnce();
         }
+        //Informix
+        Map<String, Object> informixConfig = dcConfig.getInformix();
+        Map<String, Object> systemProps = (Map<String, Object>) informixConfig.get("system.info");
+        List<Map<String, String>> instances = (List<Map<String, String>>) informixConfig.get("instances");
+        for (Map<String, String> instanceProps : instances) {
+            dcs.add(newDc(systemProps, instanceProps));
+        }
     }
 
     private IDbDc newDc(Map<String, String> props) throws Exception {
-        return new DbDcRegistry().findDatabaseDc(dcConfig.getDbSystem()).getConstructor(Map.class, String.class, String.class)
-                .newInstance(props, dcConfig.getDbSystem(), dcConfig.getDbDriver());
+        return new DbDcRegistry().findDatabaseDc(dcConfig.getDbSystem()).getConstructor(Map.class, String.class, String.class).newInstance(props, dcConfig.getDbSystem(), dcConfig.getDbDriver());
+    }
+
+    private IDbDc newDc(Map<String, Object> systemProps, Map<String, String> instanceProps) throws Exception {
+        return new DbDcRegistry().findDatabaseDc((String) systemProps.get("db.system")).getConstructor(Map.class, Map.class).newInstance(systemProps, instanceProps);
     }
 
     public static void main(String[] args) {
@@ -82,6 +93,8 @@ public class DataCollector {
         private String dbDriver;
         private final List<Map<String, String>> instances = new ArrayList<>();
 
+        private final Map<String, Object> informix = new HashMap<>();
+
         public String getDbSystem() {
             return dbSystem;
         }
@@ -92,6 +105,10 @@ public class DataCollector {
 
         public List<Map<String, String>> getInstances() {
             return instances;
+        }
+
+        public Map<String, Object> getInformix() {
+            return informix;
         }
 
         public void setDbSystem(String dbSystem) {

@@ -79,6 +79,28 @@ public abstract class AbstractDbDc implements IDbDc {
         dbVersion = properties.get(DB_VERSION);
     }
 
+    public AbstractDbDc(Map<String, Object> systemProps, Map<String, String> instanceProps) {
+        this.dbSystem = (String) systemProps.get(DB_SYSTEM);
+        this.dbDriver = (String) systemProps.get(DB_DRIVER);
+        pollInterval = (int) systemProps.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
+        callbackInterval = (int) systemProps.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
+        otelBackendUrl = (String) systemProps.get(OTEL_BACKEND_URL);
+        serviceName = (String) systemProps.get(OTEL_SERVICE_NAME);
+        serviceInstanceId = (String) systemProps.get(OTEL_SERVICE_INSTANCE_ID);
+
+        dbAddress = instanceProps.get("db.host");
+        dbPort = Long.parseLong(String.valueOf(instanceProps.get(DB_PORT)));
+        dbConnUrl = instanceProps.get(DB_CONN_URL);
+        dbUserName = instanceProps.get(DB_USERNAME);
+        dbPassword = instanceProps.get(DB_PASSWORD);
+        dbEntityType = instanceProps.get(DB_ENTITY_TYPE);
+        if (dbEntityType == null) {
+            dbEntityType = DEFAULT_DB_ENTITY_TYPE;
+        }
+        dbName = instanceProps.get(DB_NAME);
+        dbVersion = instanceProps.get(DB_VERSION);
+    }
+
     private Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName,

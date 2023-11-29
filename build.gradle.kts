@@ -22,6 +22,8 @@ dependencies {
 
     implementation(files("DmJdbcDriver18.jar"))
     implementation(files("otel-sensorsdk-database-1.0.2.jar"))
+
+    implementation("com.ibm.informix:jdbc:4.50.10")
 }
 
 application {
