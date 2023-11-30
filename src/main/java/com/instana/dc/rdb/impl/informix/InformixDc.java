@@ -22,6 +22,7 @@ import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.BLOCKER_SES
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.BLOCKING_SESS_ID;
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.LOCKED_OBJ_NAME;
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.SQL_TEXT;
+import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
 import static com.instana.dc.rdb.DbDcUtil.DB_CACHE_HIT_KEY;
 import static com.instana.dc.rdb.DbDcUtil.DB_CACHE_HIT_NAME;
 import static com.instana.dc.rdb.DbDcUtil.DB_CPU_UTILIZATION_NAME;
@@ -155,11 +156,17 @@ public class InformixDc extends AbstractDbDc {
         try (Connection con = getConnection()) {
 
             getRawMetric(DB_STATUS_NAME).setValue(1);
-            getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.AVAILABLE_SERVERS));
+              getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.AVAILABLE_SERVERS));
             getRawMetric(DB_SESSION_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.ACTIVE_SESSION));
             getRawMetric(DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_READ_COUNT_SQL));
             getRawMetric(DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_WRITE_COUNT_SQL));
             getRawMetric(DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.MEMORY_UTILIZATION_SQL));
+
+            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_SIZE_SQL,DB_TABLESPACE_SIZE_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_USED_SQL,DB_TABLESPACE_USED_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_UTILIZATION_SQL,DB_TABLESPACE_UTILIZATION_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_MAX_SQL,DB_TABLESPACE_MAX_KEY));
+            
 
             /*
             getRawMetric(DB_STATUS_NAME).setValue(1);

@@ -45,6 +45,7 @@ public class DbDcUtil {
 
     public static final String DB_STATUS_NAME = DB_STATUS.getKey();
     public static final String DB_STATUS_DESC = "The status of the database";
+
     public static final String DB_STATUS_UNIT = "{status}";
 
     public static final String DB_INSTANCE_COUNT_NAME = DB_INSTANCE_COUNT.getKey();
@@ -149,6 +150,9 @@ public class DbDcUtil {
     public static final String DB_BACKUP_CYCLE_DESC = "Backup cycle";
 
 
+    public static final String TABLE_SPACE = "Table Space Utilization";
+
+
     /* Utilities:
      **/
     public static ResultSet executeQuery(Connection connection, String query) throws SQLException {
@@ -212,13 +216,13 @@ public class DbDcUtil {
                 int n = 1;
                 SimpleQueryResult result = new SimpleQueryResult((Number) rs.getObject(n));
                 for (String attr : attrs) {
-                    n++;
+                    // n++;
                     Object obj = rs.getObject(n);
                     if (obj == null) {
                         obj = "null";
                     }
                     result.getAttributes().put(attr, obj);
-                    if (n == 2) {
+                    if (n == 1) {
                         result.setKey(obj.toString());
                     }
                 }

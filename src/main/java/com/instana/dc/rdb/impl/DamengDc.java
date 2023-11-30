@@ -86,6 +86,7 @@ public class DamengDc extends AbstractDbDc {
 
             getRawMetric(DB_CACHE_HIT_NAME).setValue(getMetricWithSql(con, CACHE_HIT_SQL, DB_CACHE_HIT_KEY));
             getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(con, SQL_ELAPSED_TIME_SQL, DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
+             getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(con, SQL_ELAPSED_TIME_SQL, DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
             getRawMetric(DB_LOCK_COUNT_NAME).setValue(getMetricWithSql(con, LOCK_COUNT_SQL, DB_LOCK_COUNT_KEY));
             getRawMetric(DB_LOCK_TIME_NAME).setValue(getMetricWithSql(con, LOCK_TIME_SQL, DB_LOCK_TIME_KEY, BLOCKING_SESS_ID.getKey(), BLOCKER_SESS_ID.getKey(), LOCKED_OBJ_NAME.getKey()));
 
@@ -94,6 +95,8 @@ public class DamengDc extends AbstractDbDc {
             getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, TABLESPACE_UTILIZATION_SQL, DB_TABLESPACE_UTILIZATION_KEY));
             getRawMetric(DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, TABLESPACE_MAX_SQL, DB_TABLESPACE_MAX_KEY));
             getRawMetric(DB_CPU_UTILIZATION_NAME).setValue(getSimpleMetricWithSql(con, CPU_UTILIZATION_SQL));
+         
+         
             List<Long> listMemData = getSimpleListWithSql(con, MEM_UTILIZATION_SQL);
             if (listMemData != null) {
                 getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((double) listMemData.get(0) / listMemData.get(1));
