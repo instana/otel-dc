@@ -216,13 +216,13 @@ public class DbDcUtil {
                 int n = 1;
                 SimpleQueryResult result = new SimpleQueryResult((Number) rs.getObject(n));
                 for (String attr : attrs) {
-                    // n++;
+                      n++;
                     Object obj = rs.getObject(n);
                     if (obj == null) {
                         obj = "null";
                     }
                     result.getAttributes().put(attr, obj);
-                    if (n == 1) {
+                    if (n == 2) {
                         result.setKey(obj.toString());
                     }
                 }
