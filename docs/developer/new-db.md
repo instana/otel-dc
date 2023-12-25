@@ -1,4 +1,4 @@
-# How to create a new data collector
+# How to create a new data collector for database
 
 ## Overview
 
