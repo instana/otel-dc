@@ -14,7 +14,8 @@ instances:
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
-    otel.backend.url: http://127.0.0.1:4317
+    otel.backend.url: http://4.3.2.1:4317
+    #otel.backend.url: http://127.0.0.1:4317
 
     #OTel properties:
     otel.service.name: OBCluster1
@@ -32,10 +33,10 @@ instances:
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
-    otel.backend.url: http://127.0.0.1:4317
+    otel.backend.url: http://4.3.2.1:4317
+    #otel.backend.url: http://127.0.0.1:4317
 
     #OTel properties:
     otel.service.name: OBCluster1
     otel.service.instance.id: test@OBCluster1
     db.entity.parent.id: cluster@OBCluster1
-

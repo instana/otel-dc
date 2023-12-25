@@ -15,6 +15,7 @@ import io.opentelemetry.sdk.resources.Resource;
 
 import java.lang.management.ManagementFactory;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -31,8 +32,11 @@ public class DcUtil {
     public final static String CALLBACK_INTERVAL = "callback.interval";
     public static final int DEFAULT_CALLBACK_INTERVAL = 60; //unit is second, send to backend
     public final static String OTEL_BACKEND_URL = "otel.backend.url";
+    public final static String DEFAULT_OTEL_BACKEND_URL = "http://127.0.0.1:4317";
     public final static String OTEL_SERVICE_NAME = "otel.service.name";
+    public final static String DEFAULT_OTEL_SERVICE_NAME = "odcd.default.service";
     public final static String OTEL_SERVICE_INSTANCE_ID = "otel.service.instance.id";
+    public final static String DEFAULT_OTEL_SERVICE_INSTANCE_ID = "odcd.default.id";
 
     //Standard environment variables;
     public static final String OTEL_RESOURCE_ATTRIBUTES = "OTEL_RESOURCE_ATTRIBUTES";
@@ -41,6 +45,7 @@ public class DcUtil {
     public static final String LOGGING_PROP = "config/logging.properties";
     public static final String CONFIG_YAML = "config/config.yaml";
     public static final String CONFIG_ENV = "DC_CONFIG";
+    public static final String INSTANA_PLUGIN = "INSTANA_PLUGIN";
 
 
     /* Data Collector Utilities:
@@ -113,22 +118,32 @@ public class DcUtil {
     public static void registerMetric(Meter meter, RawMetric rawMetric) {
         Consumer<ObservableLongMeasurement> recordLongMetric = measurement -> {
             rawMetric.purgeOutdatedDps();
-            for (Map.Entry<String, RawMetric.DataPoint> entry : rawMetric.getDataPoints().entrySet()) {
-                RawMetric.DataPoint dp = entry.getValue();
+            boolean clearDps = rawMetric.isClearDps();
+            Iterator<Map.Entry<String, RawMetric.DataPoint>> iterator = rawMetric.getDataPoints().entrySet().iterator();
+            while (iterator.hasNext()) {
+                RawMetric.DataPoint dp = iterator.next().getValue();
                 Long value = dp.getLongValue();
                 if (value == null)
                     continue;
                 measurement.record(value, convertMapToAttributes(dp.getAttributes()));
+                if (clearDps) {
+                    iterator.remove();
+                }
             }
         };
         Consumer<ObservableDoubleMeasurement> recordDoubleMetric = measurement -> {
             rawMetric.purgeOutdatedDps();
-            for (Map.Entry<String, RawMetric.DataPoint> entry : rawMetric.getDataPoints().entrySet()) {
-                RawMetric.DataPoint dp = entry.getValue();
+            boolean clearDps = rawMetric.isClearDps();
+            Iterator<Map.Entry<String, RawMetric.DataPoint>> iterator = rawMetric.getDataPoints().entrySet().iterator();
+            while (iterator.hasNext()) {
+                RawMetric.DataPoint dp = iterator.next().getValue();
                 Double value = dp.getDoubleValue();
                 if (value == null)
                     continue;
                 measurement.record(value, convertMapToAttributes(dp.getAttributes()));
+                if (clearDps) {
+                    iterator.remove();
+                }
             }
         };
 

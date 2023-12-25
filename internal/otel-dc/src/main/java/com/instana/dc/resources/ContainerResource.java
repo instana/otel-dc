@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.CONTAINER_ID;
+import static io.opentelemetry.semconv.ResourceAttributes.CONTAINER_ID;
 
 /**
  * Factory for {@link Resource} retrieving Container ID information. It supports both cgroup v1 and

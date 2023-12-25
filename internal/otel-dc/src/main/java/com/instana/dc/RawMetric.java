@@ -26,6 +26,7 @@ public class RawMetric {
     private static final long DEFAULT_OUTDATED_TIME = 125000L;
     private long outdatedTime = DEFAULT_OUTDATED_TIME;
     private static final String DEFAULT = "default";
+    private boolean clearDps = false;
 
     public RawMetric(InstrumentType instrumentType, String name, String description, String unit, boolean isInteger, String attributeKey) {
         this.instrumentType = instrumentType;
@@ -114,6 +115,15 @@ public class RawMetric {
                 getDataPoint(result.getKey()).setValue(result);
             }
         }
+        return this;
+    }
+
+    public boolean isClearDps() {
+            return clearDps;
+    }
+
+    public RawMetric setClearDps(boolean clearDps) {
+        this.clearDps = clearDps;
         return this;
     }
 

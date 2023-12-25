@@ -13,6 +13,7 @@ instances:
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
+    #otel.backend.url: http://9.112.252.66:4317
     otel.backend.url: http://127.0.0.1:4317
 
     #OTel properties:
@@ -28,8 +29,8 @@ instances:
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
+    #otel.backend.url: http://9.112.252.66:4317
     otel.backend.url: http://127.0.0.1:4317
 
     #OTel properties:
     otel.service.name: DamengDC2
-

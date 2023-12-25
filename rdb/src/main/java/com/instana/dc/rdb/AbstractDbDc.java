@@ -15,8 +15,8 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -66,9 +66,9 @@ public abstract class AbstractDbDc implements IDbDc {
         this.dbDriver = dbDriver;
 
         String pollInt = properties.get(POLLING_INTERVAL);
-        pollInterval = pollInt == null ? DEFAULT_POLL_INTERVAL : Integer.parseInt(properties.get(POLLING_INTERVAL));
+        pollInterval = pollInt == null ? DEFAULT_POLL_INTERVAL : Integer.parseInt(pollInt);
         String callbackInt = properties.get(CALLBACK_INTERVAL);
-        callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(properties.get(CALLBACK_INTERVAL));
+        callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(callbackInt);
         otelBackendUrl = properties.get(OTEL_BACKEND_URL);
         serviceName = properties.get(OTEL_SERVICE_NAME);
         serviceInstanceId = properties.get(OTEL_SERVICE_INSTANCE_ID);
@@ -101,7 +101,7 @@ public abstract class AbstractDbDc implements IDbDc {
                 )))
                 .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_INSTANCE_ID, serviceInstanceId,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DB_ENTITY_TYPE, dbEntityType,
-                        com.instana.agent.sensorsdk.semconv.ResourceAttributes.INSTANA_PLUGIN,
+                        stringKey(DcUtil.INSTANA_PLUGIN),
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DATABASE
                 )));
 
