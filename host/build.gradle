@@ -27,7 +27,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'com.instana.dc.rdb.DataCollector'
+    mainClass = 'com.instana.dc.host.DataCollector'
 }
 
 applicationDistribution.from("config") {
