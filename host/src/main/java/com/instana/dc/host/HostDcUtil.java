@@ -48,6 +48,76 @@ public class HostDcUtil {
     public static final String SYSTEM_CPU_LOAD15_DESC = "Average CPU Load over 15 minutes";
     public static final String SYSTEM_CPU_LOAD15_UNIT = UNIT_1;
 
+    public static final String SYSTEM_NETWORK_CONNECTIONS_NAME = "system.network.connections";
+    public static final String SYSTEM_NETWORK_CONNECTIONS_DESC = "The number of connections";
+    public static final String SYSTEM_NETWORK_CONNECTIONS_UNIT = "{connections}";
+
+    public static final String SYSTEM_NETWORK_DROPPED_NAME = "system.network.dropped";
+    public static final String SYSTEM_NETWORK_DROPPED_DESC = "The number of packets dropped";
+    public static final String SYSTEM_NETWORK_DROPPED_UNIT = "{packets}";
+
+    public static final String SYSTEM_NETWORK_ERRORS_NAME = "system.network.errors";
+    public static final String SYSTEM_NETWORK_ERRORS_DESC = "The number of errors encountered";
+    public static final String SYSTEM_NETWORK_ERRORS_UNIT = "{errors}";
+
+    public static final String SYSTEM_NETWORK_IO_NAME = "system.network.io";
+    public static final String SYSTEM_NETWORK_IO_DESC = "The number of bytes transmitted and received";
+    public static final String SYSTEM_NETWORK_IO_UNIT = UNIT_BY;
+
+    public static final String SYSTEM_NETWORK_PACKETS_NAME = "system.network.packets";
+    public static final String SYSTEM_NETWORK_PACKETS_DESC = "The number of packets transferred";
+    public static final String SYSTEM_NETWORK_PACKETS_UNIT = "{packets}";
+
+
+    public static final String SYSTEM_DISK_IO_NAME = "system.disk.io";
+    public static final String SYSTEM_DISK_IO_DESC = "Disk bytes transferred";
+    public static final String SYSTEM_DISK_IO_UNIT = UNIT_BY;
+
+    public static final String SYSTEM_DISK_IO_TIME_NAME = "system.disk.io_time";
+    public static final String SYSTEM_DISK_IO_TIME_DESC = "Time disk spent activated. On Windows, this is calculated as the inverse of disk idle time";
+    public static final String SYSTEM_DISK_IO_TIME_UNIT = UNIT_S;
+
+    public static final String SYSTEM_DISK_MERGED_NAME = "system.disk.merged";
+    public static final String SYSTEM_DISK_MERGED_DESC = "The number of disk reads/writes merged into single physical disk access operations";
+    public static final String SYSTEM_DISK_MERGED_UNIT = "{operations}";
+
+    public static final String SYSTEM_DISK_OPERATION_TIME_NAME = "system.disk.operation_time";
+    public static final String SYSTEM_DISK_OPERATION_TIME_DESC = "Time spent in disk operations";
+    public static final String SYSTEM_DISK_OPERATION_TIME_UNIT = UNIT_S;
+
+    public static final String SYSTEM_DISK_OPERATIONS_NAME = "system.disk.operations";
+    public static final String SYSTEM_DISK_OPERATIONS_DESC = "Disk operations count";
+    public static final String SYSTEM_DISK_OPERATIONS_UNIT = "{operations}";
+
+    public static final String SYSTEM_DISK_PENDING_OPERATIONS_NAME = "system.disk.pending_operations";
+    public static final String SYSTEM_DISK_PENDING_OPERATIONS_DESC = "The queue size of pending I/O operations";
+    public static final String SYSTEM_DISK_PENDING_OPERATIONS_UNIT = "{operations}";
+
+    public static final String SYSTEM_DISK_WEIGHTED_IO_TIME_NAME = "system.disk.weighted_io_time";
+    public static final String SYSTEM_DISK_WEIGHTED_IO_TIME_DESC = "Time disk spent activated multiplied by the queue length";
+    public static final String SYSTEM_DISK_WEIGHTED_IO_TIME_UNIT = UNIT_S;
+
+    public static final String SYSTEM_FILESYSTEM_INODES_USAGE_NAME = "system.filesystem.inodes.usage";
+    public static final String SYSTEM_FILESYSTEM_INODES_USAGE_DESC = "FileSystem inodes used";
+    public static final String SYSTEM_FILESYSTEM_INODES_USAGE_UNIT = "{inodes}";
+
+    public static final String SYSTEM_FILESYSTEM_USAGE_NAME = "system.filesystem.usage";
+    public static final String SYSTEM_FILESYSTEM_USAGE_DESC = "Filesystem bytes used";
+    public static final String SYSTEM_FILESYSTEM_USAGE_UNIT = UNIT_BY;
+
+    public static final String SYSTEM_PAGING_XXXX_NAME = "system.paging.faults";
+    public static final String SYSTEM_PAGING_XXXX_DESC = "The number of page faults";
+    public static final String SYSTEM_PAGING_XXXX_UNIT = "{faults}";
+
+    public static final String SYSTEM_PAGING_OPERATIONS_NAME = "system.paging.operations";
+    public static final String SYSTEM_PAGING_OPERATIONS_DESC = "The number of paging operations";
+    public static final String SYSTEM_PAGING_OPERATIONS_UNIT = "{operations}";
+
+    public static final String SYSTEM_PAGING_USAGE_NAME = "system.paging.usage";
+    public static final String SYSTEM_PAGING_USAGE_DESC = "Swap (unix) or pagefile (windows) usage";
+    public static final String SYSTEM_PAGING_USAGE_UNIT = UNIT_BY;
+
+
     public static String readFileText(String filePath) throws IOException {
         try (InputStream is = new FileInputStream(filePath)) {
             int n = is.available();

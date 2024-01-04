@@ -2,9 +2,16 @@ package com.instana.dc;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
+import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import io.opentelemetry.sdk.resources.Resource;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractDc implements IDc {
     private final Map<String, Meter> meters = new ConcurrentHashMap<>();
@@ -25,7 +32,7 @@ public abstract class AbstractDc implements IDc {
     }
 
     @Override
-    public void initMeters(OpenTelemetry openTelemetry){
+    public void initMeters(OpenTelemetry openTelemetry) {
         Meter defaultMeter = openTelemetry.meterBuilder("instana.otel.sensor.sdk").setInstrumentationVersion("1.0.0").build();
         meters.put(RawMetric.DEFAULT, defaultMeter);
     }
@@ -45,6 +52,17 @@ public abstract class AbstractDc implements IDc {
     @Override
     public Map<String, RawMetric> getRawMetricsMap() {
         return rawMetricsMap;
+    }
+
+    @Override
+    public SdkMeterProvider getDefaultSdkMeterProvider(Resource resource, String otelBackendUrl, long callbackInterval, boolean usingHTTP, long timeout) {
+        if (!usingHTTP)
+            return SdkMeterProvider.builder().setResource(resource)
+                    .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(timeout, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
+                    .build();
+        return SdkMeterProvider.builder().setResource(resource)
+                .registerMetricReader(PeriodicMetricReader.builder(OtlpHttpMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(timeout, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
+                .build();
     }
 
 }

@@ -27,6 +27,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     private static final Logger logger = Logger.getLogger(AbstractHostDc.class.getName());
 
     private final String otelBackendUrl;
+    private final boolean otelUsingHttp;
     private final int pollInterval;
     private final int callbackInterval;
     private final String serviceName;
@@ -42,6 +43,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         String callbackInt = properties.get(CALLBACK_INTERVAL);
         callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(callbackInt);
         otelBackendUrl = properties.get(OTEL_BACKEND_URL);
+        otelUsingHttp = "true".equalsIgnoreCase(properties.get(OTEL_BACKEND_USING_HTTP));
         String svcName = properties.get(OTEL_SERVICE_NAME);
         serviceName = svcName == null ? hostSystem : svcName;
     }
@@ -53,9 +55,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     @Override
     public void initDC() throws Exception {
         Resource resource = getResourceAttributes();
-        SdkMeterProvider sdkMeterProvider = SdkMeterProvider.builder().setResource(resource)
-                .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(10, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
-                .build();
+        SdkMeterProvider sdkMeterProvider = this.getDefaultSdkMeterProvider(resource, otelBackendUrl, callbackInterval, otelUsingHttp, 10);
         OpenTelemetry openTelemetry = OpenTelemetrySdk.builder().setMeterProvider(sdkMeterProvider).build();
         initMeters(openTelemetry);
         registerMetrics();

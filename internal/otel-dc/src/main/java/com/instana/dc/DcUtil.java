@@ -32,6 +32,7 @@ public class DcUtil {
     public final static String CALLBACK_INTERVAL = "callback.interval";
     public static final int DEFAULT_CALLBACK_INTERVAL = 60; //unit is second, send to backend
     public final static String OTEL_BACKEND_URL = "otel.backend.url";
+    public final static String OTEL_BACKEND_USING_HTTP = "otel.backend.using.http";
     public final static String DEFAULT_OTEL_BACKEND_URL = "http://127.0.0.1:4317";
     public final static String OTEL_SERVICE_NAME = "otel.service.name";
     public final static String DEFAULT_OTEL_SERVICE_NAME = "odcd.default.service";

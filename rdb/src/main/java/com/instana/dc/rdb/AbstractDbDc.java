@@ -10,10 +10,8 @@ import com.instana.dc.IDc;
 import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
 import io.opentelemetry.semconv.SemanticAttributes;
@@ -23,7 +21,6 @@ import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +48,8 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private String dbTenantName;
 
     private final String otelBackendUrl;
+    private final boolean otelUsingHttp;
+
     private final int pollInterval;
     private final int callbackInterval;
     private final String serviceName;
@@ -70,6 +69,8 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         String callbackInt = properties.get(CALLBACK_INTERVAL);
         callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(callbackInt);
         otelBackendUrl = properties.get(OTEL_BACKEND_URL);
+        otelUsingHttp = "true".equalsIgnoreCase(properties.get(OTEL_BACKEND_USING_HTTP));
+
         serviceName = properties.get(OTEL_SERVICE_NAME);
         serviceInstanceId = properties.get(OTEL_SERVICE_INSTANCE_ID);
         dbEntityParentId = properties.get(DB_ENTITY_PARENT_ID);
@@ -242,9 +243,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     @Override
     public void initDC() throws Exception {
         Resource resource = getResourceAttributes();
-        SdkMeterProvider sdkMeterProvider = SdkMeterProvider.builder().setResource(resource)
-                .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(10, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
-                .build();
+        SdkMeterProvider sdkMeterProvider = this.getDefaultSdkMeterProvider(resource, otelBackendUrl, callbackInterval, otelUsingHttp, 10);
         OpenTelemetry openTelemetry = OpenTelemetrySdk.builder().setMeterProvider(sdkMeterProvider).build();
         initMeters(openTelemetry);
         registerMetrics();

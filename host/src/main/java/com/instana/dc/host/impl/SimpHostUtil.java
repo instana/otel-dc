@@ -181,7 +181,7 @@ public class SimpHostUtil {
     private static void addMemUsageResult(Map<String, Long> map, List<SimpleQueryResult> results, String oldKey, String newKey) {
         Long value = map.get(oldKey);
         if (value != null) {
-            SimpleQueryResult result = new SimpleQueryResult(value);
+            SimpleQueryResult result = new SimpleQueryResult(value * 1000L);
             result.setKey(newKey);
             result.setAttribute("state", newKey);
             results.add(result);
@@ -209,7 +209,7 @@ public class SimpHostUtil {
         Long free = map.get("MemFree");
         Long total = map.get("MemTotal");
         if (free != null && total != null) {
-            SimpleQueryResult result = new SimpleQueryResult(total - free);
+            SimpleQueryResult result = new SimpleQueryResult((total - free) * 1000L);
             result.setKey("used");
             result.setAttribute("state", "used");
             results.add(result);
