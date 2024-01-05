@@ -49,7 +49,8 @@ informix:
     - db.host: 9.46.251.113
       db.port: 9088
       db.serverName: ol_informix1410
-      db.user: root
-      db.password: SGFwcHlAZnlyZUBuZWhhMjAyMQ==
+      db.user: informix
+      db.password: cGFzc3dvcmQ=
       db.name: TestInformixDB
-      #db.password: Happy@fyre@neha2021
+      #db.user: root
+      #db.password: Happy@fyre@neha2021  -   SGFwcHlAZnlyZUBuZWhhMjAyMQ==

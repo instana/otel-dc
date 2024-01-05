@@ -12,76 +12,18 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.BLOCKER_SESS_ID;
-import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.BLOCKING_SESS_ID;
-import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.LOCKED_OBJ_NAME;
-import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.SQL_TEXT;
-import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
-import static com.instana.dc.rdb.DbDcUtil.DB_CACHE_HIT_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_CACHE_HIT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_CPU_UTILIZATION_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_DISK_USAGE_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_DISK_UTILIZATION_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_INSTANCE_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_IO_READ_RATE_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_IO_WRITE_RATE_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_LOCK_COUNT_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_LOCK_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_LOCK_TIME_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_LOCK_TIME_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_MEM_UTILIZATION_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_SESSION_ACTIVE_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_SESSION_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_SQL_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_SQL_ELAPSED_TIME_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_SQL_ELAPSED_TIME_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_SQL_RATE_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_STATUS_NAME;
 import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_MAX_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_MAX_NAME;
 import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_SIZE_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_SIZE_NAME;
 import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_USED_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_USED_NAME;
 import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_UTILIZATION_KEY;
-import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_TASK_AVG_WAIT_TIME_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_TASK_WAIT_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_TRANSACTION_COUNT_NAME;
-import static com.instana.dc.rdb.DbDcUtil.DB_TRANSACTION_LATENCY_NAME;
 import static com.instana.dc.rdb.DbDcUtil.DB_TRANSACTION_RATE_NAME;
 import static com.instana.dc.rdb.DbDcUtil.getMetricWithSql;
-import static com.instana.dc.rdb.DbDcUtil.getSimpleListWithSql;
 import static com.instana.dc.rdb.DbDcUtil.getSimpleMetricWithSql;
-import static com.instana.dc.rdb.impl.DamengUtil.CACHE_HIT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.CPU_UTILIZATION_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.DISK_USAGE_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.INSTANCE_ACTIVE_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.INSTANCE_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.IO_READ_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.IO_WRITE_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.LOCK_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.LOCK_TIME_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.MEM_UTILIZATION_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.SESSION_ACTIVE_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.SESSION_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.SQL_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.SQL_ELAPSED_TIME_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.TABLESPACE_MAX_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.TABLESPACE_SIZE_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.TABLESPACE_USED_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.TABLESPACE_UTILIZATION_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.TASK_AVG_WAIT_TIME_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.TASK_WAIT_COUNT_SQL;
 import static com.instana.dc.rdb.impl.DamengUtil.TRANSACTION_COUNT_SQL;
-import static com.instana.dc.rdb.impl.DamengUtil.TRANSACTION_LATENCY_SQL;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
@@ -155,18 +97,23 @@ public class InformixDc extends AbstractDbDc {
         logger.info("Start to collect metrics for Informix DB");
         try (Connection con = getConnection()) {
 
-            getRawMetric(DB_STATUS_NAME).setValue(1);
-              getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.AVAILABLE_SERVERS));
-            getRawMetric(DB_SESSION_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.ACTIVE_SESSION));
-            getRawMetric(DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_READ_COUNT_SQL));
-            getRawMetric(DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_WRITE_COUNT_SQL));
-            getRawMetric(DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.MEMORY_UTILIZATION_SQL));
+            getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(1);
+            getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.INSTANCE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.INSTANCE_ACTIVE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SESSION_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.ACTIVE_SESSION));
+            getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_READ_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_WRITE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.MEMORY_UTILIZATION_SQL));
 
-            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_SIZE_SQL,DB_TABLESPACE_SIZE_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_USED_SQL,DB_TABLESPACE_USED_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_UTILIZATION_SQL,DB_TABLESPACE_UTILIZATION_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_MAX_SQL,DB_TABLESPACE_MAX_KEY));
-            
+            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_SIZE_SQL, DB_TABLESPACE_SIZE_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_USED_SQL, DB_TABLESPACE_USED_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_UTILIZATION_SQL, DB_TABLESPACE_UTILIZATION_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_MAX_SQL, DB_TABLESPACE_MAX_KEY));
+
+            getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.SQL_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.SQL_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_TRANSACTION_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.TRANSACTION_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_TRANSACTION_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.TRANSACTION_COUNT_SQL));
 
             /*
             getRawMetric(DB_STATUS_NAME).setValue(1);
