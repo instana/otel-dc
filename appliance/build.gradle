@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = "com.instana.dc"
+version = "0.0.1"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.google.guava:guava:33.0.0-jre")
+    implementation("io.opentelemetry:opentelemetry-api:1.33.0")
+    implementation("io.opentelemetry:opentelemetry-sdk-common:1.33.0")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.33.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-common:1.33.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.33.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-sender-okhttp:1.33.0")
+    implementation("io.opentelemetry.semconv:opentelemetry-semconv:1.23.1-alpha")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
+    implementation(files("libs/otel-dc-0.9.4.jar"))
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+}
+
+application {
+    mainClass = 'com.instana.dc.appliance.DataCollector'
+}
+
+applicationDistribution.from("config") {
+    into "config"
+}
+
+test {
+    useJUnitPlatform()
+}

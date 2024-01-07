@@ -1,0 +1,13 @@
+appliance.system: mq_appliance
+
+instances:
+  - appliance.host: mqappliance1.tivlab.raleigh.ibm.com
+    appliance.port: 5554
+    appliance.user: admin
+    appliance.password: Ams49test
+
+    #Data collector properties:
+    poll.interval: 30
+    callback.interval: 20
+    otel.backend.url: http://amsdevut1.fyre.ibm.com:4317
+
