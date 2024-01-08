@@ -30,23 +30,11 @@ public class InformixUtil {
     public static final String SQL_COUNT_SQL = "SELECT count(1) from syssqltrace;";
     public static final String TRANSACTION_COUNT_SQL = "select count(1) from systxptab;";
 
-    public static final String TABLE_SPACE_VALUE = "SELECT" +
-            "tn.dbsname," +
-            "tn.tabname," +
-            "(pt.nptotal * pt.pagesize) /1024 as total_kb," +
-            "(pt.npused  * pt.pagesize) /1024 as used_kb," +
-            "((pt.nptotal - pt.npused) * pt.pagesize) /1024 AS free_kb," +
-            "((pt.npused) /pt.nptotal) * 100 AS table_utilization" +
-            "FROM sysmaster:sysptnhdr pt" +
-            "LEFT JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum" +
-            "WHERE (tn.dbsname not in ('sysmaster' , 'sysadmin' , 'sysuser', 'sysutils'));";
-
-    public static final String TABLESPACE_SIZE_SQL = "SELECT(pt.nptotal * pt.pagesize) /1024 AS total_kb,tabname FROM sysmaster:sysptnhdr pt LEFT JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum order by tabname desc;";
-
-    public static final String TABLESPACE_USED_SQL = "SELECT(pt.npused  * pt.pagesize) /1024 AS used_kb,tabname FROM sysmaster:sysptnhdr pt LEFT JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum WHERE (tn.dbsname NOT IN ('sysmaster' , 'sysadmin' , 'sysuser', 'sysutils'))order by tabname desc;";
-
-    public static final String TABLESPACE_UTILIZATION_SQL = "SELECT((pt.npused) /pt.nptotal) * 100 AS table_utilization,tabname FROM sysmaster:sysptnhdr pt LEFT JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum WHERE (tn.dbsname NOT IN ('sysmaster' , 'sysadmin' , 'sysuser', 'sysutils'))order by tabname desc;";
-    public static final String TABLESPACE_MAX_SQL = "SELECT(pt.nptotal * pt.pagesize) /1024 AS total_kb, tabname FROM sysmaster:sysptnhdr pt LEFT JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum order by tabname desc;";
+    //Table Space Queries
+    public static final String TABLESPACE_SIZE_SQL = "SELECT(pt.nptotal * pt.pagesize) /1024 AS total_kb,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
+    public static final String TABLESPACE_USED_SQL = "SELECT(pt.npused  * pt.pagesize) /1024 AS used_kb,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
+    public static final String TABLESPACE_UTILIZATION_SQL = "SELECT((pt.npused) /pt.nptotal) * 100 AS table_utilization,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
+    public static final String TABLESPACE_MAX_SQL = "SELECT(pt.nptotal * pt.pagesize) /1024 AS total_kb, tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
 
     public static String decodePassword(String encodedPwd) {
         return new String(Base64.getDecoder().decode(encodedPwd));

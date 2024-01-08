@@ -39,7 +39,7 @@ informix:
   system.info:
     db.system: informix
     db.driver: com.informix.jdbc.IfxDriver
-    poll.interval: 30
+    poll.interval: 10
     callback.interval: 20
     #otel.backend.url:
     otel.backend.url: http://127.0.0.1:4317
