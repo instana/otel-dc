@@ -28,7 +28,7 @@ public class InformixUtil {
     public static final String MEMORY_UTILIZATION_SQL = "SELECT (sum(seg_blkused) * 100) / (sum(seg_blkused) + sum(seg_blkfree)) FROM SYSSEGLST;";
 
     public static final String SQL_COUNT_SQL = "SELECT count(1) from syssqltrace;";
-    public static final String TRANSACTION_COUNT_SQL = "select count(1) from systxptab;";
+    public static final String TRANSACTION_COUNT_SQL = "select count(1) from systrans;";
 
     //Table Space Queries
     public static final String TABLESPACE_SIZE_SQL = "SELECT(pt.nptotal * pt.pagesize) /1024 AS total_kb,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
