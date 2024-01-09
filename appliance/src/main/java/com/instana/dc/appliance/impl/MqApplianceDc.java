@@ -10,6 +10,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -28,11 +29,7 @@ public class MqApplianceDc extends AbstractApplianceDc {
     }
 
     public String getHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            return "UnknownName";
-        }
+        return applianceHost;
     }
 
     public String getApplianceId() {
@@ -55,7 +52,7 @@ public class MqApplianceDc extends AbstractApplianceDc {
 
         resource = resource.merge(
                 Resource.create(Attributes.of(ResourceAttributes.HOST_NAME, applianceName,
-                        ResourceAttributes.OS_TYPE, "linux",
+                        ResourceAttributes.OS_TYPE, "MQ Appliance",
                         ResourceAttributes.HOST_ID, getApplianceId()
                 ))
         );
@@ -66,16 +63,20 @@ public class MqApplianceDc extends AbstractApplianceDc {
     @Override
     public void collectData() {
         logger.info("Start to collect metrics");
-        getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getCpuTimeResults());
-        getRawMetric(SYSTEM_MEMORY_USAGE_NAME).setValue(MqApplianceUtil.getMemUsageResults());
-
-        List<Double> loads;
+        //getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getCpuTimeResults())
         try {
-            loads = MqApplianceUtil.getLoadAvgInfo();
-            getRawMetric(SYSTEM_CPU_LOAD1_NAME).setValue(loads.get(0));
-            getRawMetric(SYSTEM_CPU_LOAD5_NAME).setValue(loads.get(1));
-            getRawMetric(SYSTEM_CPU_LOAD15_NAME).setValue(loads.get(2));
-        } catch (Exception e) {
+            String line = bufferedReader.readLine();
+            if (line != null) {
+                logger.info("Data collected: " + line);
+                String[] tokens = line.split(";");
+                if (tokens.length == 6) {
+                    getRawMetric(SYSTEM_CPU_LOAD1_NAME).setValue(Double.parseDouble(tokens[1]));
+                    getRawMetric(SYSTEM_CPU_LOAD5_NAME).setValue(Double.parseDouble(tokens[2]));
+                    getRawMetric(SYSTEM_CPU_LOAD15_NAME).setValue(Double.parseDouble(tokens[3]));
+                    getRawMetric(SYSTEM_MEMORY_USAGE_NAME).setValue(MqApplianceUtil.getApplianceMemUsageResults(Long.valueOf(tokens[4]), Long.valueOf(tokens[5])));
+                }
+            }
+        } catch (IOException e) {
             logger.severe("Cannot record loads: " + e.getMessage());
         }
     }

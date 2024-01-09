@@ -1,0 +1,104 @@
+#!/usr/bin/expect -f
+
+#
+# (c) Copyright IBM Corp. 2023
+# (c) Copyright Instana Inc.
+#
+
+# Uncomment to suppress normal output to stdout
+log_user 0
+
+set timeout 120
+
+set appliance1 [lindex $argv 0]
+set appliance1_name "Appliance1"
+set userid [lindex $argv 1]
+set password [lindex $argv 2]
+set pollInterval [lindex $argv 3]
+
+set appliance_metrics       ""
+
+proc sshLogin {id userid password namevar} {
+    upvar 1 $namevar name
+    expect -i $id "login:"
+    send -i $id "${userid}\n"
+    expect -i $id "Password:"
+    send -i $id "${password}\n"
+    expect -i $id "#"
+    send -i $id "show system\n"
+    expect -i $id "#"
+    set lines [split $expect_out(buffer) \n]
+    set variable [lindex $lines 1]
+    foreach line $lines {
+        set current_line $line
+        if {[string match "*name*" ${current_line}]} {
+            regexp ".* name: (.*)\r" $current_line matched_line name
+        }
+    }
+    return 0
+}
+
+proc sshLogout {id} {
+    send -i $id "exit\n"
+    expect -i $id "#"
+    send -i $id "exit\n"
+    expect -i $id eof
+    return 0
+}
+
+proc getSystemMetrics {id ip name} {
+    global appliance_metrics
+    set cpu_usage               ""
+    set cpu_load_ave_1m         ""
+    set cpu_load_ave_5m         ""
+    set cpu_load_ave_15m        ""
+    set used_mem               	""
+    set free_mem               	""
+
+    send -i $id "show system-cpu\n"
+    expect -i $id "#"
+    set lines [split $expect_out(buffer) \n]
+    set variable [lindex $lines 1]
+    foreach line $lines {
+        set current_line $line
+        if {[string match "*usage*" ${current_line}]} {
+            regexp "usage: *(.*) %" $current_line matched_line cpu_usage
+        } elseif {[string match "*(1m)*" ${current_line}]} {
+            regexp "\\(1m\\): *(.*) %" $current_line matched_line cpu_load_ave_1m
+        } elseif {[string match "*(5m)*" ${current_line}]} {
+            regexp "\\(5m\\): *(.*) %" $current_line matched_line cpu_load_ave_5m
+        } elseif {[string match "*(15m)*" ${current_line}]} {
+            regexp "\\(15m\\): *(.*) %" $current_line matched_line cpu_load_ave_15m
+        }
+    }
+
+    send -i $id "show system-memory\n"
+    expect -i $id "#"
+    set lines [split $expect_out(buffer) \n]
+    set variable [lindex $lines 1]
+    foreach line $lines {
+        set current_line $line
+        if {[string match "*Used*" ${current_line}]} {
+            regexp "memory: *(.*) MB" $current_line matched_line used_mem
+        } elseif {[string match "*Free*" ${current_line}]} {
+            regexp "memory: *(.*) MB" $current_line matched_line free_mem
+        }
+    }
+	set appliance_metrics "$cpu_usage;$cpu_load_ave_1m;$cpu_load_ave_5m;$cpu_load_ave_15m;$used_mem;$free_mem"
+    return 0
+}
+
+proc printApplianceMetrics {appliance_metrics} {
+    puts "$appliance_metrics"
+}
+
+spawn ssh -o StrictHostKeyChecking=no ${appliance1}
+set a1id $spawn_id
+sshLogin $a1id $userid $password appliance1_name
+set carry_on_looping 1
+while { $carry_on_looping == 1 } {
+    getSystemMetrics $a1id $appliance1 $appliance1_name
+    printApplianceMetrics $appliance_metrics
+    sleep $pollInterval
+}
+sshLogout $a1id

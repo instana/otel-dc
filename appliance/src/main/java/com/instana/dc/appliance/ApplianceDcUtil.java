@@ -22,6 +22,13 @@ public class ApplianceDcUtil {
         public static final String PAGING = "paging";
     }
 
+    /* Configurations for the Data Collector:
+     */
+    public static final String APPLIANCE_HOST = "appliance.host";
+    public static final String APPLIANCE_PORT = "appliance.port";
+    public static final String APPLIANCE_USER = "appliance.user";
+    public static final String APPLIANCE_PASSWORD = "appliance.password";
+
     /* Configurations for Metrics:
      */
     public static final String UNIT_S = "s";

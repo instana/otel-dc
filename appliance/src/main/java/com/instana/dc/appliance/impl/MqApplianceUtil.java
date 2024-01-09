@@ -218,6 +218,21 @@ public class MqApplianceUtil {
         return results;
     }
 
+    public static List<SimpleQueryResult> getApplianceMemUsageResults(Long usedMem, Long freeMem) {
+        List<SimpleQueryResult> results = new ArrayList<SimpleQueryResult>(2);
+        if (freeMem != null && usedMem != null) {
+            SimpleQueryResult resultUsed = new SimpleQueryResult(usedMem * 1024L * 1024L);
+            resultUsed.setKey("used");
+            resultUsed.setAttribute("state", "used");
+            results.add(resultUsed);
+            SimpleQueryResult resultFree = new SimpleQueryResult(freeMem * 1024L * 1024L);
+            resultFree.setKey("free");
+            resultFree.setAttribute("state", "free");
+            results.add(resultFree);
+        }
+        return results;
+    }
+
     public static List<Double> getLoadAvgInfo() throws IOException {
         final int AVG_NUM = 3;
         String line = ApplianceDcUtil.readFileTextLine("/proc/loadavg");
