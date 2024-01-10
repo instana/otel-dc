@@ -218,6 +218,18 @@ public class MqApplianceUtil {
         return results;
     }
 
+    public static List<SimpleQueryResult> getApplianceCpuUsageResults(Double cpuUsage) {
+        List<SimpleQueryResult> results = new ArrayList<SimpleQueryResult>(1);
+        if (cpuUsage != null) {
+            SimpleQueryResult result = new SimpleQueryResult(cpuUsage/100);
+            result.setKey("user");
+            result.setAttribute("cpu", "cpu");
+            result.setAttribute("state", "user");
+            results.add(result);
+        }
+        return results;
+    }
+
     public static List<SimpleQueryResult> getApplianceMemUsageResults(Long usedMem, Long freeMem) {
         List<SimpleQueryResult> results = new ArrayList<SimpleQueryResult>(2);
         if (freeMem != null && usedMem != null) {

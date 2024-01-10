@@ -70,6 +70,7 @@ public class MqApplianceDc extends AbstractApplianceDc {
                 logger.info("Data collected: " + line);
                 String[] tokens = line.split(";");
                 if (tokens.length == 6) {
+                    getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getApplianceCpuUsageResults(Double.parseDouble(tokens[0])));
                     getRawMetric(SYSTEM_CPU_LOAD1_NAME).setValue(Double.parseDouble(tokens[1]));
                     getRawMetric(SYSTEM_CPU_LOAD5_NAME).setValue(Double.parseDouble(tokens[2]));
                     getRawMetric(SYSTEM_CPU_LOAD15_NAME).setValue(Double.parseDouble(tokens[3]));
