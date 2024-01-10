@@ -1,11 +1,10 @@
-# How to create a new data collector for database
+# How to create data collector implementation for a new database
 
 ## Overview
 
-A general idea to support a new Data Collector is to extends the AbstractDbDc class. By doing this, you can easily support all 
-predefined [Semantic Conventions](https://github.com/instana/otel-database-dc/tree/main/docs/semconv). You can also add your own custom metrics.
-Please refer to [code here](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DamengDc.java) as a good example.
-The second step is to add one line like [How to register a new Data Collector named Dameng](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DbDcRegistry.java#L17) 
+A general idea to support a new Data Collector implementation is to extends the AbstractDbDc class. By doing this, you can easily support all predefined [Semantic Conventions](https://github.com/instana/otel-dc/tree/main/docs/semconv). You can also add your own custom metrics.
+Please refer to [code here](https://github.com/instana/otel-dc/blob/main/rdb/src/main/java/com/instana/dc/rdb/impl/DamengDc.java) as a good example.
+The second step is to add one line like [How to register a new Data Collector named Dameng](https://github.com/instana/otel-dc/blob/main/rdb/src/main/java/com/instana/dc/rdb/impl/DbDcRegistry.java#L17) 
 with a new name of `db.system`. Then the Data Collector is available to users. 
 If you revise the `db.system` parameter of the configuration file `config/config.yaml` to be the new name of `db.system`,
 then the new Data Collector is in use.
@@ -15,7 +14,7 @@ then the new Data Collector is in use.
 ### Refine the code of constructor
 
 The constructor of AbstractDbDc class fetch all database and OTel related parameters from "config/config.yaml" file. 
-All Data Collectors should extend AbstractDbDc class. The constructor of the Data Collectors should call the constructor of AbstractDbDc class, 
+All Data Collector implementations should extend AbstractDbDc class. The constructor of the Data Collectors should call the constructor of AbstractDbDc class, 
 and add its own logic if required. Here is the example code:
 ```java
 public DamengDc(Map<String, String> properties, String dbSystem, String dbDriver) throws SQLException {
@@ -85,7 +84,7 @@ public void registerMetrics() {
 ### Add code to retrieve metrics from the database
 
 Then we are going to implement the most complex part of the work: to fetch metrics from the database and assign the values to the registered metrics.
-What you need to do is to implement `collectData()` method to add code to retrieve various metrics. Sample code can be found in [DamengDc](https://github.com/instana/otel-database-dc/blob/main/src/main/java/com/instana/dc/rdb/impl/DamengDc.java).
+What you need to do is to implement `collectData()` method to add code to retrieve various metrics. Sample code can be found in [DamengDc](https://github.com/instana/otel-dc/blob/main/rdb/src/main/java/com/instana/dc/rdb/impl/DamengDc.java).
 
 #### Scenario 1: The metric is a simple value:
 

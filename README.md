@@ -78,6 +78,6 @@ bin/otel-dc-rdb
 ```
 
 
-## Create a new data collector for database
+## Create Data Collector implementation for a new database
 
-Please refer to "[How to create a new data collector](docs/developer/new-db.md)".
+Please refer to "[How to create data collector implementation for a new database](docs/developer/new-db.md)".
