@@ -16,7 +16,8 @@ set userid [lindex $argv 1]
 set password [lindex $argv 2]
 set pollInterval [lindex $argv 3]
 
-set appliance_metrics       ""
+set system_metric          		        ""
+set network_connections_metric          ""
 
 proc sshLogin {id userid password namevar} {
     upvar 1 $namevar name
@@ -46,8 +47,8 @@ proc sshLogout {id} {
     return 0
 }
 
-proc getSystemMetrics {id ip name} {
-    global appliance_metrics
+proc getSystemMetric {id} {
+    global system_metric
     set cpu_usage               ""
     set cpu_load_ave_1m         ""
     set cpu_load_ave_5m         ""
@@ -84,12 +85,59 @@ proc getSystemMetrics {id ip name} {
             regexp "memory: *(.*) MB" $current_line matched_line free_mem
         }
     }
-	set appliance_metrics "$cpu_usage;$cpu_load_ave_1m;$cpu_load_ave_5m;$cpu_load_ave_15m;$used_mem;$free_mem"
+	set system_metric "$cpu_usage:$cpu_load_ave_1m:$cpu_load_ave_5m:$cpu_load_ave_15m:$used_mem:$free_mem"
     return 0
 }
 
-proc printApplianceMetrics {appliance_metrics} {
-    puts "$appliance_metrics"
+proc getNetworkConnectionsMetric {id} {
+    global network_connections_metric
+    set established_connections               ""
+    set syn_sent_connections                  ""
+    set syn_received_connections              ""
+    set fin_wait_1_connections                ""
+    set fin_wait_2_connections                ""
+    set time_wait_connections                 ""
+    set closed_connections                    ""
+    set closed_wait_connections               ""
+    set last_ack_connections                  ""
+    set listen_connections                    ""
+    set closing_connections                   ""
+
+    send -i $id "show tcp-connections\n"
+    expect -i $id "#"
+    set lines [split $expect_out(buffer) \n]
+    set variable [lindex $lines 1]
+    foreach line $lines {
+        set current_line $line
+        if {[string match "*Established*" ${current_line}]} {
+            regexp "Established: *(.*) \r" $current_line matched_line established_connections
+        } elseif {[string match "*Syn-sent*" ${current_line}]} {
+            regexp "Syn-sent: *(.*) \r" $current_line matched_line syn_sent_connections
+        } elseif {[string match "*Syn-received*" ${current_line}]} {
+            regexp "Syn-received: *(.*) \r" $current_line matched_line syn_received_connections
+        } elseif {[string match "*Fin-wait-1*" ${current_line}]} {
+            regexp "Fin-wait-1: *(.*) \r" $current_line matched_line fin_wait_1_connections
+        } elseif {[string match "*Fin-wait-2*" ${current_line}]} {
+            regexp "Fin-wait-2: *(.*) \r" $current_line matched_line fin_wait_2_connections
+        } elseif {[string match "*Time-wait*" ${current_line}]} {
+            regexp "Time-wait: *(.*) \r" $current_line matched_line time_wait_connections
+        } elseif {[string match "*Closed*" ${current_line}]} {
+            regexp "Closed: *(.*) \r" $current_line matched_line closed_connections
+        } elseif {[string match "*Close-wait*" ${current_line}]} {
+            regexp "Close-wait: *(.*) \r" $current_line matched_line closed_wait_connections
+        } elseif {[string match "*Last-ack*" ${current_line}]} {
+            regexp "Last-ack: *(.*) \r" $current_line matched_line last_ack_connections
+        } elseif {[string match "*Listen*" ${current_line}]} {
+            regexp "Listen: *(.*) \r" $current_line matched_line listen_connections
+        } elseif {[string match "*Closing*" ${current_line}]} {
+            regexp "Closing: *(.*) \r" $current_line matched_line closing_connections
+        }
+	}
+	set network_connections_metric "$established_connections:$syn_sent_connections:$syn_received_connections:$fin_wait_1_connections:$fin_wait_2_connections:$time_wait_connections:$closed_connections:$closed_wait_connections:$last_ack_connections:$listen_connections:$closing_connections"
+	return 0
+}
+proc printApplianceMetric {system_metric network_connections_metric} {
+    puts "$system_metric;$network_connections_metric"
 }
 
 spawn ssh -o StrictHostKeyChecking=no ${appliance1}
@@ -97,8 +145,9 @@ set a1id $spawn_id
 sshLogin $a1id $userid $password appliance1_name
 set carry_on_looping 1
 while { $carry_on_looping == 1 } {
-    getSystemMetrics $a1id $appliance1 $appliance1_name
-    printApplianceMetrics $appliance_metrics
+    getSystemMetric $a1id
+    getNetworkConnectionsMetric $a1id
+    printApplianceMetric $system_metric $network_connections_metric
     sleep $pollInterval
 }
 sshLogout $a1id

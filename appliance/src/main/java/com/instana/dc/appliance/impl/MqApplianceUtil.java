@@ -226,8 +226,9 @@ public class MqApplianceUtil {
             result.setAttribute("cpu", "cpu");
             result.setAttribute("state", "user");
             results.add(result);
+            return results;
         }
-        return results;
+        return null;
     }
 
     public static List<SimpleQueryResult> getApplianceMemUsageResults(Long usedMem, Long freeMem) {
@@ -241,8 +242,70 @@ public class MqApplianceUtil {
             resultFree.setKey("free");
             resultFree.setAttribute("state", "free");
             results.add(resultFree);
+            return results;
         }
-        return results;
+        return null;
+    }
+
+    public static List<SimpleQueryResult> getApplianceNetworkConnectionsResults(String networkConnections) {
+
+        if (networkConnections != null && networkConnections.length() > 0) {
+            String[] tokens = networkConnections.split(":");
+            if (tokens.length == 11) {
+                List<SimpleQueryResult> results = new ArrayList<SimpleQueryResult>(11);
+                
+                SimpleQueryResult established = new SimpleQueryResult(Integer.parseInt(tokens[0]));
+                SimpleQueryResult syn_sent = new SimpleQueryResult(Integer.parseInt(tokens[1]));
+                SimpleQueryResult syn_received = new SimpleQueryResult(Integer.parseInt(tokens[2]));
+                SimpleQueryResult fin_wait_1 = new SimpleQueryResult(Integer.parseInt(tokens[3]));
+                SimpleQueryResult fin_wait_2 = new SimpleQueryResult(Integer.parseInt(tokens[4]));
+                SimpleQueryResult time_wait = new SimpleQueryResult(Integer.parseInt(tokens[5]));
+                SimpleQueryResult closed = new SimpleQueryResult(Integer.parseInt(tokens[6]));
+                SimpleQueryResult closed_wait = new SimpleQueryResult(Integer.parseInt(tokens[7]));
+                SimpleQueryResult last_ack = new SimpleQueryResult(Integer.parseInt(tokens[8]));
+                SimpleQueryResult listen = new SimpleQueryResult(Integer.parseInt(tokens[9]));
+                SimpleQueryResult closing = new SimpleQueryResult(Integer.parseInt(tokens[10]));
+
+                established.setKey("ESTABLISHED");
+                syn_sent.setKey("SYN_SENT");
+                syn_received.setKey("SYN_RECV");
+                fin_wait_1.setKey("FIN_WAIT_1");
+                fin_wait_2.setKey("FIN_WAIT_2");
+                time_wait.setKey("TIME_WAIT");
+                closed.setKey("CLOSE");
+                closed_wait.setKey("CLOSE_WAIT");
+                last_ack.setKey("LAST_ACK");
+                listen.setKey("LISTEN");
+                closing.setKey("CLOSING");
+
+                established.setAttribute("state", "ESTABLISHED");
+                syn_sent.setAttribute("state", "SYN_SENT");
+                syn_received.setAttribute("state", "SYN_RECV");
+                fin_wait_1.setAttribute("state", "FIN_WAIT_1");
+                fin_wait_2.setAttribute("state", "FIN_WAIT_2");
+                time_wait.setAttribute("state", "TIME_WAIT");
+                closed.setAttribute("state", "CLOSE");
+                closed_wait.setAttribute("state", "CLOSE_WAIT");
+                last_ack.setAttribute("state", "LAST_ACK");
+                listen.setAttribute("state", "LISTEN");
+                closing.setAttribute("state", "CLOSING");
+
+                results.add(established);
+                results.add(syn_sent);
+                results.add(syn_received);
+                results.add(fin_wait_1);
+                results.add(fin_wait_2);
+                results.add(time_wait);
+                results.add(closed);
+                results.add(closed_wait);
+                results.add(last_ack);
+                results.add(listen);
+                results.add(closing);
+
+                return results;
+            }
+        }
+        return null;
     }
 
     public static List<Double> getLoadAvgInfo() throws IOException {
