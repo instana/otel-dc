@@ -278,6 +278,18 @@ public class MqApplianceUtil {
                 listen.setKey("LISTEN");
                 closing.setKey("CLOSING");
 
+                established.setAttribute("protocol", "tcp");
+                syn_sent.setAttribute("protocol", "tcp");
+                syn_received.setAttribute("protocol", "tcp");
+                fin_wait_1.setAttribute("protocol", "tcp");
+                fin_wait_2.setAttribute("protocol", "tcp");
+                time_wait.setAttribute("protocol", "tcp");
+                closed.setAttribute("protocol", "tcp");
+                closed_wait.setAttribute("protocol", "tcp");
+                last_ack.setAttribute("protocol", "tcp");
+                listen.setAttribute("protocol", "tcp");
+                closing.setAttribute("protocol", "tcp");
+
                 established.setAttribute("state", "ESTABLISHED");
                 syn_sent.setAttribute("state", "SYN_SENT");
                 syn_received.setAttribute("state", "SYN_RECV");

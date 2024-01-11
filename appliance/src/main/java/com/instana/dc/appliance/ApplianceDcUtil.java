@@ -112,9 +112,9 @@ public class ApplianceDcUtil {
     public static final String SYSTEM_FILESYSTEM_USAGE_DESC = "Filesystem bytes used";
     public static final String SYSTEM_FILESYSTEM_USAGE_UNIT = UNIT_BY;
 
-    public static final String SYSTEM_PAGING_XXXX_NAME = "system.paging.faults";
-    public static final String SYSTEM_PAGING_XXXX_DESC = "The number of page faults";
-    public static final String SYSTEM_PAGING_XXXX_UNIT = "{faults}";
+    public static final String SYSTEM_PAGING_FAULTS_NAME = "system.paging.faults";
+    public static final String SYSTEM_PAGING_FAULTS_DESC = "The number of page faults";
+    public static final String SYSTEM_PAGING_FAULTS_UNIT = "{faults}";
 
     public static final String SYSTEM_PAGING_OPERATIONS_NAME = "system.paging.operations";
     public static final String SYSTEM_PAGING_OPERATIONS_DESC = "The number of paging operations";
@@ -124,6 +124,13 @@ public class ApplianceDcUtil {
     public static final String SYSTEM_PAGING_USAGE_DESC = "Swap (unix) or pagefile (windows) usage";
     public static final String SYSTEM_PAGING_USAGE_UNIT = UNIT_BY;
 
+    public static final String SYSTEM_PROCESSES_COUNT_NAME = "system.processes.count";
+    public static final String SYSTEM_PROCESSES_COUNT_DESC = "Total number of processes in each state";
+    public static final String SYSTEM_PROCESSES_COUNT_UNIT = "{processes}";
+
+    public static final String SYSTEM_PROCESSES_CREATED_NAME = "system.processes.created";
+    public static final String SYSTEM_PROCESSES_CREATED_DESC = "Total number of created processes";
+    public static final String SYSTEM_PROCESSES_CREATED_UNIT = "{processes}";
 
     public static String readFileText(String filePath) throws IOException {
         try (InputStream is = new FileInputStream(filePath)) {
