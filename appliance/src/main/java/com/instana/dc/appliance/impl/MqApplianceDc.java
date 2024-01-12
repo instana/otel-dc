@@ -69,16 +69,20 @@ public class MqApplianceDc extends AbstractApplianceDc {
             if (line != null) {
                 logger.info("Data collected: " + line);
                 String[] tokens = line.split(";");
-                if (tokens.length == 2) {
+                if (tokens.length >= 6) {
                     String[] systemMetricsTokens = tokens[0].split(":");
                     if (systemMetricsTokens.length == 6) {
                         getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getApplianceCpuUsageResults(Double.parseDouble(systemMetricsTokens[0])));
                         getRawMetric(SYSTEM_CPU_LOAD1_NAME).setValue(Double.parseDouble(systemMetricsTokens[1]));
                         getRawMetric(SYSTEM_CPU_LOAD5_NAME).setValue(Double.parseDouble(systemMetricsTokens[2]));
                         getRawMetric(SYSTEM_CPU_LOAD15_NAME).setValue(Double.parseDouble(systemMetricsTokens[3]));
-                        getRawMetric(SYSTEM_MEMORY_USAGE_NAME).setValue(MqApplianceUtil.getApplianceMemUsageResults(Long.valueOf(systemMetricsTokens[4]), Long.valueOf(systemMetricsTokens[5])));
+                        getRawMetric(SYSTEM_MEMORY_USAGE_NAME).setValue(MqApplianceUtil.getApplianceMemUsageResults(Long.parseLong(systemMetricsTokens[4]), Long.parseLong(systemMetricsTokens[5])));
                     }
                     getRawMetric(SYSTEM_NETWORK_CONNECTIONS_NAME).setValue(MqApplianceUtil.getApplianceNetworkConnectionsResults(tokens[1]));
+                    getRawMetric(SYSTEM_NETWORK_IO_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[2]));
+                    getRawMetric(SYSTEM_NETWORK_PACKETS_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[3]));
+                    getRawMetric(SYSTEM_NETWORK_ERRORS_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[4]));
+                    getRawMetric(SYSTEM_NETWORK_DROPPED_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[5]));
                 }
             }
         } catch (IOException e) {
