@@ -42,6 +42,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private String dbUserName;
     private String dbPassword;
     private String dbName;
+    private String serverName;
     private String dbVersion;
     private String dbEntityType;
     private String dbTenantId;
@@ -80,6 +81,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbConnUrl = properties.get(DB_CONN_URL);
         dbUserName = properties.get(DB_USERNAME);
         dbPassword = properties.get(DB_PASSWORD);
+        serverName = properties.get(DB_SERVER_NAME);
         dbEntityType = properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
             dbEntityType = DEFAULT_DB_ENTITY_TYPE;
@@ -89,6 +91,30 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbTenantName = properties.get(DB_TENANT_NAME);
         dbName = properties.get(DB_NAME);
         dbVersion = properties.get(DB_VERSION);
+    }
+
+    public AbstractDbDc(Map<String, Object> systemProps, Map<String, String> instanceProps) {
+        super(new DbRawMetricRegistry().getMap());
+        this.dbSystem = (String) systemProps.get(DB_SYSTEM);
+        this.dbDriver = (String) systemProps.get(DB_DRIVER);
+        pollInterval = (int) systemProps.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
+        callbackInterval = (int) systemProps.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
+        otelBackendUrl = (String) systemProps.get(OTEL_BACKEND_URL);
+        serviceName = (String) systemProps.get(OTEL_SERVICE_NAME);
+        serviceInstanceId = (String) systemProps.get(OTEL_SERVICE_INSTANCE_ID);
+        otelUsingHttp = "true".equalsIgnoreCase(instanceProps.get(OTEL_BACKEND_USING_HTTP));
+
+        dbAddress = instanceProps.get("db.host");
+        dbPort = Long.parseLong(String.valueOf(instanceProps.get(DB_PORT)));
+        dbConnUrl = instanceProps.get(DB_CONN_URL);
+        dbUserName = instanceProps.get(DB_USERNAME);
+        dbPassword = instanceProps.get(DB_PASSWORD);
+        dbEntityType = instanceProps.get(DB_ENTITY_TYPE);
+        if (dbEntityType == null) {
+            dbEntityType = DEFAULT_DB_ENTITY_TYPE;
+        }
+        dbName = instanceProps.get(DB_NAME);
+        dbVersion = instanceProps.get(DB_VERSION);
     }
 
     @Override
@@ -235,6 +261,8 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     public String getDbEntityParentId() {
         return dbEntityParentId;
     }
+
+    public String getServerName() { return serverName; }
 
     public void setDbEntityParentId(String dbEntityParentId) {
         this.dbEntityParentId = dbEntityParentId;
