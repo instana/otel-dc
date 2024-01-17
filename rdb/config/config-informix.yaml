@@ -1,0 +1,20 @@
+db.system: informix
+db.driver: com.informix.jdbc.IfxDriver
+
+instances:
+  - db.address: 9.46.251.113
+    db.port: 9088
+    db.serverName: ol_informix1410
+    db.username: informix
+    db.password: cGFzc3dvcmQ=
+    db.name: TestInformixDB
+    #db.user: root
+    #db.password: Happy@fyre@neha2021  -   SGFwcHlAZnlyZUBuZWhhMjAyMQ==
+
+    #OTel properties:
+    otel.service.name: InformixDB
+
+    #Data collector properties:
+    poll.interval: 30
+    callback.interval: 20
+    otel.backend.url: http://127.0.0.1:4317
