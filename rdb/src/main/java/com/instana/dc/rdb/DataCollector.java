@@ -26,7 +26,7 @@ public class DataCollector {
 
     private static final Logger logger = Logger.getLogger(DataCollector.class.getName());
 
-    private final DcConfig dcConfig;
+    private final CustomDcConfig dcConfig;
 
     private final List<IDc> dcs;
 
@@ -38,10 +38,10 @@ public class DataCollector {
             //TODO : Test Purpose Only
             configFile = "/Users/bikram/instana_code/otel-database-dc/rdb/config/config-informix.yaml";
         }
-        dcConfig = objectMapper.readValue(new File(configFile), DcConfig.class);
+        dcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
         int n = dcConfig.getInstances().size();
         dcs = new ArrayList<>(n);
-        for (Map<String, String> props : dcConfig.getInstances()) {
+        for (Map<String, Object> props : dcConfig.getInstances()) {
             dcs.add(newDc(props));
         }
         if (!dcs.isEmpty()) {
@@ -49,7 +49,7 @@ public class DataCollector {
         }
     }
 
-    private IDc newDc(Map<String, String> props) throws Exception {
+    private IDc newDc(Map<String, Object> props) throws Exception {
         return new DbDcRegistry().findDatabaseDc(dcConfig.getDbSystem()).getConstructor(Map.class, String.class, String.class)
                 .newInstance(props, dcConfig.getDbSystem(), dcConfig.getDbDriver());
     }
@@ -97,6 +97,34 @@ public class DataCollector {
         }
 
         public List<Map<String, String>> getInstances() {
+            return instances;
+        }
+
+        public void setDbSystem(String dbSystem) {
+            this.dbSystem = dbSystem;
+        }
+
+        public void setDbDriver(String dbDriver) {
+            this.dbDriver = dbDriver;
+        }
+    }
+
+    static class CustomDcConfig {
+        @JsonProperty("db.system")
+        private String dbSystem;
+        @JsonProperty("db.driver")
+        private String dbDriver;
+        private final List<Map<String, Object>> instances = new ArrayList<>();
+
+        public String getDbSystem() {
+            return dbSystem;
+        }
+
+        public String getDbDriver() {
+            return dbDriver;
+        }
+
+        public List<Map<String, Object>> getInstances() {
             return instances;
         }
 
