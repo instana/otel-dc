@@ -18,3 +18,8 @@ instances:
     poll.interval: 30
     callback.interval: 20
     otel.backend.url: http://127.0.0.1:4317
+
+    #Custom Input
+    custom.input:
+      db.names: 'instana, instana_1, instana_2'
+

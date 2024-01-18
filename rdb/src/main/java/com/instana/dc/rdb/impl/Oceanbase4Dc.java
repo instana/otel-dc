@@ -26,7 +26,7 @@ public class Oceanbase4Dc extends AbstractDbDc {
     boolean isCluster = false;
     boolean isTenant = false;
 
-    public Oceanbase4Dc(Map<String, String> properties, String dbSystem, String dbDriver) throws SQLException, DcException {
+    public Oceanbase4Dc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException, DcException {
         super(properties, dbSystem, dbDriver);
         setDbPassword(DcUtil.base64Decode(getDbPassword()));
         if (getServiceInstanceId() == null) {

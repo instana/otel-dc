@@ -33,20 +33,32 @@ public class InformixDc extends AbstractDbDc {
     /**
      * String url = String.format("jdbc:informix-sqli://%s:%s/sysmaster:informixserver=%s;user=%s;Password=%s", host, port, serverName, user, password);
      */
+    private String tableSpaceSizeQuery;
 
-
-    public InformixDc(Map<String, String> properties, String dbSystem, String dbDriver) throws ClassNotFoundException, SQLException {
+    public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws ClassNotFoundException, SQLException {
         super(properties, dbSystem, dbDriver);
+        parseCustomAttributes(properties);
         Class.forName("com.informix.jdbc.IfxDriver");
         setDbPassword(InformixUtil.decodePassword(getDbPassword()));
-        setDbConnUrl(properties);
+        setDbConnUrl();
         getDbNameAndVersion();
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
     }
 
-    public void setDbConnUrl(Map<String, String> instanceProps) {
+
+    private void parseCustomAttributes(Map<String, Object> properties) {
+        Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
+        String[] dbNames = ((String) customInput.get("db.names")).split(",");
+        StringBuilder sb = new StringBuilder("'" + dbNames[0] + "'");
+        for (int i = 1; i < dbNames.length; i++) {
+            sb.append(" , ").append("'").append(dbNames[i].trim()).append("'");
+        }
+        tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, sb.toString());
+    }
+
+    public void setDbConnUrl() {
         String host = getDbAddress();
         long port = getDbPort();
         String serverName = getServerName();
@@ -101,7 +113,7 @@ public class InformixDc extends AbstractDbDc {
             getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_WRITE_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.MEMORY_UTILIZATION_SQL));
 
-            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_SIZE_SQL, DB_TABLESPACE_SIZE_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(con, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_USED_SQL, DB_TABLESPACE_USED_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_UTILIZATION_SQL, DB_TABLESPACE_UTILIZATION_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_MAX_SQL, DB_TABLESPACE_MAX_KEY));
