@@ -34,6 +34,9 @@ public class InformixDc extends AbstractDbDc {
      * String url = String.format("jdbc:informix-sqli://%s:%s/sysmaster:informixserver=%s;user=%s;Password=%s", host, port, serverName, user, password);
      */
     private String tableSpaceSizeQuery;
+    private String tableSpaceUsedQuery;
+    private String tableSpaceUtilizationQuery;
+    private String tableSpaceMaxQuery;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws ClassNotFoundException, SQLException {
         super(properties, dbSystem, dbDriver);
@@ -56,6 +59,9 @@ public class InformixDc extends AbstractDbDc {
             sb.append(" , ").append("'").append(dbNames[i].trim()).append("'");
         }
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, sb.toString());
+        tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL,sb.toString());
+        tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL,sb.toString());
+        tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL,sb.toString());
     }
 
     public void setDbConnUrl() {
@@ -114,9 +120,9 @@ public class InformixDc extends AbstractDbDc {
             getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.MEMORY_UTILIZATION_SQL));
 
             getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(con, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_USED_SQL, DB_TABLESPACE_USED_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_UTILIZATION_SQL, DB_TABLESPACE_UTILIZATION_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, InformixUtil.TABLESPACE_MAX_SQL, DB_TABLESPACE_MAX_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(con, tableSpaceUsedQuery, DB_TABLESPACE_USED_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, tableSpaceUtilizationQuery , DB_TABLESPACE_UTILIZATION_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, tableSpaceMaxQuery, DB_TABLESPACE_MAX_KEY));
 
             getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.SQL_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.SQL_COUNT_SQL));

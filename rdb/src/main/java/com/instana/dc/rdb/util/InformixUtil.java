@@ -34,7 +34,7 @@ public class InformixUtil {
     public static final String SQL_ELAPSED_TIME_SQL = "SELECT sql_runtime*1000 as ELAPSED_TIME_MILLIS, sql_id as sql_id, sql_statement as sql_text FROM sysmaster:syssqltrace  where sql_statement not like '%syssqltrace%' ORDER BY sql_runtime desc limit 20;";
     //Table Space Queries
     public static final String TABLESPACE_SIZE_SQL = "SELECT(pt.nptotal * pt.pagesize)  * 1024 AS total_kb,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ( %s )) order by tabname desc Limit 40;";
-    public static final String TABLESPACE_USED_SQL = "SELECT(pt.npused  * pt.pagesize)  * 1024 AS used_kb,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
+    public static final String TABLESPACE_USED_SQL = "SELECT(pt.npused  * pt.pagesize)  * 1024 AS used_kb,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in (%s)) order by tabname desc Limit 40;";
     public static final String TABLESPACE_UTILIZATION_SQL = "select case WHEN (pt.nptotal > 0) THEN ((pt.npused) /pt.nptotal) * 100 ELSE 0 END AS table_utilization, tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
     public static final String TABLESPACE_MAX_SQL = "SELECT(pt.nptotal * pt.pagesize)  * 1024 AS total_kb, tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
 
