@@ -20,6 +20,7 @@ public class ApplianceDcUtil {
         public static final String FILESYSTEM = "filesystem";
         public static final String PROCESSES = "processes";
         public static final String PAGING = "paging";
+        public static final String IBMQMGR = "qmgr";
     }
 
     /* Configurations for the Data Collector:
@@ -131,6 +132,10 @@ public class ApplianceDcUtil {
     public static final String SYSTEM_PROCESSES_CREATED_NAME = "system.processes.created";
     public static final String SYSTEM_PROCESSES_CREATED_DESC = "Total number of created processes";
     public static final String SYSTEM_PROCESSES_CREATED_UNIT = "{processes}";
+
+    public static final String SYSTEM_IBMQMGR_STATUS_NAME = "system.ibmqmgr.status";
+    public static final String SYSTEM_IBMQMGR_STATUS_DESC = "Status of ibm mq queue manager";
+    public static final String SYSTEM_IBMQMGR_STATUS_UNIT = UNIT_1;
 
     public static String readFileText(String filePath) throws IOException {
         try (InputStream is = new FileInputStream(filePath)) {

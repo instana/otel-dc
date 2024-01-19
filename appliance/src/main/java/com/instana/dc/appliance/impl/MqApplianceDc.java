@@ -69,7 +69,7 @@ public class MqApplianceDc extends AbstractApplianceDc {
             if (line != null) {
                 logger.info("Data collected: " + line);
                 String[] tokens = line.split(";");
-                if (tokens.length >= 6) {
+                if (tokens.length >= 7) {
                     String[] systemMetricsTokens = tokens[0].split(":");
                     if (systemMetricsTokens.length == 6) {
                         getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getApplianceCpuUsageResults(Double.parseDouble(systemMetricsTokens[0])));
@@ -83,6 +83,7 @@ public class MqApplianceDc extends AbstractApplianceDc {
                     getRawMetric(SYSTEM_NETWORK_PACKETS_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[3]));
                     getRawMetric(SYSTEM_NETWORK_ERRORS_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[4]));
                     getRawMetric(SYSTEM_NETWORK_DROPPED_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[5]));
+                    getRawMetric(SYSTEM_IBMQMGR_STATUS_NAME).setValue(MqApplianceUtil.getQmgrStatusResults(tokens[6]));
                 }
             }
         } catch (IOException e) {

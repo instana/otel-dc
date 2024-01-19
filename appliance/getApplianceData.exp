@@ -8,7 +8,7 @@
 # Uncomment to suppress normal output to stdout
 log_user 0
 
-set timeout 120
+set timeout 60
 
 set appliance1 [lindex $argv 0]
 set appliance1_name "Appliance1"
@@ -19,6 +19,7 @@ set pollInterval [lindex $argv 3]
 set system_metric          		        ""
 set network_connections_metric          ""
 set network_interface_metric            ""
+set qmgr_status                         ""
 
 proc sshLogin {id userid password namevar} {
     upvar 1 $namevar name
@@ -137,6 +138,7 @@ proc getNetworkConnectionsMetric {id} {
 	set network_connections_metric "$established_connections:$syn_sent_connections:$syn_received_connections:$fin_wait_1_connections:$fin_wait_2_connections:$time_wait_connections:$closed_connections:$closed_wait_connections:$last_ack_connections:$listen_connections:$closing_connections"
 	return 0
 }
+
 proc getNetworkInterfaceMetric {id} {
    global network_interface_metric
    send -i $id "show network-interface\n"
@@ -184,8 +186,34 @@ proc getNetworkInterfaceMetric {id} {
    set network_interface_metric "[string trimright $result1 ":"];[string trimright $result2 ":"];[string trimright $result3 ":"];[string trimright $result4 ":"]"
 }
 
-proc printApplianceMetric {system_metric network_connections_metric network_interface_metric} {
-    puts "$system_metric;$network_connections_metric;$network_interface_metric"
+proc getQMGRStatus {id} {
+    global qmgr_status
+    send -i $id "mqcli\n"
+    expect -i $id "(mqcli)#"
+    send -i $id "dspmq\n"
+    expect -i $id "(mqcli)#"
+
+    set lines [split $expect_out(buffer) \n]
+
+    # Reset qmgr_status
+    set qmgr_status ""
+
+    foreach line $lines {
+        if {[regexp {QMNAME\(([^)]+)\)\s+STATUS\(([^)]+)\)} $line match qmname status]} {
+            # Append to qmgr_status
+            append qmgr_status "$qmname|$status:"
+        }
+    }
+
+    # Remove trailing colon
+    set qmgr_status [string trimright $qmgr_status ":"]
+    send -i $id "exit\n"
+    expect -i $id "#"
+    return 0
+}
+
+proc printApplianceMetric {system_metric network_connections_metric network_interface_metric qmgr_status} {
+    puts "$system_metric;$network_connections_metric;$network_interface_metric;$qmgr_status"
 }
 
 spawn ssh -o StrictHostKeyChecking=no ${appliance1}
@@ -197,7 +225,8 @@ while { $carry_on_looping == 1 } {
     getSystemMetric $a1id
     getNetworkConnectionsMetric $a1id
     getNetworkInterfaceMetric $a1id
-    printApplianceMetric $system_metric $network_connections_metric $network_interface_metric
+    getQMGRStatus $a1id
+    printApplianceMetric $system_metric $network_connections_metric $network_interface_metric $qmgr_status
     sleep $pollInterval
 }
 

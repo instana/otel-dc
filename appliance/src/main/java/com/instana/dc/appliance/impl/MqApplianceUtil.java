@@ -145,6 +145,55 @@ public class MqApplianceUtil {
         return null;
     }
 
+    public static int convertQmgrStatusToInt(String status) {
+        switch (status.toLowerCase()) {
+            case "starting":
+                return 1;
+            case "running":
+                return 2;
+            case "quiescing":
+                return 3;
+            case "running as standby":
+                return 4;
+            case "running elsewhere":
+                return 5;
+            case "ending immediately":
+                return 6;
+            case "ending pre-emptively":
+                return 7;
+            case "ended normally":
+                return 8;
+            case "ended immediately":
+                return 9;
+            case "ended unexpectedly":
+                return 10;
+            case "ended pre-emptively":
+                return 11;
+            case "status not available":
+                return 12;
+            default:
+                return 0;
+        }
+    }
+
+    public static List<SimpleQueryResult> getQmgrStatusResults(String qmgrStatusData) {
+        if (qmgrStatusData != null && qmgrStatusData.length() > 0) {
+            String[] tokens = qmgrStatusData.split(":");
+            List<SimpleQueryResult> results = new ArrayList<SimpleQueryResult>(tokens.length);
+            for (int i = 0; i < tokens.length; i++) {
+                String[] tokenss = tokens[i].split("\\|");
+                if (tokenss.length == 2) {
+                    SimpleQueryResult result = new SimpleQueryResult(convertQmgrStatusToInt(tokenss[1]));
+                    result.setKey(tokenss[0]);
+                    result.setAttribute("qmgr", tokenss[0]);
+                    results.add(result);
+                }
+            }
+            return results;
+        }
+        return null;
+    }
+
     public static List<Double> getLoadAvgInfo() throws IOException {
         final int AVG_NUM = 3;
         String line = ApplianceDcUtil.readFileTextLine("/proc/loadavg");

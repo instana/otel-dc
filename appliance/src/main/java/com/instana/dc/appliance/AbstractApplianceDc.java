@@ -95,6 +95,7 @@ public abstract class AbstractApplianceDc extends AbstractDc implements IDc {
         initMeter(openTelemetry, ApplianceDcUtil.MeterName.FILESYSTEM);
         initMeter(openTelemetry, ApplianceDcUtil.MeterName.PROCESSES);
         initMeter(openTelemetry, ApplianceDcUtil.MeterName.PAGING);
+        initMeter(openTelemetry, ApplianceDcUtil.MeterName.IBMQMGR);
     }
 
     private void addShutdownHook() {
@@ -117,7 +118,7 @@ public abstract class AbstractApplianceDc extends AbstractDc implements IDc {
     public void start() {
         try {
             logger.info("Start the data collector process");
-            ProcessBuilder processBuilder = new ProcessBuilder("expect",  "getApplianceData.exp", applianceHost, applianceUser, appliancePassword, String.valueOf(pollInterval));
+            ProcessBuilder processBuilder = new ProcessBuilder("expect", "getApplianceData.exp", applianceHost, applianceUser, appliancePassword, String.valueOf(pollInterval));
             process = processBuilder.start();
             bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             addShutdownHook();
