@@ -39,7 +39,7 @@ public class DataCollector {
         dcConfig = objectMapper.readValue(new File(configFile), DcConfig.class);
         int n = dcConfig.getInstances().size();
         dcs = new ArrayList<>(n);
-        for (Map<String, String> props : dcConfig.getInstances()) {
+        for (Map<String, Object> props : dcConfig.getInstances()) {
             dcs.add(newDc(props));
         }
         if (!dcs.isEmpty()) {
@@ -47,7 +47,7 @@ public class DataCollector {
         }
     }
 
-    private IDc newDc(Map<String, String> props) throws Exception {
+    private IDc newDc(Map<String, Object> props) throws Exception {
         return new DbDcRegistry().findDatabaseDc(dcConfig.getDbSystem()).getConstructor(Map.class, String.class, String.class)
                 .newInstance(props, dcConfig.getDbSystem(), dcConfig.getDbDriver());
     }
@@ -84,7 +84,7 @@ public class DataCollector {
         private String dbSystem;
         @JsonProperty("db.driver")
         private String dbDriver;
-        private final List<Map<String, String>> instances = new ArrayList<>();
+        private final List<Map<String, Object>> instances = new ArrayList<>();
 
         public String getDbSystem() {
             return dbSystem;
@@ -94,7 +94,7 @@ public class DataCollector {
             return dbDriver;
         }
 
-        public List<Map<String, String>> getInstances() {
+        public List<Map<String, Object>> getInstances() {
             return instances;
         }
 

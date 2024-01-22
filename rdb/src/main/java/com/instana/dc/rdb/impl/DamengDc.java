@@ -26,7 +26,7 @@ import static com.instana.dc.rdb.impl.DamengUtil.*;
 public class DamengDc extends AbstractDbDc {
     private static final Logger logger = Logger.getLogger(DamengDc.class.getName());
 
-    public DamengDc(Map<String, String> properties, String dbSystem, String dbDriver) throws SQLException {
+    public DamengDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
         setDbPassword(DcUtil.base64Decode(getDbPassword()));
         findDbNameAndVersion();

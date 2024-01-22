@@ -23,7 +23,7 @@ import static com.instana.dc.host.HostDcUtil.*;
 public class SimpHostDc extends AbstractHostDc {
     private static final Logger logger = Logger.getLogger(SimpHostDc.class.getName());
 
-    public SimpHostDc(Map<String, String> properties, String hostSystem) {
+    public SimpHostDc(Map<String, Object> properties, String hostSystem) {
         super(properties, hostSystem);
     }
 

@@ -37,7 +37,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private final String dbSystem;
     private final String dbDriver;
     private String dbAddress;
-    private long dbPort;
+    private int dbPort;
     private String dbConnUrl;
     private String dbUserName;
     private String dbPassword;
@@ -58,37 +58,35 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
-    public AbstractDbDc(Map<String, String> properties, String dbSystem, String dbDriver) {
+    public AbstractDbDc(Map<String, Object> properties, String dbSystem, String dbDriver) {
         super(new DbRawMetricRegistry().getMap());
 
         this.dbSystem = dbSystem;
         this.dbDriver = dbDriver;
 
-        String pollInt = properties.get(POLLING_INTERVAL);
-        pollInterval = pollInt == null ? DEFAULT_POLL_INTERVAL : Integer.parseInt(pollInt);
-        String callbackInt = properties.get(CALLBACK_INTERVAL);
-        callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(callbackInt);
-        otelBackendUrl = properties.get(OTEL_BACKEND_URL);
-        otelUsingHttp = "true".equalsIgnoreCase(properties.get(OTEL_BACKEND_USING_HTTP));
+        pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
+        callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
+        otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
+        otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
 
-        serviceName = properties.get(OTEL_SERVICE_NAME);
-        serviceInstanceId = properties.get(OTEL_SERVICE_INSTANCE_ID);
-        dbEntityParentId = properties.get(DB_ENTITY_PARENT_ID);
+        serviceName = (String) properties.get(OTEL_SERVICE_NAME);
+        serviceInstanceId = (String) properties.get(OTEL_SERVICE_INSTANCE_ID);
+        dbEntityParentId = (String) properties.get(DB_ENTITY_PARENT_ID);
 
-        dbAddress = properties.get(DB_ADDRESS);
-        dbPort = Long.parseLong(properties.get(DB_PORT));
-        dbConnUrl = properties.get(DB_CONN_URL);
-        dbUserName = properties.get(DB_USERNAME);
-        dbPassword = properties.get(DB_PASSWORD);
-        dbEntityType = properties.get(DB_ENTITY_TYPE);
+        dbAddress = (String) properties.get(DB_ADDRESS);
+        dbPort = (Integer) properties.getOrDefault(DB_PORT, 0);
+        dbConnUrl = (String) properties.get(DB_CONN_URL);
+        dbUserName = (String) properties.get(DB_USERNAME);
+        dbPassword = (String) properties.get(DB_PASSWORD);
+        dbEntityType = (String) properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
-            dbEntityType = DEFAULT_DB_ENTITY_TYPE;
+            dbEntityType = (String) DEFAULT_DB_ENTITY_TYPE;
         }
         dbEntityType = dbEntityType.toUpperCase();
-        dbTenantId = properties.get(DB_TENANT_ID);
-        dbTenantName = properties.get(DB_TENANT_NAME);
-        dbName = properties.get(DB_NAME);
-        dbVersion = properties.get(DB_VERSION);
+        dbTenantId = (String) properties.get(DB_TENANT_ID);
+        dbTenantName = (String) properties.get(DB_TENANT_NAME);
+        dbName = (String) properties.get(DB_NAME);
+        dbVersion = (String) properties.get(DB_VERSION);
     }
 
     @Override
@@ -97,7 +95,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
                 .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName,
                         SemanticAttributes.DB_SYSTEM, dbSystem,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_ADDRESS, dbAddress,
-                        com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_PORT, dbPort,
+                        com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_PORT, (long)dbPort,
                         SemanticAttributes.DB_NAME, dbName,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DB_VERSION, dbVersion
                 )))
@@ -156,7 +154,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         return dbPort;
     }
 
-    public void setDbPort(long dbPort) {
+    public void setDbPort(int dbPort) {
         this.dbPort = dbPort;
     }
 
