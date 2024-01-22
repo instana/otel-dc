@@ -238,6 +238,9 @@ public class DbDcUtil {
                     if (obj == null) {
                         obj = "null";
                     }
+                    if(obj instanceof String){
+                        obj = ((String) obj).trim();
+                    }
                     result.setAttribute(attr, obj);
                     if (n == 2) {
                         result.setKey(obj.toString());
