@@ -28,6 +28,7 @@ public class DbDcUtil {
     public static final String DB_PORT = "db.port";
     public static final String DB_USERNAME = "db.username";
     public static final String DB_PASSWORD = "db.password";
+    public static final String DB_SERVER_NAME = "db.serverName";
     public static final String DB_CONN_URL = "db.connection.url";
     public static final String DB_ENTITY_TYPE = "db.entity.type";
     public static final String DEFAULT_DB_ENTITY_TYPE = "DATABASE";

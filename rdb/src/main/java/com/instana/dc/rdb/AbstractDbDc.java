@@ -42,6 +42,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private String dbUserName;
     private String dbPassword;
     private String dbName;
+    private String serverName;
     private String dbVersion;
     private String dbEntityType;
     private String dbTenantId;
@@ -78,6 +79,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbConnUrl = (String) properties.get(DB_CONN_URL);
         dbUserName = (String) properties.get(DB_USERNAME);
         dbPassword = (String) properties.get(DB_PASSWORD);
+        serverName = (String) properties.get(DB_SERVER_NAME);
         dbEntityType = (String) properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
             dbEntityType = (String) DEFAULT_DB_ENTITY_TYPE;
@@ -236,6 +238,10 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
 
     public void setDbEntityParentId(String dbEntityParentId) {
         this.dbEntityParentId = dbEntityParentId;
+    }
+
+    public String getServerName() {
+        return serverName;
     }
 
     @Override
