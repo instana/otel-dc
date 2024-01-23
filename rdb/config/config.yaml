@@ -3,11 +3,11 @@ db.system: dameng
 db.driver: dm.jdbc.driver.DmDriver
 
 instances:
-  - db.address: 1.2.3.4
+  - db.address: 9.46.118.22
     db.port: 5236
     db.username: SYSDBA
     db.password: VXMzcnBhODgq
-    db.connection.url: jdbc:dm://1.2.3.4:5236
+    db.connection.url: jdbc:dm://9.46.118.22:5236
     db.name: myDB1
 
     #Data collector properties:
@@ -18,11 +18,11 @@ instances:
     #OTel properties:
     otel.service.name: DamengDC1
 
-  - db.address: 1.2.3.4
+  - db.address: 9.46.118.22
     db.port: 5236
     db.username: SYSDBA
     db.password: VXMzcnBhODgq
-    db.connection.url: jdbc:dm://1.2.3.4:5236
+    db.connection.url: jdbc:dm://9.46.118.22:5236
     db.name: myDB2
 
     #Data collector properties:
