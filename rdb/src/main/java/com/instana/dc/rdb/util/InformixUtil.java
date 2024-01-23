@@ -6,6 +6,8 @@
 package com.instana.dc.rdb.util;
 
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 public class InformixUtil {
     private InformixUtil() {
@@ -14,6 +16,18 @@ public class InformixUtil {
 
     public static final String DB_HOST_AND_VERSION_SQL = "SELECT  FIRST 1 DBINFO('version','full') as Version,  DBINFO('dbhostname') as HostName FROM systables;";
     public static final String AVAILABLE_DATA_BASES = "select name, owner, partnum  from sysdatabases";
+
+
+    private static final Map<String, String> queryMap = new HashMap<>() {{
+        put("INSTANCE_COUNT_SQL", "SELECT count(distinct DBSERVERNAME) as SERVER FROM systables;");
+    }};
+
+    public static Map<String, String> getQueryMap() {
+        return queryMap;
+    }
+
+    //TODO: Remove Below
+
     //Instance & Active Instance information (KPI)
     public static final String INSTANCE_COUNT_SQL = "SELECT count(distinct DBSERVERNAME) as SERVER FROM systables;";
     public static final String INSTANCE_ACTIVE_COUNT_SQL = "select count(distinct name) as ACTIVE_SERVER from syscluster where server_status = 'Active';";
