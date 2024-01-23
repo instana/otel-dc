@@ -2,7 +2,7 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.rdb.impl;
+package com.instana.dc.rdb.util;
 
 public class DamengUtil {
     public static final String DB_NAME_VERSION_SQL = "select (select name from v$database) name, (select substr(banner, instr(banner, ' ', -1) + 1) version from v$version where rownum < 2) version from dual";
