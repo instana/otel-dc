@@ -8,18 +8,13 @@ instances:
     db.username: informix
     db.password: cGFzc3dvcmQ=
     db.name: TestInformixDB
-    #db.user: root
-    #db.password: Happy@fyre@neha2021  -   SGFwcHlAZnlyZUBuZWhhMjAyMQ==
-
     #OTel properties:
     otel.service.name: InformixDB
-
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
     otel.backend.url: http://127.0.0.1:4317
-
     #Custom Input
     custom.input:
-      db.names: 'instana, instana_1, instana_2'
+      db.names: 'testDb1, testDb2, testDb3' # Provide the DB Names in Comma separated way
 

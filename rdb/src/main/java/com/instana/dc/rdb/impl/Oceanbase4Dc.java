@@ -8,7 +8,6 @@ import com.instana.dc.CalculationMode;
 import com.instana.dc.DcException;
 import com.instana.dc.DcUtil;
 import com.instana.dc.rdb.AbstractDbDc;
-import io.opentelemetry.api.OpenTelemetry;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,7 +17,7 @@ import java.util.logging.Logger;
 
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.SQL_TEXT;
 import static com.instana.dc.rdb.DbDcUtil.*;
-import static com.instana.dc.rdb.impl.Oceanbase4Util.*;
+import static com.instana.dc.rdb.util.Oceanbase4Util.*;
 
 public class Oceanbase4Dc extends AbstractDbDc {
     private static final Logger logger = Logger.getLogger(Oceanbase4Dc.class.getName());

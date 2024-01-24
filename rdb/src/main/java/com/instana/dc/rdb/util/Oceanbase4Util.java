@@ -2,7 +2,7 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.rdb.impl;
+package com.instana.dc.rdb.util;
 
 public class Oceanbase4Util {
     public static final String TYPE_CLUSTER = "CLUSTER";

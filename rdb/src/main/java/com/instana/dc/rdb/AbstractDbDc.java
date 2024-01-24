@@ -65,24 +65,24 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         this.dbSystem = dbSystem;
         this.dbDriver = dbDriver;
 
-        pollInterval = ((Integer) properties.getOrDefault(properties.get(POLLING_INTERVAL), DEFAULT_POLL_INTERVAL)).intValue();
-        callbackInterval = ((Integer) properties.getOrDefault(properties.get(CALLBACK_INTERVAL), DEFAULT_CALLBACK_INTERVAL)).intValue();
+        pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
+        callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
-        otelUsingHttp = (Boolean) properties.getOrDefault(properties.get(OTEL_BACKEND_USING_HTTP), Boolean.FALSE);
+        otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
 
         serviceName = (String) properties.get(OTEL_SERVICE_NAME);
         serviceInstanceId = (String) properties.get(OTEL_SERVICE_INSTANCE_ID);
         dbEntityParentId = (String) properties.get(DB_ENTITY_PARENT_ID);
 
         dbAddress = (String) properties.get(DB_ADDRESS);
-        dbPort = Long.valueOf((Integer) properties.get(DB_PORT));
+        dbPort = (Integer) properties.getOrDefault(DB_PORT, 0);
         dbConnUrl = (String) properties.get(DB_CONN_URL);
         dbUserName = (String) properties.get(DB_USERNAME);
         dbPassword = (String) properties.get(DB_PASSWORD);
         serverName = (String) properties.get(DB_SERVER_NAME);
         dbEntityType = (String) properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
-            dbEntityType = DEFAULT_DB_ENTITY_TYPE;
+            dbEntityType = (String) DEFAULT_DB_ENTITY_TYPE;
         }
         dbEntityType = dbEntityType.toUpperCase();
         dbTenantId = (String) properties.get(DB_TENANT_ID);
