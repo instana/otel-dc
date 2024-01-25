@@ -43,7 +43,7 @@ public class InformixUtil {
 
     public static final String MEMORY_UTILIZATION_SQL = "SELECT (sum(seg_blkused) * 100) / (sum(seg_blkused) + sum(seg_blkfree)) FROM SYSSEGLST;";
 
-    public static final String SQL_COUNT_SQL = "SELECT count(1) from syssqltrace;";
+    public static final String SQL_COUNT_SQL = "SELECT count(1) from syssqltrace where (dbinfo('utc_current') - sql_finishtime)<24*60*60;";
     public static final String TRANSACTION_COUNT_SQL = "select count(1) from systrans;";
     public static final String SQL_ELAPSED_TIME_SQL = "SELECT sql_runtime*1000 as ELAPSED_TIME_MILLIS, sql_id as sql_id, sql_statement as sql_text FROM sysmaster:syssqltrace  where sql_statement not like '%syssqltrace%' ORDER BY sql_runtime desc limit 20;";
     //Table Space Queries

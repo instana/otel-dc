@@ -55,7 +55,7 @@ public class InformixDc extends AbstractDbDc {
 
     private void parseCustomPollRate(Map<String, Object> properties) {
         Map<Integer, Object> customInput = (Map<Integer, Object>) properties.get("custom.poll.interval");
-        if (customInput.isEmpty()) {
+        if (customInput==null || customInput.isEmpty()) {
             customPollRateEnabled = false;
             return;
         }
