@@ -7,16 +7,16 @@ package com.instana.dc.rdb.impl;
 import com.instana.dc.CalculationMode;
 import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
+import com.instana.dc.rdb.util.Constants;
 import com.instana.dc.rdb.util.InformixUtil;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,13 +37,12 @@ public class InformixDc extends AbstractDbDc {
     private String tableSpaceUsedQuery;
     private String tableSpaceUtilizationQuery;
     private String tableSpaceMaxQuery;
-
     private boolean customPollRateEnabled = true;
+    private ScheduledExecutorService executorService;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws ClassNotFoundException, SQLException {
         super(properties, dbSystem, dbDriver);
         parseCustomAttributes(properties);
-        parseCustomPollRate(properties);
         Class.forName("com.informix.jdbc.IfxDriver");
         setDbPassword(InformixUtil.decodePassword(getDbPassword()));
         setDbConnUrl();
@@ -51,39 +50,65 @@ public class InformixDc extends AbstractDbDc {
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
+        parseCustomPollRate(properties);
     }
 
     private void parseCustomPollRate(Map<String, Object> properties) {
-        Map<Integer, Object> customInput = (Map<Integer, Object>) properties.get("custom.poll.interval");
-        if (customInput==null || customInput.isEmpty()) {
+        Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.poll.interval");
+        if (null == customInput || customInput.isEmpty()) {
             customPollRateEnabled = false;
             return;
         }
 
-        for (Map.Entry<Integer, Object> entry : customInput.entrySet()) {
-            int pollRate = entry.getKey();
-            String[] metrics = ((String) entry.getValue()).split(",");
-            List<String> queryList = new ArrayList<>();
-            for (String metricKey : metrics) {
-                queryList.add(InformixUtil.getQueryMap().get(metricKey.trim()));
-            }
+        executorService = Executors.newScheduledThreadPool(3);
 
-            schedule(pollRate, queryList);
+        for (Map.Entry<String, Object> entry : customInput.entrySet()) {
+            PollingInterval type = getPollingInterval(entry.getKey());
+            int pollInterval = (int) entry.getValue();
+            scheduleCustomPollRate(pollInterval, type);
         }
-
     }
 
-    private void schedule(int pollRate, List<String> queryList) {
-        
+    private PollingInterval getPollingInterval(String pollingInterval) {
+        for (PollingInterval interval : PollingInterval.values()) {
+            if (pollingInterval.equalsIgnoreCase(interval.name())) {
+                return interval;
+            }
+        }
+        LOGGER.log(Level.SEVERE, "Invalid Polling Interval : {}", pollingInterval);
+        return null;
     }
 
 
+    private void scheduleCustomPollRate(int pollInterval, PollingInterval pollingInterval) {
+        switch (pollingInterval) {
+            case HIGH:
+                LOGGER.info("Starting Long Polling Scheduler");
+                executorService.scheduleWithFixedDelay(this::longPollingInterval, 1, pollInterval, TimeUnit.SECONDS);
+                break;
+            case MEDIUM:
+                LOGGER.info("Starting Medium Polling Scheduler");
+                executorService.scheduleWithFixedDelay(this::mediumPollingInterval, 1, pollInterval, TimeUnit.SECONDS);
+                break;
+            case LOW:
+                LOGGER.info("Starting Low Polling Scheduler");
+                executorService.scheduleWithFixedDelay(this::shortPollingInterval, 1, pollInterval, TimeUnit.SECONDS);
+                break;
+        }
+    }
+
+
+    /**
+     * Util method to parse the config and get the custom Attributes from the Config
+     *
+     * @param properties : Config data
+     */
     private void parseCustomAttributes(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
         String[] dbNames = ((String) customInput.get("db.names")).split(",");
-        StringBuilder sb = new StringBuilder("'" + dbNames[0] + "'");
+        StringBuilder sb = new StringBuilder(Constants.SINGLE_QUOTES + dbNames[0] + Constants.SINGLE_QUOTES);
         for (int i = 1; i < dbNames.length; i++) {
-            sb.append(" , ").append("'").append(dbNames[i].trim()).append("'");
+            sb.append(Constants.COMMA).append(Constants.SINGLE_QUOTES).append(dbNames[i].trim()).append(Constants.SINGLE_QUOTES);
         }
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, sb);
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, sb);
@@ -105,18 +130,16 @@ public class InformixDc extends AbstractDbDc {
                 user,
                 password
         );
-
         setDbConnUrl(url);
     }
 
-    private void getDbNameAndVersion() throws SQLException, ClassNotFoundException {
+    private void getDbNameAndVersion() throws SQLException {
         try (Connection connection = getConnection()) {
             ResultSet rs = DbDcUtil.executeQuery(connection, DB_HOST_AND_VERSION_SQL);
             rs.next();
             setDbVersion(rs.getString("Version"));
         }
     }
-
 
     @Override
     public Connection getConnection() throws SQLException {
@@ -135,41 +158,79 @@ public class InformixDc extends AbstractDbDc {
     @Override
     public void collectData() {
         LOGGER.info("Start to collect metrics for Informix DB");
-        try (Connection con = getConnection()) {
-
+        try (Connection connection = getConnection()) {
+            getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_TRANSACTION_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_TRANSACTION_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(connection, InformixUtil.SQL_ELAPSED_TIME_SQL, DbDcUtil.DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
             getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(1);
-            getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.INSTANCE_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.INSTANCE_ACTIVE_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_SESSION_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.SESSION_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_SESSION_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.ACTIVE_SESSION));
-            getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_READ_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.IO_WRITE_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(con, InformixUtil.MEMORY_UTILIZATION_SQL));
+            getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_ACTIVE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SESSION_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SESSION_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SESSION_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.ACTIVE_SESSION));
+            getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_READ_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_WRITE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(connection, InformixUtil.MEMORY_UTILIZATION_SQL));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(connection, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(connection, tableSpaceUsedQuery, DB_TABLESPACE_USED_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(connection, tableSpaceUtilizationQuery, DB_TABLESPACE_UTILIZATION_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(connection, tableSpaceMaxQuery, DB_TABLESPACE_MAX_KEY));
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error while retrieving the Informix data for Host: {} ", getServerName());
+        }
+    }
 
-            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(con, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(con, tableSpaceUsedQuery, DB_TABLESPACE_USED_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(con, tableSpaceUtilizationQuery, DB_TABLESPACE_UTILIZATION_KEY));
-            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(con, tableSpaceMaxQuery, DB_TABLESPACE_MAX_KEY));
+    private void mediumPollingInterval() {
+        try (Connection connection = getConnection()) {
+            getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_TRANSACTION_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_TRANSACTION_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(connection, InformixUtil.SQL_ELAPSED_TIME_SQL, DbDcUtil.DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error while retrieving the Informix data for Host: {} ", getServerName());
+        }
+    }
 
-            getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.SQL_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.SQL_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_TRANSACTION_COUNT_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.TRANSACTION_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_TRANSACTION_RATE_NAME).setValue(getSimpleMetricWithSql(con, InformixUtil.TRANSACTION_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(con, InformixUtil.SQL_ELAPSED_TIME_SQL, DbDcUtil.DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
+    private void shortPollingInterval() {
+        try (Connection connection = getConnection()) {
+            getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(1);
+            getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_ACTIVE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SESSION_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SESSION_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_SESSION_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.ACTIVE_SESSION));
+            getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_READ_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_WRITE_COUNT_SQL));
+            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(connection, InformixUtil.MEMORY_UTILIZATION_SQL));
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error while retrieving the data : ", e);
+        }
+    }
 
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to update metric with exception", e);
-            getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(0);
+    private void longPollingInterval() {
+        try (Connection connection = getConnection()) {
+            getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(connection, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(connection, tableSpaceUsedQuery, DB_TABLESPACE_USED_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(connection, tableSpaceUtilizationQuery, DB_TABLESPACE_UTILIZATION_KEY));
+            getRawMetric(DbDcUtil.DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(connection, tableSpaceMaxQuery, DB_TABLESPACE_MAX_KEY));
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error while retrieving the data : ", e);
         }
     }
 
     @Override
     public void start() {
-        LOGGER.info("Starting Informix Scheduler");
-        //exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
         if (customPollRateEnabled) {
+            LOGGER.info("Custom Poll Rate is not Enabled for InformixDC");
             return;
         }
         super.start();
+    }
+
+    private enum PollingInterval {
+        HIGH,
+        MEDIUM,
+        LOW;
     }
 }
