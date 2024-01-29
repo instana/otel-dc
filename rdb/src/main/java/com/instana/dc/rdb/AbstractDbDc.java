@@ -103,7 +103,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         otelUsingHttp = "true".equalsIgnoreCase(instanceProps.get(OTEL_BACKEND_USING_HTTP));
 
         dbAddress = instanceProps.get("db.host");
-        dbPort = Long.parseLong(String.valueOf(instanceProps.get(DB_PORT)));
+        dbPort = (int) Long.parseLong(String.valueOf(instanceProps.get(DB_PORT)));
         dbConnUrl = instanceProps.get(DB_CONN_URL);
         dbUserName = instanceProps.get(DB_USERNAME);
         dbPassword = instanceProps.get(DB_PASSWORD);
@@ -114,10 +114,10 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbName = instanceProps.get(DB_NAME);
         dbVersion = instanceProps.get(DB_VERSION);
         dbEntityType = dbEntityType.toUpperCase();
-        dbTenantId = (String) properties.get(DB_TENANT_ID);
-        dbTenantName = (String) properties.get(DB_TENANT_NAME);
-        dbName = (String) properties.get(DB_NAME);
-        dbVersion = (String) properties.get(DB_VERSION);
+        dbTenantId = (String) instanceProps.get(DB_TENANT_ID);
+        dbTenantName = (String) instanceProps.get(DB_TENANT_NAME);
+        dbName = (String) instanceProps.get(DB_NAME);
+        dbVersion = (String) instanceProps.get(DB_VERSION);
     }
 
     @Override
@@ -271,10 +271,6 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
 
     public void setDbEntityParentId(String dbEntityParentId) {
         this.dbEntityParentId = dbEntityParentId;
-    }
-
-    public String getServerName() {
-        return serverName;
     }
 
     @Override
