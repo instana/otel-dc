@@ -21,6 +21,8 @@ dependencies {
     implementation("io.opentelemetry.semconv:opentelemetry-semconv:1.23.1-alpha")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
     implementation(files("libs/otel-dc-0.9.5.jar"))
+    implementation(files("libs/ngdbc-2.4.64.jar"))
+    implementation("org.apache.commons:commons-dbcp2:2.11.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")

@@ -9,6 +9,7 @@ import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
 import com.instana.dc.rdb.util.Constants;
 import com.instana.dc.rdb.util.InformixUtil;
+import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,6 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.SQL_TEXT;
 import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_MAX_KEY;
@@ -39,14 +41,21 @@ public class InformixDc extends AbstractDbDc {
     private String tableSpaceMaxQuery;
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
+    final  BasicDataSource ds;
+
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws ClassNotFoundException, SQLException {
         super(properties, dbSystem, dbDriver);
         parseCustomAttributes(properties);
-        Class.forName("com.informix.jdbc.IfxDriver");
-        setDbPassword(InformixUtil.decodePassword(getDbPassword()));
-        setDbConnUrl();
-        getDbNameAndVersion();
+//        Class.forName("com.informix.jdbc.IfxDriver");
+//        setDbPassword(InformixUtil.decodePassword(getDbPassword()));
+//        setDbConnUrl();
+//        getDbNameAndVersion();
+        ds = new BasicDataSource();
+        ds.setDriverClassName("com.informix.jdbc.IfxDriver");
+        ds.setUsername("informix");
+        ds.setPassword("password");
+        ds.setUrl("jdbc:informix-sqli://9.46.251.113:9088/sysmaster:INFORMIXSERVER=ol_informix1410");
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
@@ -98,6 +107,8 @@ public class InformixDc extends AbstractDbDc {
     }
 
 
+
+
     /**
      * Util method to parse the config and get the custom Attributes from the Config
      *
@@ -123,12 +134,14 @@ public class InformixDc extends AbstractDbDc {
         String user = getDbUserName();
         String password = getDbPassword();
 
-        String url = String.format("jdbc:informix-sqli://%s:%s/sysmaster:informixserver=%s;user=%s;Password=%s",
+        String url = String.format("jdbc:informix-sqli://%s:%s/sysmaster:informixserver=%s",
+                        //";user=%s;Password=%s",
+
                 host,
                 port,
-                serverName,
-                user,
-                password
+                serverName
+//                user,
+//                password
         );
         setDbConnUrl(url);
     }
@@ -158,7 +171,7 @@ public class InformixDc extends AbstractDbDc {
     @Override
     public void collectData() {
         LOGGER.info("Start to collect metrics for Informix DB");
-        try (Connection connection = getConnection()) {
+        try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_TRANSACTION_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
@@ -181,8 +194,10 @@ public class InformixDc extends AbstractDbDc {
         }
     }
 
+
+
     private void mediumPollingInterval() {
-        try (Connection connection = getConnection()) {
+        try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_SQL_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_TRANSACTION_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
@@ -194,7 +209,7 @@ public class InformixDc extends AbstractDbDc {
     }
 
     private void shortPollingInterval() {
-        try (Connection connection = getConnection()) {
+       try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(1);
             getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_ACTIVE_COUNT_SQL));
@@ -208,8 +223,8 @@ public class InformixDc extends AbstractDbDc {
         }
     }
 
-    private void longPollingInterval() {
-        try (Connection connection = getConnection()) {
+    private void longPollingInterval( ) {
+        try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(connection, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(connection, tableSpaceUsedQuery, DB_TABLESPACE_USED_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(connection, tableSpaceUtilizationQuery, DB_TABLESPACE_UTILIZATION_KEY));

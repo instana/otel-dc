@@ -8,6 +8,7 @@ import com.instana.dc.DcException;
 import com.instana.dc.rdb.impl.DamengDc;
 import com.instana.dc.rdb.impl.InformixDc;
 import com.instana.dc.rdb.impl.Oceanbase4Dc;
+import com.instana.dc.rdb.impl.saphana.HanaDc;
 
 import java.util.HashMap;
 import java.util.Map;
