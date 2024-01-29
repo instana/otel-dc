@@ -27,6 +27,7 @@ dependencies {
 
     implementation("mysql:mysql-connector-java:5.1.46")
     implementation(files("libs/DmJdbcDriver18.jar"))
+    implementation(files("libs/ngdbc-2.4.64.jar"))
 }
 
 application {
