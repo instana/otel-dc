@@ -35,17 +35,14 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
-    public AbstractHostDc(Map<String, String> properties, String hostSystem) {
+    public AbstractHostDc(Map<String, Object> properties, String hostSystem) {
         super(new HostRawMetricRegistry().getMap());
 
-        String pollInt = properties.get(POLLING_INTERVAL);
-        pollInterval = pollInt == null ? DEFAULT_POLL_INTERVAL : Integer.parseInt(pollInt);
-        String callbackInt = properties.get(CALLBACK_INTERVAL);
-        callbackInterval = callbackInt == null ? DEFAULT_CALLBACK_INTERVAL : Integer.parseInt(callbackInt);
-        otelBackendUrl = properties.get(OTEL_BACKEND_URL);
-        otelUsingHttp = "true".equalsIgnoreCase(properties.get(OTEL_BACKEND_USING_HTTP));
-        String svcName = properties.get(OTEL_SERVICE_NAME);
-        serviceName = svcName == null ? hostSystem : svcName;
+        pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
+        callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
+        otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
+        otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
+        serviceName = (String) properties.get(OTEL_SERVICE_NAME);
     }
 
     public String getServiceName() {

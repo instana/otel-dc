@@ -37,7 +37,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private final String dbSystem;
     private final String dbDriver;
     private String dbAddress;
-    private long dbPort;
+    private int dbPort;
     private String dbConnUrl;
     private String dbUserName;
     private String dbPassword;
@@ -109,10 +109,15 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbPassword = instanceProps.get(DB_PASSWORD);
         dbEntityType = instanceProps.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
-            dbEntityType = DEFAULT_DB_ENTITY_TYPE;
+            dbEntityType = (String) DEFAULT_DB_ENTITY_TYPE;
         }
         dbName = instanceProps.get(DB_NAME);
         dbVersion = instanceProps.get(DB_VERSION);
+        dbEntityType = dbEntityType.toUpperCase();
+        dbTenantId = (String) properties.get(DB_TENANT_ID);
+        dbTenantName = (String) properties.get(DB_TENANT_NAME);
+        dbName = (String) properties.get(DB_NAME);
+        dbVersion = (String) properties.get(DB_VERSION);
     }
 
     @Override
@@ -121,7 +126,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
                 .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName,
                         SemanticAttributes.DB_SYSTEM, dbSystem,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_ADDRESS, dbAddress,
-                        com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_PORT, dbPort,
+                        com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_PORT, (long)dbPort,
                         SemanticAttributes.DB_NAME, dbName,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DB_VERSION, dbVersion
                 )))
@@ -180,7 +185,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         return dbPort;
     }
 
-    public void setDbPort(long dbPort) {
+    public void setDbPort(int dbPort) {
         this.dbPort = dbPort;
     }
 
@@ -266,6 +271,10 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
 
     public void setDbEntityParentId(String dbEntityParentId) {
         this.dbEntityParentId = dbEntityParentId;
+    }
+
+    public String getServerName() {
+        return serverName;
     }
 
     @Override

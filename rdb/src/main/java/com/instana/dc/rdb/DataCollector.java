@@ -84,7 +84,7 @@ public class DataCollector {
         private String dbSystem;
         @JsonProperty("db.driver")
         private String dbDriver;
-        private final List<Map<String, String>> instances = new ArrayList<>();
+        private final List<Map<String, Object>> instances = new ArrayList<>();
 
         public String getDbSystem() {
             return dbSystem;
@@ -94,7 +94,7 @@ public class DataCollector {
             return dbDriver;
         }
 
-        public List<Map<String, String>> getInstances() {
+        public List<Map<String, Object>> getInstances() {
             return instances;
         }
 
