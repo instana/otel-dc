@@ -90,7 +90,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbName = (String) properties.get(DB_NAME);
         dbVersion = (String) properties.get(DB_VERSION);
     }
-
+    
     @Override
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
@@ -207,7 +207,9 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     public String getServiceInstanceId() {
         return serviceInstanceId;
     }
-
+    public void setDbEntityParentId(String dbEntityParentId) {
+        this.dbEntityParentId = dbEntityParentId;
+    }
     public void setServiceInstanceId(String serviceInstanceId) {
         this.serviceInstanceId = serviceInstanceId;
     }
@@ -236,13 +238,10 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         return dbEntityParentId;
     }
 
-    public void setDbEntityParentId(String dbEntityParentId) {
-        this.dbEntityParentId = dbEntityParentId;
-    }
-
     public String getServerName() {
         return serverName;
     }
+
 
     @Override
     public void initDC() throws Exception {
