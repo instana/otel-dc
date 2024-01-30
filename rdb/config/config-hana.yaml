@@ -1,0 +1,17 @@
+#Database properties:
+db.system: hana
+db.driver: com.sap.db.jdbc.Driver
+instances:
+  - db.address: 9.42.129.183
+    db.port: 30015
+    db.username: D4MON
+    db.password: UGVyZjBybS4=
+    db.connection.url: jdbc:sap://9.42.129.183:30015
+    db.name: ML4
+    #Data collector properties:
+    poll.interval: 30
+    callback.interval: 20
+    otel.backend.url: http://127.0.0.1:4317
+    #otel.backend.using.http: true
+    #OTel properties:
+    otel.service.name: SAPHana
