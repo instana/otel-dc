@@ -1,4 +1,4 @@
-package com.instana.dc.rdb.util;
+package com.instana.dc.rdb.impl;
 
 public class Constants {
 

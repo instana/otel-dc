@@ -5,10 +5,9 @@
 package com.instana.dc.rdb;
 
 import com.instana.dc.DcException;
-import com.instana.dc.rdb.impl.DamengDc;
-import com.instana.dc.rdb.impl.InformixDc;
-import com.instana.dc.rdb.impl.Oceanbase4Dc;
-import com.instana.dc.rdb.impl.saphana.HanaDc;
+import com.instana.dc.rdb.impl.dameng.DamengDc;
+import com.instana.dc.rdb.impl.informix.InformixDc;
+import com.instana.dc.rdb.impl.oceanbase.Oceanbase4Dc;
 
 import java.util.HashMap;
 import java.util.Map;

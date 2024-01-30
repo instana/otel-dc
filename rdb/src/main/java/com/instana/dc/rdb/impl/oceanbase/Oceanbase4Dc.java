@@ -2,7 +2,7 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.rdb.impl;
+package com.instana.dc.rdb.impl.oceanbase;
 
 import com.instana.dc.CalculationMode;
 import com.instana.dc.DcException;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.SQL_TEXT;
 import static com.instana.dc.rdb.DbDcUtil.*;
-import static com.instana.dc.rdb.util.Oceanbase4Util.*;
+import static com.instana.dc.rdb.impl.oceanbase.Oceanbase4Util.*;
 
 public class Oceanbase4Dc extends AbstractDbDc {
     private static final Logger logger = Logger.getLogger(Oceanbase4Dc.class.getName());

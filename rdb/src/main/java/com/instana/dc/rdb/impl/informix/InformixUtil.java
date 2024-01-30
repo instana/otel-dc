@@ -3,7 +3,7 @@
  * (c) Copyright Instana Inc.
  */
 
-package com.instana.dc.rdb.util;
+package com.instana.dc.rdb.impl.informix;
 
 import java.util.Base64;
 import java.util.HashMap;

@@ -90,36 +90,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbName = (String) properties.get(DB_NAME);
         dbVersion = (String) properties.get(DB_VERSION);
     }
-
-    public AbstractDbDc(Map<String, Object> systemProps, Map<String, String> instanceProps) {
-        super(new DbRawMetricRegistry().getMap());
-        this.dbSystem = (String) systemProps.get(DB_SYSTEM);
-        this.dbDriver = (String) systemProps.get(DB_DRIVER);
-        pollInterval = (int) systemProps.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
-        callbackInterval = (int) systemProps.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
-        otelBackendUrl = (String) systemProps.get(OTEL_BACKEND_URL);
-        serviceName = (String) systemProps.get(OTEL_SERVICE_NAME);
-        serviceInstanceId = (String) systemProps.get(OTEL_SERVICE_INSTANCE_ID);
-        otelUsingHttp = "true".equalsIgnoreCase(instanceProps.get(OTEL_BACKEND_USING_HTTP));
-
-        dbAddress = instanceProps.get("db.host");
-        dbPort = (int) Long.parseLong(String.valueOf(instanceProps.get(DB_PORT)));
-        dbConnUrl = instanceProps.get(DB_CONN_URL);
-        dbUserName = instanceProps.get(DB_USERNAME);
-        dbPassword = instanceProps.get(DB_PASSWORD);
-        dbEntityType = instanceProps.get(DB_ENTITY_TYPE);
-        if (dbEntityType == null) {
-            dbEntityType = (String) DEFAULT_DB_ENTITY_TYPE;
-        }
-        dbName = instanceProps.get(DB_NAME);
-        dbVersion = instanceProps.get(DB_VERSION);
-        dbEntityType = dbEntityType.toUpperCase();
-        dbTenantId = (String) instanceProps.get(DB_TENANT_ID);
-        dbTenantName = (String) instanceProps.get(DB_TENANT_NAME);
-        dbName = (String) instanceProps.get(DB_NAME);
-        dbVersion = (String) instanceProps.get(DB_VERSION);
-    }
-
+    
     @Override
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
@@ -236,7 +207,9 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     public String getServiceInstanceId() {
         return serviceInstanceId;
     }
-
+    public void setDbEntityParentId(String dbEntityParentId) {
+        this.dbEntityParentId = dbEntityParentId;
+    }
     public void setServiceInstanceId(String serviceInstanceId) {
         this.serviceInstanceId = serviceInstanceId;
     }
@@ -269,9 +242,6 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         return serverName;
     }
 
-    public void setDbEntityParentId(String dbEntityParentId) {
-        this.dbEntityParentId = dbEntityParentId;
-    }
 
     @Override
     public void initDC() throws Exception {

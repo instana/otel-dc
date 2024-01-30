@@ -2,13 +2,12 @@
  * (c) Copyright IBM Corp. 2024
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.rdb.impl;
+package com.instana.dc.rdb.impl.informix;
 
 import com.instana.dc.CalculationMode;
 import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
-import com.instana.dc.rdb.util.Constants;
-import com.instana.dc.rdb.util.InformixUtil;
+import com.instana.dc.rdb.impl.Constants;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
@@ -30,7 +29,7 @@ import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_USED_KEY;
 import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_UTILIZATION_KEY;
 import static com.instana.dc.rdb.DbDcUtil.getMetricWithSql;
 import static com.instana.dc.rdb.DbDcUtil.getSimpleMetricWithSql;
-import static com.instana.dc.rdb.util.InformixUtil.DB_HOST_AND_VERSION_SQL;
+import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
 public class InformixDc extends AbstractDbDc {
