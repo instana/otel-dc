@@ -2,13 +2,12 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.rdb.impl;
+package com.instana.dc.rdb.impl.dameng;
 
 import com.instana.dc.CalculationMode;
 import com.instana.dc.DcUtil;
 import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
-import io.opentelemetry.api.OpenTelemetry;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
 
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
 import static com.instana.dc.rdb.DbDcUtil.*;
-import static com.instana.dc.rdb.impl.DamengUtil.*;
+import static com.instana.dc.rdb.impl.dameng.DamengUtil.*;
 
 public class DamengDc extends AbstractDbDc {
     private static final Logger logger = Logger.getLogger(DamengDc.class.getName());

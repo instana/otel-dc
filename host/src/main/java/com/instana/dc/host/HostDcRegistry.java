@@ -2,10 +2,11 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.host.impl;
+package com.instana.dc.host;
 
 import com.instana.dc.host.AbstractHostDc;
 import com.instana.dc.DcException;
+import com.instana.dc.host.impl.simphost.SimpHostDc;
 
 import java.util.HashMap;
 import java.util.Map;
