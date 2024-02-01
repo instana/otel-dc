@@ -12,11 +12,11 @@ LLM and LLM Applications. All implementation are based on predefined OpenTelemet
 
 ## Requirements
 
-- Java 8+
+- Java 11+
 
 ## Build & Installation
 
-1) Make sure Java SDK 8+ is installed.
+1) Make sure Java SDK 11+ is installed.
 ```bash
 java -version
 ```
@@ -35,7 +35,7 @@ cd otel-dc/ai
 
 ## Run ODCAI
 
-1) Make sure code is built with Java SDK 8+.
+1) Make sure code is built with Java SDK 11+.
 
 2) Refine configuration file (config/config.yaml) according to your own LLM application. 
 
