@@ -5,7 +5,7 @@
 package com.instana.dc.ai;
 
 import com.instana.dc.AbstractDc;
-import com.instana.dc.ai.DataCollector.DcConfig;
+import com.instana.dc.ai.DataCollector.CustomDcConfig;
 import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
@@ -32,7 +32,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
     private final String serviceName;
 	public final static String INSTRUMENTATION_SCOPE_PREFIX = "otelcol/llmmetricsreceiver/";
     private String serviceInstanceId;
-    private DcConfig dcConfig;
+    private CustomDcConfig cdcConfig;
 
     // Used the fixed 10 seconds for poll interval
     public static final int LLM_POLL_INTERVAL = 10;
@@ -40,7 +40,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
-    public AbstractLLMDc(Map<String, Object> properties, DcConfig dcConfig) {
+    public AbstractLLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
         super(new LLMRawMetricRegistry().getMap());
 		// pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
         // callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
@@ -49,17 +49,17 @@ public abstract class AbstractLLMDc extends AbstractDc {
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
         otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
         serviceName = (String) properties.get(OTEL_SERVICE_NAME);
-        serviceInstanceId = dcConfig.getServerAddr() + "(" + dcConfig.getServerPort() + ")@" + serviceName;
-        this.dcConfig = dcConfig;
+        serviceInstanceId = cdcConfig.getServerAddr() + "(" + cdcConfig.getServerPort() + ")@" + serviceName;
+        this.cdcConfig = cdcConfig;
     }
 
     @Override
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(
-                    stringKey(LLM_SERVER_ADDR), dcConfig.getServerAddr(),
-                    stringKey(LLM_SERVER_PORT), dcConfig.getServerPort(),
-                    stringKey(LLM_PLATFORM_NAME), dcConfig.getPlatform(),
+                    stringKey(LLM_SERVER_ADDR), cdcConfig.getServerAddr(),
+                    stringKey(LLM_SERVER_PORT), cdcConfig.getServerPort(),
+                    stringKey(LLM_PLATFORM_NAME), cdcConfig.getPlatform(),
                     stringKey(SERVICE_NAME), serviceName,
                     stringKey(SERVICE_INSTANCE_ID), serviceInstanceId
                 )))

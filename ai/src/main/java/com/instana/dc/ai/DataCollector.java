@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.instana.dc.IDc;
-import com.instana.dc.ai.impl.LLMDcRegistry;
+import com.instana.dc.ai.LLMDcRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class DataCollector {
 
     private static final Logger logger = Logger.getLogger(DataCollector.class.getName());
 
-    private final DcConfig dcConfig;
+    private final CustomDcConfig cdcConfig;
 
     private final List<IDc> dcs;
 
@@ -36,20 +36,20 @@ public class DataCollector {
         if (configFile == null) {
             configFile = CONFIG_YAML;
         }
-        dcConfig = objectMapper.readValue(new File(configFile), DcConfig.class);
-        int n = dcConfig.getInstances().size();
+        cdcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
+        int n = cdcConfig.getInstances().size();
         dcs = new ArrayList<>(n);
-        for (Map<String, Object> props : dcConfig.getInstances()) {
-            dcs.add(newDc(props, dcConfig));
+        for (Map<String, Object> props : cdcConfig.getInstances()) {
+            dcs.add(newDc(props, cdcConfig));
         }
         if (!dcs.isEmpty()) {
             dcs.get(0).initOnce();
         }
     }
 
-    private IDc newDc(Map<String, Object> props, DcConfig dcConfig) throws Exception {
-        return new LLMDcRegistry().findLLMDc("WATSONX").getConstructor(Map.class, DcConfig.class)
-                .newInstance(props, dcConfig);
+    private IDc newDc(Map<String, Object> props, CustomDcConfig cdcConfig) throws Exception {
+        return new LLMDcRegistry().findLLMDc("WATSONX").getConstructor(Map.class, CustomDcConfig.class)
+                .newInstance(props, cdcConfig);
     }
 
     public static void main(String[] args) {
@@ -79,7 +79,7 @@ public class DataCollector {
         }
     }
 
-    static public class DcConfig {
+    static public class CustomDcConfig {
         @JsonProperty("llm.platform")
         private String platform;
         @JsonProperty("llm.application")

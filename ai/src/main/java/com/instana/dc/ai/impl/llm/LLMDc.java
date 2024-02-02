@@ -2,10 +2,10 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai.impl;
+package com.instana.dc.ai.impl.llm;
 
 import com.instana.dc.ai.AbstractLLMDc;
-import com.instana.dc.ai.DataCollector.DcConfig;
+import com.instana.dc.ai.DataCollector.CustomDcConfig;
 
 import java.util.logging.Logger;
 import java.util.*;
@@ -118,8 +118,8 @@ public class LLMDc extends AbstractLLMDc {
         }
     }
 
-    public LLMDc(Map<String, Object> properties, DcConfig dcConfig) throws Exception {
-        super(properties, dcConfig);
+    public LLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) throws Exception {
+        super(properties, cdcConfig);
     }
 
     @Override

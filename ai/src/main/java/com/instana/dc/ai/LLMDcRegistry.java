@@ -2,9 +2,10 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai.impl;
+package com.instana.dc.ai;
 
 import com.instana.dc.ai.AbstractLLMDc;
+import com.instana.dc.ai.impl.llm.LLMDc;
 
 import java.util.HashMap;
 import java.util.Map;
