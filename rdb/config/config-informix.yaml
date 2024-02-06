@@ -2,16 +2,19 @@ db.system: informix
 db.driver: com.informix.jdbc.IfxDriver
 
 instances:
-  - db.address: 9.46.251.113
-    db.port: 9088
+  - db.address: xxx.xxx.xxx.xxx #IP Address
+    db.port: 9088 #Port on which DB is running
     db.serverName: ol_informix1410
-    db.username: informix
-    db.password: cGFzc3dvcmQ=
-    db.name: TestInformixDB
+    db.username: Informix_User_Name
+    db.password: BASE64_Encoded_Password
+    db.name: InformixDB
+
     #OTel properties:
     otel.service.name: InformixDB
+
     #Data collector properties:
-   # poll.interval: 30
+    #Either use `poll.interval` or `custom.poll.interval`
+    poll.interval: 30
     custom.poll.interval:
       high: 10 #polling_value_in_sec
       medium: 120 #polling_value_in_sec

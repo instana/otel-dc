@@ -25,14 +25,12 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.*;
 import static com.instana.dc.rdb.DbDcUtil.*;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 public abstract class AbstractDbDc extends AbstractDc implements IDc {
-    private static final Logger logger = Logger.getLogger(AbstractDbDc.class.getName());
 
     private final String dbSystem;
     private final String dbDriver;
@@ -59,7 +57,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
-    public AbstractDbDc(Map<String, Object> properties, String dbSystem, String dbDriver) {
+    protected AbstractDbDc(Map<String, Object> properties, String dbSystem, String dbDriver) {
         super(new DbRawMetricRegistry().getMap());
 
         this.dbSystem = dbSystem;
@@ -82,7 +80,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         serverName = (String) properties.get(DB_SERVER_NAME);
         dbEntityType = (String) properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
-            dbEntityType = (String) DEFAULT_DB_ENTITY_TYPE;
+            dbEntityType = DEFAULT_DB_ENTITY_TYPE;
         }
         dbEntityType = dbEntityType.toUpperCase();
         dbTenantId = (String) properties.get(DB_TENANT_ID);

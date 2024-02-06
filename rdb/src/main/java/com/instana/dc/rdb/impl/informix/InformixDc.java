@@ -40,56 +40,60 @@ public class InformixDc extends AbstractDbDc {
     private String tableSpaceMaxQuery;
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
-    final  BasicDataSource ds;
+    private final BasicDataSource ds;
 
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws ClassNotFoundException, SQLException {
         super(properties, dbSystem, dbDriver);
         parseCustomAttributes(properties);
-//        Class.forName("com.informix.jdbc.IfxDriver");
-//        setDbPassword(InformixUtil.decodePassword(getDbPassword()));
-//        setDbConnUrl();
-//        getDbNameAndVersion();
+        setDbPassword(InformixUtil.decodePassword(getDbPassword()));
+        setDbConnUrl();
+
         ds = new BasicDataSource();
-        ds.setDriverClassName("com.informix.jdbc.IfxDriver");
-        ds.setUsername("informix");
-        ds.setPassword("password");
-        ds.setUrl("jdbc:informix-sqli://9.46.251.113:9088/sysmaster:INFORMIXSERVER=ol_informix1410");
+        ds.setDriverClassName(getDbDriver());
+        ds.setUsername(getDbUserName());
+        ds.setPassword(getDbPassword());
+        ds.setUrl(getDbConnUrl());
+        ds.setInitialSize(3);
+        ds.setMaxIdle(1);
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
+        getDbNameAndVersion();
         parseCustomPollRate(properties);
     }
 
+    /**
+     * Util method to parse the user input
+     *
+     * @param properties : user inputs
+     */
     private void parseCustomPollRate(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.poll.interval");
         if (null == customInput || customInput.isEmpty()) {
             customPollRateEnabled = false;
+            LOGGER.info("No custom polling interval fallback to default");
             return;
         }
 
         executorService = Executors.newScheduledThreadPool(3);
 
         for (Map.Entry<String, Object> entry : customInput.entrySet()) {
-            PollingInterval type = getPollingInterval(entry.getKey());
+            IntervalType type = getPollingInterval(entry.getKey());
             int pollInterval = (int) entry.getValue();
             scheduleCustomPollRate(pollInterval, type);
         }
     }
 
-    private PollingInterval getPollingInterval(String pollingInterval) {
-        for (PollingInterval interval : PollingInterval.values()) {
-            if (pollingInterval.equalsIgnoreCase(interval.name())) {
-                return interval;
-            }
-        }
-        LOGGER.log(Level.SEVERE, "Invalid Polling Interval : {}", pollingInterval);
-        return null;
-    }
 
-
-    private void scheduleCustomPollRate(int pollInterval, PollingInterval pollingInterval) {
-        switch (pollingInterval) {
+    /**
+     * Util method to schedule custom Poll Rate based on the user Input
+     *
+     * @param pollInterval : Polling value
+     * @param intervalType : Type of the Interval
+     */
+    private void scheduleCustomPollRate(int pollInterval, IntervalType intervalType) {
+        switch (intervalType) {
             case HIGH:
                 LOGGER.info("Starting Long Polling Scheduler");
                 executorService.scheduleWithFixedDelay(this::longPollingInterval, 1, pollInterval, TimeUnit.SECONDS);
@@ -104,8 +108,6 @@ public class InformixDc extends AbstractDbDc {
                 break;
         }
     }
-
-
 
 
     /**
@@ -126,27 +128,19 @@ public class InformixDc extends AbstractDbDc {
         tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, sb);
     }
 
-    public void setDbConnUrl() {
-        String host = getDbAddress();
-        long port = getDbPort();
-        String serverName = getServerName();
-        String user = getDbUserName();
-        String password = getDbPassword();
-
-        String url = String.format("jdbc:informix-sqli://%s:%s/sysmaster:informixserver=%s",
-                        //";user=%s;Password=%s",
-
-                host,
-                port,
-                serverName
-//                user,
-//                password
+    private void setDbConnUrl() {
+        String url = String.format("jdbc:informix-sqli://%s:%s/sysmaster:informixserver=%s;user=%s;Password=%s",
+                getDbAddress(),
+                getDbPort(),
+                getServerName(),
+                getDbUserName(),
+                getDbPassword()
         );
         setDbConnUrl(url);
     }
 
     private void getDbNameAndVersion() throws SQLException {
-        try (Connection connection = getConnection()) {
+        try (Connection connection = ds.getConnection()) {
             ResultSet rs = DbDcUtil.executeQuery(connection, DB_HOST_AND_VERSION_SQL);
             rs.next();
             setDbVersion(rs.getString("Version"));
@@ -194,7 +188,6 @@ public class InformixDc extends AbstractDbDc {
     }
 
 
-
     private void mediumPollingInterval() {
         try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_SQL_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.SQL_COUNT_SQL));
@@ -208,7 +201,7 @@ public class InformixDc extends AbstractDbDc {
     }
 
     private void shortPollingInterval() {
-       try (Connection connection = ds.getConnection()) {
+        try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(1);
             getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.INSTANCE_ACTIVE_COUNT_SQL));
@@ -222,7 +215,7 @@ public class InformixDc extends AbstractDbDc {
         }
     }
 
-    private void longPollingInterval( ) {
+    private void longPollingInterval() {
         try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(connection, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(connection, tableSpaceUsedQuery, DB_TABLESPACE_USED_KEY));
@@ -236,15 +229,31 @@ public class InformixDc extends AbstractDbDc {
     @Override
     public void start() {
         if (customPollRateEnabled) {
-            LOGGER.info("Custom Poll Rate is not Enabled for InformixDC");
+            LOGGER.info("Custom Poll Rate is Enabled for InformixDC, not starting default executors");
             return;
         }
         super.start();
     }
 
-    private enum PollingInterval {
+    private enum IntervalType {
         HIGH,
         MEDIUM,
         LOW;
+    }
+
+    /**
+     * Util method to get the Polling Interval
+     *
+     * @param pollingInterval : User input of the Interval
+     * @return : Mapped Type of the Interval
+     */
+    private IntervalType getPollingInterval(String pollingInterval) {
+        for (IntervalType interval : IntervalType.values()) {
+            if (pollingInterval.equalsIgnoreCase(interval.name())) {
+                return interval;
+            }
+        }
+        LOGGER.log(Level.SEVERE, "Invalid Polling Interval : {}", pollingInterval);
+        return null;
     }
 }
