@@ -14,6 +14,9 @@ import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -22,9 +25,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.*;
+import static com.instana.dc.host.HostDcUtil.*;
 
 public abstract class AbstractHostDc extends AbstractDc implements IDc {
     private static final Logger logger = Logger.getLogger(AbstractHostDc.class.getName());
+
+    /*
+     * Configuration items for mq appliance
+     **/
+    protected String applianceHost;
+    private String applianceUser;
+    private String appliancePassword;
 
     private final String otelBackendUrl;
     private final boolean otelUsingHttp;
@@ -34,9 +45,15 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     public final static String INSTRUMENTATION_SCOPE_PREFIX = "otelcol/hostmetricsreceiver/";
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+    private Process process;
+    protected BufferedReader bufferedReader;
 
     public AbstractHostDc(Map<String, Object> properties, String hostSystem) {
         super(new HostRawMetricRegistry().getMap());
+
+        applianceHost = (String) properties.get(APPLIANCE_HOST);
+        applianceUser = (String) properties.get(APPLIANCE_USER);
+        appliancePassword = (String) properties.get(APPLIANCE_PASSWORD);
 
         pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
         callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
@@ -76,11 +93,38 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         initMeter(openTelemetry, HostDcUtil.MeterName.FILESYSTEM);
         initMeter(openTelemetry, HostDcUtil.MeterName.PROCESSES);
         initMeter(openTelemetry, HostDcUtil.MeterName.PAGING);
+        initMeter(openTelemetry, HostDcUtil.MeterName.IBMQMGR);
     }
 
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            closeProcess();
+        }));
+    }
+
+    private void closeProcess() {
+        if (process != null) {
+            process.destroy();
+        }
+        if (exec != null && !exec.isShutdown()) {
+            exec.shutdownNow();
+        }
+    }
 
     @Override
     public void start() {
-        exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
+        if (applianceHost != null && !applianceHost.equals("")){
+            try {
+                ProcessBuilder processBuilder = new ProcessBuilder("expect", "scripts/getMqApplianceData.exp", applianceHost, applianceUser, appliancePassword, String.valueOf(pollInterval));
+                process = processBuilder.start();
+                bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                addShutdownHook();
+                exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
+            } catch (IOException e) {
+                logger.severe("Cannot start the data collector: " + e.getMessage());
+            }
+        }else{
+            exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
+        }
     }
 }
