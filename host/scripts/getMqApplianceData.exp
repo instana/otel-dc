@@ -8,7 +8,7 @@
 # Uncomment to suppress normal output to stdout
 log_user 0
 
-set timeout 60
+set timeout 30
 
 set appliance1 [lindex $argv 0]
 set appliance1_name "Appliance1"
@@ -42,8 +42,6 @@ proc sshLogin {id userid password namevar} {
 }
 
 proc sshLogout {id} {
-    send -i $id "exit\n"
-    expect -i $id "#"
     send -i $id "exit\n"
     expect -i $id eof
     return 0
