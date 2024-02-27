@@ -6,6 +6,7 @@ package com.instana.dc.host.impl.mqappliance;
 
 import com.instana.dc.host.AbstractHostDc;
 import com.instana.dc.host.HostDcUtil;
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
@@ -36,6 +37,11 @@ public class MqApplianceDc extends AbstractHostDc {
         applianceHost = (String) properties.get(APPLIANCE_HOST);
         applianceUser = (String) properties.get(APPLIANCE_USER);
         appliancePassword = (String) properties.get(APPLIANCE_PASSWORD);
+    }
+    @Override
+    public void initMeters(OpenTelemetry openTelemetry) {
+        super.initMeters(openTelemetry);
+        initMeter(openTelemetry, HostDcUtil.MeterName.IBMQMGR);
     }
 
     private void addShutdownHook() {

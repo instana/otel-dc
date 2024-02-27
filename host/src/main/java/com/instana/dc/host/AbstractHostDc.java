@@ -63,7 +63,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         registerMetrics();
     }
 
-    private void initMeter(OpenTelemetry openTelemetry, String name) {
+    protected void initMeter(OpenTelemetry openTelemetry, String name) {
         Meter meter1 = openTelemetry.meterBuilder(INSTRUMENTATION_SCOPE_PREFIX + name).setInstrumentationVersion("1.0.0").build();
         getMeters().put(name, meter1);
     }
@@ -81,8 +81,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         initMeter(openTelemetry, HostDcUtil.MeterName.FILESYSTEM);
         initMeter(openTelemetry, HostDcUtil.MeterName.PROCESSES);
         initMeter(openTelemetry, HostDcUtil.MeterName.PAGING);
-        initMeter(openTelemetry, HostDcUtil.MeterName.IBMQMGR);
-    }
+     }
 
 
     @Override
