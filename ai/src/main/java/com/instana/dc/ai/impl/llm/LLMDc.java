@@ -214,7 +214,7 @@ public class LLMDc extends AbstractLLMDc {
 
             int avgDuration = totalDuration/(requestCount==0?1:requestCount);
             double intervalTokens = (double)totalTokens/LLM_POLL_INTERVAL;
-            double intervalCost = intervalTokens * 0.01;
+            double intervalCost = (intervalTokens/1000) * 0.03;
             double intervalRequests = (double)requestCount/LLM_POLL_INTERVAL;
             aggr.resetMetrics();
 
