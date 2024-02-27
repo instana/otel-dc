@@ -8,10 +8,13 @@ import com.instana.dc.AbstractDc;
 import com.instana.dc.IDc;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,12 +35,9 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
-    public ScheduledExecutorService getExec() {
-        return exec;
-    }
-
     public AbstractHostDc(Map<String, Object> properties, String hostSystem) {
         super(new HostRawMetricRegistry().getMap());
+
         pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
         callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
@@ -49,10 +49,6 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         return serviceName;
     }
 
-    public int getPollInterval() {
-        return pollInterval;
-    }
-
     @Override
     public void initDC() throws Exception {
         Resource resource = getResourceAttributes();
@@ -62,7 +58,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         registerMetrics();
     }
 
-    protected void initMeter(OpenTelemetry openTelemetry, String name) {
+    private void initMeter(OpenTelemetry openTelemetry, String name) {
         Meter meter1 = openTelemetry.meterBuilder(INSTRUMENTATION_SCOPE_PREFIX + name).setInstrumentationVersion("1.0.0").build();
         getMeters().put(name, meter1);
     }
@@ -80,7 +76,8 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         initMeter(openTelemetry, HostDcUtil.MeterName.FILESYSTEM);
         initMeter(openTelemetry, HostDcUtil.MeterName.PROCESSES);
         initMeter(openTelemetry, HostDcUtil.MeterName.PAGING);
-     }
+    }
+
 
     @Override
     public void start() {
