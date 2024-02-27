@@ -23,7 +23,6 @@ import static com.instana.dc.DcUtil.*;
 public abstract class AbstractHostDc extends AbstractDc implements IDc {
     private static final Logger logger = Logger.getLogger(AbstractHostDc.class.getName());
 
-
     private final String otelBackendUrl;
     private final boolean otelUsingHttp;
     private final int pollInterval;
@@ -82,7 +81,6 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         initMeter(openTelemetry, HostDcUtil.MeterName.PROCESSES);
         initMeter(openTelemetry, HostDcUtil.MeterName.PAGING);
      }
-
 
     @Override
     public void start() {

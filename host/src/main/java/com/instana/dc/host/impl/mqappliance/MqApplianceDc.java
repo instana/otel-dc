@@ -26,8 +26,8 @@ public class MqApplianceDc extends AbstractHostDc {
     private static final Logger logger = Logger.getLogger(MqApplianceDc.class.getName());
 
     protected String applianceHost;
-    private String applianceUser;
-    private String appliancePassword;
+    private final String applianceUser;
+    private final String appliancePassword;
 
     private Process process;
     protected BufferedReader bufferedReader;
@@ -45,9 +45,7 @@ public class MqApplianceDc extends AbstractHostDc {
     }
 
     private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            closeProcess();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::closeProcess));
     }
 
     private void closeProcess() {
