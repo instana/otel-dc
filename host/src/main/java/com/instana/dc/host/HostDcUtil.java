@@ -20,7 +20,14 @@ public class HostDcUtil {
         public static final String FILESYSTEM = "filesystem";
         public static final String PROCESSES = "processes";
         public static final String PAGING = "paging";
+        public static final String IBMQMGR = "qmgr";
     }
+
+    /* Configurations for the MQ appliance Data Collector:
+     */
+    public static final String APPLIANCE_HOST = "appliance.host";
+    public static final String APPLIANCE_USER = "appliance.user";
+    public static final String APPLIANCE_PASSWORD = "appliance.password";
 
     /* Configurations for Metrics:
      */
@@ -128,6 +135,9 @@ public class HostDcUtil {
     public static final String SYSTEM_PROCESSES_CREATED_DESC = "Total number of created processes";
     public static final String SYSTEM_PROCESSES_CREATED_UNIT = "{processes}";
 
+    public static final String SYSTEM_IBMQMGR_STATUS_NAME = "system.ibmqmgr.status";
+    public static final String SYSTEM_IBMQMGR_STATUS_DESC = "Status of ibm mq queue manager";
+    public static final String SYSTEM_IBMQMGR_STATUS_UNIT = UNIT_1;
 
     public static String readFileText(String filePath) throws IOException {
         try (InputStream is = new FileInputStream(filePath)) {
