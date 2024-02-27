@@ -12,7 +12,10 @@ import io.opentelemetry.semconv.ResourceAttributes;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.mergeResourceAttributesFromEnv;
@@ -21,8 +24,54 @@ import static com.instana.dc.host.HostDcUtil.*;
 public class MqApplianceDc extends AbstractHostDc {
     private static final Logger logger = Logger.getLogger(MqApplianceDc.class.getName());
 
+    protected String applianceHost;
+    private String applianceUser;
+    private String appliancePassword;
+
+    private Process process;
+    protected BufferedReader bufferedReader;
+
     public MqApplianceDc(Map<String, Object> properties, String applianceSystem) {
         super(properties, applianceSystem);
+        applianceHost = (String) properties.get(APPLIANCE_HOST);
+        applianceUser = (String) properties.get(APPLIANCE_USER);
+        appliancePassword = (String) properties.get(APPLIANCE_PASSWORD);
+    }
+
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            closeProcess();
+        }));
+    }
+
+    private void closeProcess() {
+        try {
+            if (bufferedReader != null) {
+                bufferedReader.close();
+            }
+        } catch (IOException e) {
+            logger.severe("Cannot close the bufferedReader: " + e.getMessage());
+        }
+        if (process != null) {
+            process.destroy();
+        }
+        ScheduledExecutorService exec = getExec();
+        if (exec != null && !exec.isShutdown()) {
+            exec.shutdownNow();
+        }
+    }
+    @Override
+    public void start() {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("expect", "scripts/getMqApplianceData.exp", applianceHost,
+                    applianceUser, appliancePassword, String.valueOf(getPollInterval()));
+            process = processBuilder.start();
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            addShutdownHook();
+            getExec().scheduleWithFixedDelay(this::collectData, 1, getPollInterval(), TimeUnit.SECONDS);
+        } catch (IOException e) {
+            logger.severe("Cannot start the data collector: " + e.getMessage());
+        }
     }
 
     public String getHostName() {

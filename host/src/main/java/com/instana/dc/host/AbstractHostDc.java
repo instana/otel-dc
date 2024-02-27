@@ -8,16 +8,10 @@ import com.instana.dc.AbstractDc;
 import com.instana.dc.IDc;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,19 +19,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.*;
-import static com.instana.dc.host.HostDcUtil.*;
 
 public abstract class AbstractHostDc extends AbstractDc implements IDc {
     private static final Logger logger = Logger.getLogger(AbstractHostDc.class.getName());
 
-    /*
-     * Configuration items for mq appliance
-     **/
-    protected String applianceHost;
-    private String applianceUser;
-    private String appliancePassword;
 
-    private String hostDcType;
     private final String otelBackendUrl;
     private final boolean otelUsingHttp;
     private final int pollInterval;
@@ -46,17 +32,13 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     public final static String INSTRUMENTATION_SCOPE_PREFIX = "otelcol/hostmetricsreceiver/";
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-    private Process process;
-    protected BufferedReader bufferedReader;
+
+    public ScheduledExecutorService getExec() {
+        return exec;
+    }
 
     public AbstractHostDc(Map<String, Object> properties, String hostSystem) {
         super(new HostRawMetricRegistry().getMap());
-
-        hostDcType = hostSystem;
-        applianceHost = (String) properties.get(APPLIANCE_HOST);
-        applianceUser = (String) properties.get(APPLIANCE_USER);
-        appliancePassword = (String) properties.get(APPLIANCE_PASSWORD);
-
         pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
         callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
@@ -66,6 +48,10 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public int getPollInterval() {
+        return pollInterval;
     }
 
     @Override
@@ -98,42 +84,9 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         initMeter(openTelemetry, HostDcUtil.MeterName.IBMQMGR);
     }
 
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            closeProcess();
-        }));
-    }
-
-    private void closeProcess() {
-        try {
-            if (bufferedReader != null) {
-                bufferedReader.close();
-            }
-        } catch (IOException e) {
-            logger.severe("Cannot close the bufferedReader: " + e.getMessage());
-        }
-        if (process != null) {
-            process.destroy();
-        }
-        if (exec != null && !exec.isShutdown()) {
-            exec.shutdownNow();
-        }
-    }
 
     @Override
     public void start() {
-        if (hostDcType.toUpperCase().equals("MQ_APPLIANCE")){
-            try {
-                ProcessBuilder processBuilder = new ProcessBuilder("expect", "scripts/getMqApplianceData.exp", applianceHost, applianceUser, appliancePassword, String.valueOf(pollInterval));
-                process = processBuilder.start();
-                bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                addShutdownHook();
-                exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
-            } catch (IOException e) {
-                logger.severe("Cannot start the data collector: " + e.getMessage());
-            }
-        }else{
-            exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
-        }
+        exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
     }
 }
