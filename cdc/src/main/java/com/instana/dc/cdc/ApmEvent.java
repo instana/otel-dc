@@ -1,97 +1,130 @@
 package com.instana.dc.cdc;
 
+import java.time.Instant;
+import java.util.Map;
+import java.util.Map;
+
+// Refer to https://opentelemetry.io/docs/specs/otel/logs/data-model/
+//
 public class ApmEvent {
-    private final String vendor;
-    private final String eventId;
-    private String title;
-    private String severity;
-    private String description;
-    private String timestamp;
-    private String etc;
-    private static final String UNKNOWN = "UNKNOWN";
+    private Instant timestamp;
+    private Instant observedTimestamp;
+    private String traceId;
+    private String spanId;
+    private byte traceFlags;
+    private String severityText;
+    private int severityNumber;
+    private Object body;
+    private Map<String, Object> resource;
+    private Map<String, String> instrumentationScope;
+    private Map<String, Object> attributes;
 
-    public ApmEvent(String vendor, String eventId, String title, String severity, String description, String timestamp, String etc) {
-        this.vendor = vendor;
-        this.eventId = eventId;
-        this.title = title;
-        this.severity = severity;
-        this.description = description;
+    // Constructors
+    public ApmEvent(Instant timestamp, Instant observedTimestamp, String traceId, String spanId, byte traceFlags, String severityText, int severityNumber, Object body, Map<String, Object> resource, Map<String, String> instrumentationScope, Map<String, Object> attributes) {
         this.timestamp = timestamp;
-        this.etc = etc;
+        this.observedTimestamp = observedTimestamp;
+        this.traceId = traceId;
+        this.spanId = spanId;
+        this.traceFlags = traceFlags;
+        this.severityText = severityText;
+        this.severityNumber = severityNumber;
+        this.body = body;
+        this.resource = resource;
+        this.instrumentationScope = instrumentationScope;
+        this.attributes = attributes;
     }
 
-    public ApmEvent(String vendor, String eventId) {
-        this.vendor = vendor;
-        this.eventId = eventId;
-        this.title = UNKNOWN;
-        this.severity = UNKNOWN;
-        this.description = UNKNOWN;
-        this.timestamp = UNKNOWN;
-        this.etc = "";
-    }
+    // Getter methods
+    public String getId() {
+        StringBuilder idBuilder = new StringBuilder();
 
-    public String getEventId() {
+        // Append resource values (if not null)
+        if (resource != null) {
+            for (Map.Entry<String, Object> entry : resource.entrySet() ) {
+                if (entry.getValue() instanceof String) {
+                    String value = (String) entry.getValue();
+                    if (value != null) {
+                        idBuilder.append(value);
+                        idBuilder.append(":");
+                    }
+                }
+            }
+        }
+        // Append instrumentationScope values (if not null)
+        if (instrumentationScope != null) {
+            for (Map.Entry<String, String> entry : instrumentationScope.entrySet()) {
+                String value = entry.getValue();
+                if (value != null) {
+                    idBuilder.append(value);
+                    idBuilder.append(":");
+                }
+            }
+        }
+
+        // Remove the tailing ':'
+        String eventId = idBuilder.toString().substring(0, idBuilder.length()-1);
         return eventId;
     }
 
-    public String getVendor() {
-        return vendor;
-    }
-
-    public String getKey() {
-        return vendor + ":" + eventId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getSeverity() {
-        return severity;
-    }
-
-    public void setSeverity(String severity) {
-        this.severity = severity;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public Instant getObservedTimestamp() {
+        return observedTimestamp;
     }
 
-    public String getEtc() {
-        return etc;
+    public String getTraceId() {
+        return traceId;
     }
 
-    public void setEtc(String etc) {
-        this.etc = etc;
+    public String getSpanId() {
+        return spanId;
     }
 
+    public byte getTraceFlags() {
+        return traceFlags;
+    }
+
+    public String getSeverityText() {
+        return severityText;
+    }
+
+    public int getSeverityNumber() {
+        return severityNumber;
+    }
+
+    public Object getBody() {
+        return body;
+    }
+
+    public Map<String, Object> getResource() {
+        return resource;
+    }
+
+    public Map<String, String> getInstrumentationScope() {
+        return instrumentationScope;
+    }
+
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    // toString method
     @Override
     public String toString() {
-        return "CdcEvent{" +
-                "vendor='" + vendor + '\'' +
-                ", eventId='" + eventId + '\'' +
-                ", title='" + title + '\'' +
-                ", severity='" + severity + '\'' +
-                ", description='" + description + '\'' +
-                ", timestamp='" + timestamp + '\'' +
-                ", etc='" + etc + '\'' +
+        return "ApmEvent{" +
+                "timestamp=" + timestamp +
+                ", observedTimestamp=" + observedTimestamp +
+                ", traceId='" + traceId + '\'' +
+                ", spanId='" + spanId + '\'' +
+                ", traceFlags=" + traceFlags +
+                ", severityText='" + severityText + '\'' +
+                ", severityNumber=" + severityNumber +
+                ", body=" + body +
+                ", resource=" + resource +
+                ", instrumentationScope=" + instrumentationScope +
+                ", attributes=" + attributes +
                 '}';
     }
 }

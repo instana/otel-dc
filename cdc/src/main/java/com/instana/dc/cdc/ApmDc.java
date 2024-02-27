@@ -30,15 +30,19 @@ public class ApmDc extends AbstractApmDc {
         ApmEvent event = evtQueue.poll();
         while (event != null) {
             Map<String, Object> map = new HashMap<>();
-            map.put(EVENT_KEY, event.getKey());
-            map.put(EVENT_VENDOR, event.getVendor());
-            map.put(EVENT_ID, event.getEventId());
-            map.put(EVENT_TITLE, event.getTitle());
-            map.put(EVENT_DESCRIPTION, event.getDescription());
-            map.put(EVENT_SEVERITY, event.getSeverity());
             map.put(EVENT_TIMESTAMP, event.getTimestamp());
-            map.put(EVENT_ETC, event.getEtc());
-            getRawMetric(M_EVENT_NAME).getDataPoint(event.getKey()).setValue(0, map);
+            map.put(EVENT_OBSERVED_TIMESTAMP, event.getObservedTimestamp());
+            map.put(EVENT_TRACE_ID, event.getTraceId());
+            map.put(EVENT_SPAN_ID, event.getSpanId());
+            map.put(EVENT_TRACE_FLAGS, event.getTraceFlags());
+            map.put(EVENT_SEVERITY_TEXT, event.getSeverityText());
+            map.put(EVENT_SEVERITY_NUMBER, event.getSeverityNumber());
+            map.put(EVENT_BODY, event.getBody());
+            map.put(EVENT_RESOURCE, event.getResource());
+            map.put(EVENT_INSTRUMENTATION_SCOPE, event.getInstrumentationScope());
+            map.put(EVENT_ATTRIBUTES, event.getAttributes());
+
+            getRawMetric(M_EVENT_NAME).getDataPoint(event.getId()).setValue(0, map);
             event = evtQueue.poll();
         }
     }

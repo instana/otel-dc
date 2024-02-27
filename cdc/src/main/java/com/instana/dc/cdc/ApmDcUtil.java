@@ -22,14 +22,17 @@ public class ApmDcUtil {
     public static final String UNIT_1 = "1";
 
     public static final String M_EVENT_NAME = "EVENT";
-    public static final String M_EVENT_DESC = "The event from 3rd party APM";
-    public static final String M_EVENT_UNIT = "{event}";
-    public static final String EVENT_KEY = "key";
-    public static final String EVENT_ID = "eventId";
-    public static final String EVENT_VENDOR = "vendor";
-    public static final String EVENT_TITLE = "title";
-    public static final String EVENT_SEVERITY = "severity";
-    public static final String EVENT_DESCRIPTION = "description";
+    //
+    // Constants for field names
     public static final String EVENT_TIMESTAMP = "timestamp";
-    public static final String EVENT_ETC = "etc";
+    public static final String EVENT_OBSERVED_TIMESTAMP = "observedTimestamp";
+    public static final String EVENT_TRACE_ID = "traceId";
+    public static final String EVENT_SPAN_ID = "spanId";
+    public static final String EVENT_TRACE_FLAGS = "traceFlags";
+    public static final String EVENT_SEVERITY_TEXT = "severityText";
+    public static final String EVENT_SEVERITY_NUMBER = "severityNumber";
+    public static final String EVENT_BODY = "body";
+    public static final String EVENT_RESOURCE = "resource";
+    public static final String EVENT_INSTRUMENTATION_SCOPE = "instrumentationScope";
+    public static final String EVENT_ATTRIBUTES = "attributes";
 }
