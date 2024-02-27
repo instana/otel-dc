@@ -9,4 +9,5 @@ instances:
     poll.interval: 10
     callback.interval: 5
     otel.backend.url: http://127.0.0.1:4317
-
+    #otel.backend.using.http: true
+    #otel.backend.url: http://127.0.0.1:4318/v1/metrics
