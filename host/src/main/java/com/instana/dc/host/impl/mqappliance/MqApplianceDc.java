@@ -51,7 +51,6 @@ public class MqApplianceDc extends AbstractHostDc {
     @Override
     public void collectData() {
         logger.info("Start to collect metrics");
-        //getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getCpuTimeResults())
         try {
             String line = bufferedReader.readLine();
             if (line != null) {
@@ -72,7 +71,11 @@ public class MqApplianceDc extends AbstractHostDc {
                     getRawMetric(SYSTEM_NETWORK_ERRORS_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[4]));
                     getRawMetric(SYSTEM_NETWORK_DROPPED_NAME).setValue(MqApplianceUtil.getApplianceNetworkInterfaceResults(tokens[5]));
                     getRawMetric(SYSTEM_IBMQMGR_STATUS_NAME).setValue(MqApplianceUtil.getQmgrStatusResults(tokens[6]));
+                } else {
+                    logger.severe("Incorrect data format, cannot parse it.");
                 }
+            } else {
+                logger.severe("No data returned. Please check if the appliance is running, or ensure that you are using the correct username and password.");
             }
         } catch (IOException e) {
             logger.severe("Cannot record loads: " + e.getMessage());

@@ -37,6 +37,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     private String applianceUser;
     private String appliancePassword;
 
+    private String hostDcType;
     private final String otelBackendUrl;
     private final boolean otelUsingHttp;
     private final int pollInterval;
@@ -51,6 +52,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     public AbstractHostDc(Map<String, Object> properties, String hostSystem) {
         super(new HostRawMetricRegistry().getMap());
 
+        hostDcType = hostSystem;
         applianceHost = (String) properties.get(APPLIANCE_HOST);
         applianceUser = (String) properties.get(APPLIANCE_USER);
         appliancePassword = (String) properties.get(APPLIANCE_PASSWORD);
@@ -103,6 +105,13 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     }
 
     private void closeProcess() {
+        try {
+            if (bufferedReader != null) {
+                bufferedReader.close();
+            }
+        } catch (IOException e) {
+            logger.severe("Cannot close the bufferedReader: " + e.getMessage());
+        }
         if (process != null) {
             process.destroy();
         }
@@ -113,7 +122,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
 
     @Override
     public void start() {
-        if (applianceHost != null && !applianceHost.equals("")){
+        if (hostDcType.toUpperCase().equals("MQ_APPLIANCE")){
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder("expect", "scripts/getMqApplianceData.exp", applianceHost, applianceUser, appliancePassword, String.valueOf(pollInterval));
                 process = processBuilder.start();
