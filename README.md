@@ -16,7 +16,7 @@ ODCD (OpenTelemetry based Data Collector for Telemetry Data) is a collection of 
 
 ## Requirements
 
-- Java 8+
+- Java 8+ or 17 for cdc
 
 ## Build & Installation
 
