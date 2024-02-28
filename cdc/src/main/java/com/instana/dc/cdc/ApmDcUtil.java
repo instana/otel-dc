@@ -22,6 +22,10 @@ public class ApmDcUtil {
     public static final String UNIT_1 = "1";
 
     public static final String M_EVENT_NAME = "EVENT";
+    public static final String M_EVENT_DESC = "The event from 3rd party APM";
+    public static final String M_EVENT_UNIT = "{event}";
+    public static final String EVENT_KEY = "key";
+
     //
     // Constants for field names
     public static final String EVENT_TIMESTAMP = "timestamp";

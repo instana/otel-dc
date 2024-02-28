@@ -2,7 +2,6 @@ package com.instana.dc.cdc;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Map;
 
 // Refer to https://opentelemetry.io/docs/specs/otel/logs/data-model/
 //
