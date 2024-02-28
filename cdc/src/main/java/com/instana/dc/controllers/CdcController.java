@@ -2,8 +2,11 @@ package com.instana.dc.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import com.instana.dc.cdc.ApmDc;
 import com.instana.dc.cdc.ApmEvent;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,11 @@ public class CdcController {
         apmDc.start();
     }
 
+    // for unit test
+    public CdcController() {
+        evtQueue = null;
+    }
+
     @PostMapping(value = "/webhook")
     public void webhook(@RequestBody JsonNode payload) {
         logger.info("Received: " + payload.toString() );
@@ -39,6 +47,7 @@ public class CdcController {
     }
 
     public ApmEvent parseJson(String json) {
+        objectMapper.registerModule(new JavaTimeModule() );
         try {
             return objectMapper.readValue(json, ApmEvent.class);
         } catch (Exception e) {

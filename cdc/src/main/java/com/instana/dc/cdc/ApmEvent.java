@@ -33,6 +33,10 @@ public class ApmEvent {
         this.attributes = attributes;
     }
 
+    // For JSON constructor
+    public ApmEvent() {
+    }
+
     // Getter methods
     public String getId() {
         StringBuilder idBuilder = new StringBuilder();
