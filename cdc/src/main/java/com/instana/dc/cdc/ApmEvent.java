@@ -3,9 +3,19 @@ package com.instana.dc.cdc;
 import java.time.Instant;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // Refer to https://opentelemetry.io/docs/specs/otel/logs/data-model/
 //
 public class ApmEvent {
+    private final Logger logger = LoggerFactory.getLogger(ApmEvent.class);
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private Instant timestamp;
     private Instant observedTimestamp;
     private String traceId;
@@ -20,6 +30,7 @@ public class ApmEvent {
 
     // Constructors
     public ApmEvent(Instant timestamp, Instant observedTimestamp, String traceId, String spanId, byte traceFlags, String severityText, int severityNumber, Object body, Map<String, Object> resource, Map<String, String> instrumentationScope, Map<String, Object> attributes) {
+        objectMapper.registerModule(new JavaTimeModule() );
         this.timestamp = timestamp;
         this.observedTimestamp = observedTimestamp;
         this.traceId = traceId;
@@ -35,6 +46,7 @@ public class ApmEvent {
 
     // For JSON constructor
     public ApmEvent() {
+        objectMapper.registerModule(new JavaTimeModule() );
     }
 
     // Getter methods
@@ -116,18 +128,12 @@ public class ApmEvent {
     // toString method
     @Override
     public String toString() {
-        return "ApmEvent{" +
-                "timestamp=" + timestamp +
-                ", observedTimestamp=" + observedTimestamp +
-                ", traceId='" + traceId + '\'' +
-                ", spanId='" + spanId + '\'' +
-                ", traceFlags=" + traceFlags +
-                ", severityText='" + severityText + '\'' +
-                ", severityNumber=" + severityNumber +
-                ", body=" + body +
-                ", resource=" + resource +
-                ", instrumentationScope=" + instrumentationScope +
-                ", attributes=" + attributes +
-                '}';
+        try {
+            String json = objectMapper.writeValueAsString(this);
+            return json;
+        } catch (Exception e) {
+            logger.error("toString got exception: " + e.getMessage() );
+            return null;
+        }
     }
 }

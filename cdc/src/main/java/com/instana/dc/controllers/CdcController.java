@@ -19,19 +19,21 @@ import java.util.Queue;
 
 @RestController
 public class CdcController {
-    Logger logger = LoggerFactory.getLogger(CdcController.class);
+    private final Logger logger = LoggerFactory.getLogger(CdcController.class);
 
     private final Queue<ApmEvent> evtQueue;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public CdcController(@Autowired ApmDc apmDc) {
+        objectMapper.registerModule(new JavaTimeModule() );
         evtQueue = apmDc.getEvtQueue();
         apmDc.initDC();
         apmDc.start();
     }
 
-    // for unit test
+    // For unit test
     public CdcController() {
+        objectMapper.registerModule(new JavaTimeModule() );
         evtQueue = null;
     }
 
@@ -47,7 +49,6 @@ public class CdcController {
     }
 
     public ApmEvent parseJson(String json) {
-        objectMapper.registerModule(new JavaTimeModule() );
         try {
             return objectMapper.readValue(json, ApmEvent.class);
         } catch (Exception e) {
