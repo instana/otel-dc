@@ -77,18 +77,20 @@ All metrics in `db.instance` instruments should be attached to a [Instance resou
 
 
 ## Resource Usage
-| Name                        | Description                                    | Unit | Instrument Type  | Value Type | Requirement Level | Attribute Key(s)                          | Attribute Values                |
-|-----------------------------|------------------------------------------------|------|------------------|------------|-------------------|-------------------------------------------|---------------------------------|
-| `db.disk.usage`             | The size (in bytes) of the used disk space.    | By   | UpDownCounter    | Int64      | Recommended       | `path`(Recommended) The disk path.        | (path)                          |
-|                             |                                                |      |                  |            |                   | `orientation`(Recommended) Write or read. | (read,write)                    |
-| `db.disk.utilization`       | The percentage of used disk space.             | 1    | Gauge            | Double     | Recommended       | `path`(Recommended) The disk path.        | (path)                          |
-|                             |                                                |      |                  |            |                   | `orientation`(Recommended) Write or read. | (read,write)                    |
-| `db.cpu.utilization`        | The percentage of used CPU.                    | 1    | Gauge            | Double     | Recommended       | `state`(Recommended) The CPU load state.  | (user,sys,wait,nice,steal,used) |
-| `db.mem.utilization`        | The percentage of used memory                  | 1    | Gauge            | Double     | Recommended       | `tablespace_name`(Required) identifier.   | {tablespace_name}               |
-| `db.tablespace.size`        | The size (in bytes) of the tablespace.         | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}               |
-| `db.tablespace.used`        | The used size (in bytes) of the tablespace.    | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}               |
-| `db.tablespace.utilization` | The used percentage of the tablespace.         | 1    | Gauge            | Double     | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}               |
-| `db.tablespace.max`         | The max size (in bytes) of the tablespace.     | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}               |
+| Name                        | Description                                    | Unit | Instrument Type  | Value Type | Requirement Level | Attribute Key(s)                          | Attribute Values                                |
+|-----------------------------|------------------------------------------------|------|------------------|------------|-------------------|-------------------------------------------|-------------------------------------------------|
+| `db.disk.usage`             | The size (in bytes) of the used disk space.    | By   | UpDownCounter    | Int64      | Recommended       | `path`(Recommended) The disk path.        | (path)                                          |
+|                             |                                                |      |                  |            |                   | `direction`(Recommended) Write or read.   | (read,write)                                    |
+| `db.disk.utilization`       | The percentage of used disk space.             | 1    | Gauge            | Double     | Recommended       | `path`(Recommended) The disk path.        | (path)                                          |
+|                             |                                                |      |                  |            |                   | `direction`(Recommended) Write or read.   | (read,write)                                    |
+| `db.cpu.utilization`        | The percentage of used CPU.                    | 1    | Gauge            | Double     | Recommended       | `state`(Recommended) The CPU load state.  | (user,system,nice,idle,iowait,interrupt,steal)  |
+| `db.mem.utilization`        | The percentage of used memory                  | 1    | Gauge            | Double     | Recommended       | `tablespace_name`(Required) identifier.   | {tablespace_name}                               |
+| `db.tablespace.size`        | The size (in bytes) of the tablespace.         | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}                               |
+| `db.tablespace.used`        | The used size (in bytes) of the tablespace.    | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}                               |
+| `db.tablespace.utilization` | The used percentage of the tablespace.         | 1    | Gauge            | Double     | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}                               |
+| `db.tablespace.max`         | The max size (in bytes) of the tablespace.     | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier.   | {tablespace_name}                               |
+
+About `db.cpu.utilization`, reference [systemcputime episode.](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/system/system-metrics.md#metric-systemcputime)
 
 ## Maintenance
 
