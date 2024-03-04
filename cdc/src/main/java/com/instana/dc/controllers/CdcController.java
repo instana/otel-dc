@@ -26,15 +26,14 @@ public class CdcController {
 
     public CdcController(@Autowired ApmDc apmDc) {
         objectMapper.registerModule(new JavaTimeModule() );
-        evtQueue = apmDc.getEvtQueue();
-        apmDc.initDC();
-        apmDc.start();
-    }
-
-    // For unit test
-    public CdcController() {
-        objectMapper.registerModule(new JavaTimeModule() );
-        evtQueue = null;
+        if (apmDc != null) {
+            evtQueue = apmDc.getEvtQueue();
+            apmDc.initDC();
+            apmDc.start();
+        }
+        else {
+            evtQueue = null;
+        }
     }
 
     @PostMapping(value = "/webhook")

@@ -14,7 +14,7 @@ class CdcControllerTest {
 
     @BeforeEach
     void prepare() {
-        cdc = new CdcController();
+        cdc = new CdcController(null);
     }
 
     @Test
