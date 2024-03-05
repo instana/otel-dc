@@ -41,11 +41,13 @@ public class InformixDc extends AbstractDbDc {
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
     private final BasicDataSource ds;
+    private final OnstatCommandExecutor onstatCommandExecutor;
 
 
-    public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws ClassNotFoundException, SQLException {
+    public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
         parseCustomAttributes(properties);
+        onstatCommandExecutor = new OnstatCommandExecutor(getDbPath(), getServerName());
         setDbPassword(InformixUtil.decodePassword(getDbPassword()));
         setDbConnUrl();
 
@@ -81,6 +83,7 @@ public class InformixDc extends AbstractDbDc {
         for (Map.Entry<String, Object> entry : customInput.entrySet()) {
             IntervalType type = getPollingInterval(entry.getKey());
             int pollInterval = (int) entry.getValue();
+            assert type != null;
             scheduleCustomPollRate(pollInterval, type);
         }
     }
@@ -209,8 +212,13 @@ public class InformixDc extends AbstractDbDc {
             getRawMetric(DbDcUtil.DB_SESSION_ACTIVE_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.ACTIVE_SESSION));
             getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_READ_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_WRITE_COUNT_SQL));
-            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(connection, InformixUtil.MEMORY_UTILIZATION_SQL));
-        } catch (SQLException e) {
+            //TODO: REMOVE once onstat is working as expected
+            //getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(connection, InformixUtil.MEMORY_UTILIZATION_SQL));
+
+            //TODO: POC Integration
+            Double value = Double.valueOf(onstatCommandExecutor.executeCommand("memory_utilization.sh", 2));
+            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(value);
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while retrieving the data : ", e);
         }
     }
