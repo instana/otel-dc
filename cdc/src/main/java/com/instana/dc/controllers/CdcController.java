@@ -24,7 +24,8 @@ public class CdcController {
     private final Queue<ApmEvent> evtQueue;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public CdcController(@Autowired ApmDc apmDc) {
+    @Autowired
+    public CdcController(ApmDc apmDc) {
         objectMapper.registerModule(new JavaTimeModule() );
         if (apmDc != null) {
             evtQueue = apmDc.getEvtQueue();
