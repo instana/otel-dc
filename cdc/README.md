@@ -92,21 +92,13 @@ otel.backend.using.http=true
 
 ### DC Logging
 
-Users can modify file `config/logging.properties` at runtime to enable more logging information for the DC. The available levels are: `ERROR`, `WARN`, `INFO`, `DEBUG`, and `TRACE`.
+Users can modify the same file `src/main/resources/application.properties` to set logging levels for the DC. The settings can be specified to packages. The available levels are: `ERROR`, `WARN`, `INFO`, `DEBUG`, and `TRACE`.
+
+For example:
 
 ```
-handlers=java.util.logging.ConsoleHandler, java.util.logging.FileHandler
-
-# Limit the message that are printed on the console to INFO and above.
-java.util.logging.ConsoleHandler.level = INFO
-java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
-
-# default file output is in user's home directory.
-java.util.logging.FileHandler.level=INFO
-java.util.logging.FileHandler.pattern = %h/sampledc%u.log
-java.util.logging.FileHandler.limit = 50000
-java.util.logging.FileHandler.count = 1
-java.util.logging.FileHandler.formatter = java.util.logging.XMLFormatter
+logging.level.root=ERROR
+logging.level.com.instana.dc.controllers=INFO 
 ```
 
 ## Reference
