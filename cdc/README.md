@@ -26,7 +26,7 @@ instances:
 Users can post a JSON event to the following URL:
 
 ```
-http://<ip_address>:8080/webhook
+curl -X POST -H "Content-Type: application/json" http://localhost:8008/events -d@test.json
 ```
 
 The JSON payload should contain the necessary information for the sensor and the backend to process the event. The DC will validate the required fields.
@@ -49,7 +49,7 @@ Below is a sample of an event JSON:
     "dataCenter": "rtp",    
     "name": "dt21.fyre.ibm.com"    
   },    
-  "instrumentationScope": "web-event:0.1",      # required, a string of name and version
+  "instrumentationScope": "web-event@0.1",      # required, a string of name and version
   "attributes": {                               # required, an object for event attributes
     "duration": 600,    
     "previous": {    
@@ -63,6 +63,32 @@ Below is a sample of an event JSON:
 ```
 
 ## Build and Run the DC
+
+### Build
+
+```
+gradle clean test
+```
+
+Note: users can refer to [gradle](https://gradle.org/) to install the gradle utility.
+
+### Run
+
+```
+gradle bootRun
+```
+
+### Configuration
+
+Users can change file `src/main/resources/application.properties` before running the DC to change the configuration.
+
+```
+server.port=8008
+poll.interval=10
+callback.interval=10
+otel.backend.url=http://9.46.248.142:4318/v1/metrics
+otel.backend.using.http=true
+```
 
 ### DC Logging
 

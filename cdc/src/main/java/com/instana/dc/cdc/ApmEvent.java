@@ -25,11 +25,12 @@ public class ApmEvent {
     private int severityNumber;
     private Object body;
     private Map<String, Object> resource;
-    private Map<String, String> instrumentationScope;
+    private String instrumentationScope;
     private Map<String, Object> attributes;
+    private String id;
 
     // Constructors
-    public ApmEvent(Instant timestamp, Instant observedTimestamp, String traceId, String spanId, byte traceFlags, String severityText, int severityNumber, Object body, Map<String, Object> resource, Map<String, String> instrumentationScope, Map<String, Object> attributes) {
+    public ApmEvent(Instant timestamp, Instant observedTimestamp, String traceId, String spanId, byte traceFlags, String severityText, int severityNumber, Object body, Map<String, Object> resource, String instrumentationScope, Map<String, Object> attributes, String id) {
         objectMapper.registerModule(new JavaTimeModule() );
         this.timestamp = timestamp;
         this.observedTimestamp = observedTimestamp;
@@ -42,6 +43,7 @@ public class ApmEvent {
         this.resource = resource;
         this.instrumentationScope = instrumentationScope;
         this.attributes = attributes;
+        this.id = id;
     }
 
     // For JSON constructor
@@ -51,34 +53,7 @@ public class ApmEvent {
 
     // Getter methods
     public String getId() {
-        StringBuilder idBuilder = new StringBuilder();
-
-        // Append resource values (if not null)
-        if (resource != null) {
-            for (Map.Entry<String, Object> entry : resource.entrySet() ) {
-                if (entry.getValue() instanceof String) {
-                    String value = (String) entry.getValue();
-                    if (value != null) {
-                        idBuilder.append(value);
-                        idBuilder.append(":");
-                    }
-                }
-            }
-        }
-        // Append instrumentationScope values (if not null)
-        if (instrumentationScope != null) {
-            for (Map.Entry<String, String> entry : instrumentationScope.entrySet()) {
-                String value = entry.getValue();
-                if (value != null) {
-                    idBuilder.append(value);
-                    idBuilder.append(":");
-                }
-            }
-        }
-
-        // Remove the tailing ':'
-        String eventId = idBuilder.toString().substring(0, idBuilder.length()-1);
-        return eventId;
+        return id;
     }
 
     public Instant getTimestamp() {
@@ -117,7 +92,7 @@ public class ApmEvent {
         return resource;
     }
 
-    public Map<String, String> getInstrumentationScope() {
+    public String getInstrumentationScope() {
         return instrumentationScope;
     }
 

@@ -1,0 +1,25 @@
+{
+  "timestamp": 1709190814.136849342,
+  "observedTimestamp": 1709190814.136849342,
+  "traceId": null,
+  "spanId": null,
+  "traceFlags": 0,
+  "severityText": "ERROR",
+  "severityNumber": 20,
+  "body": "This is an error example.",
+  "resource": {
+    "plugin": "ApmDatabase",
+    "dataCenter": "rtp",
+    "name": "dt21.fyre.ibm.com"
+  },
+  "instrumentationScope": "web-event@0.1",
+  "attributes": {
+    "duration": 600,
+    "previous": {
+      "metric1": 1.03
+    },
+    "metric1": 0.02,
+    "description": "The value of metric1 should be greater than 1."
+  },
+  "id": "rtp:dt21.fyre.ibm.com:sample-error"
+}

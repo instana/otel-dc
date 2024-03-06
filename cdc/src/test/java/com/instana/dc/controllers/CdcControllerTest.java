@@ -19,7 +19,7 @@ class CdcControllerTest {
 
     @Test
     void testParseValidJson() {
-        String validJson = "{\"timestamp\":\"2024-02-27T15:02:25Z\",\"observedTimestamp\":\"2024-02-27T15:02:30Z\",\"traceId\":\"12345\",\"spanId\":\"56789\",\"traceFlags\":1,\"severityText\":\"INFO\",\"severityNumber\":2,\"body\":\"Sample body\",\"resource\":{\"key1\":\"value1\"},\"instrumentationScope\":{\"key2\":\"value2\"},\"attributes\":{\"key3\":\"value3\"}}";
+        String validJson = "{\"timestamp\":\"2024-02-27T15:02:25Z\",\"observedTimestamp\":\"2024-02-27T15:02:30Z\",\"traceId\":\"12345\",\"spanId\":\"56789\",\"traceFlags\":1,\"severityText\":\"INFO\",\"severityNumber\":2,\"body\":\"Sample body\",\"resource\":{\"key1\":\"value1\"},\"instrumentationScope\":\"name@version\",\"attributes\":{\"key3\":\"value3\"}}";
 
         ApmEvent apmEvent = cdc.parseJson(validJson);
 

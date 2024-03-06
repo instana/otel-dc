@@ -36,7 +36,7 @@ public class CdcController {
         }
     }
 
-    @PostMapping(value = "/webhook")
+    @PostMapping(value = "/events")
     public void webhook(@RequestBody JsonNode payload) {
         logger.info("Received: " + payload.toString() );
         ApmEvent event = parseJson(payload.toString() );
