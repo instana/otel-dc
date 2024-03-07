@@ -4,20 +4,17 @@
  */
 package com.instana.dc.rdb;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.instana.dc.IDc;
-import com.instana.dc.rdb.DbDcRegistry;
+import com.instana.dc.config.Config;
+import com.instana.dc.config.ConfigPipeline;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.instana.dc.DcUtil.*;
+import static com.instana.dc.DcUtil.LOGGING_PROP;
 
 public class DataCollector {
     static {
@@ -26,17 +23,12 @@ public class DataCollector {
 
     private static final Logger logger = Logger.getLogger(DataCollector.class.getName());
 
-    private final CustomDcConfig dcConfig;
+    private final Config dcConfig;
 
     private final List<IDc> dcs;
 
     private DataCollector() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-        String configFile = System.getenv(CONFIG_ENV);
-        if (configFile == null) {
-            configFile = CONFIG_YAML;
-        }
-        dcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
+        dcConfig = ConfigPipeline.getConfig();
         int n = dcConfig.getInstances().size();
         dcs = new ArrayList<>(n);
         for (Map<String, Object> props : dcConfig.getInstances()) {
@@ -76,62 +68,6 @@ public class DataCollector {
             logger.info("DC No." + i + " is collecting data...");
             dc.start();
             i++;
-        }
-    }
-
-    static class DcConfig {
-        @JsonProperty("db.system")
-        private String dbSystem;
-        @JsonProperty("db.driver")
-        private String dbDriver;
-        private final List<Map<String, Object>> instances = new ArrayList<>();
-
-        public String getDbSystem() {
-            return dbSystem;
-        }
-
-        public String getDbDriver() {
-            return dbDriver;
-        }
-
-        public List<Map<String, Object>> getInstances() {
-            return instances;
-        }
-
-        public void setDbSystem(String dbSystem) {
-            this.dbSystem = dbSystem;
-        }
-
-        public void setDbDriver(String dbDriver) {
-            this.dbDriver = dbDriver;
-        }
-    }
-
-    static class CustomDcConfig {
-        @JsonProperty("db.system")
-        private String dbSystem;
-        @JsonProperty("db.driver")
-        private String dbDriver;
-        private final List<Map<String, Object>> instances = new ArrayList<>();
-
-        public String getDbSystem() {
-            return dbSystem;
-        }
-
-        public String getDbDriver() {
-            return dbDriver;
-        }
-
-        public List<Map<String, Object>> getInstances() {
-            return instances;
-        }
-
-        public void setDbSystem(String dbSystem) {
-            this.dbSystem = dbSystem;
-        }
-
-        public void setDbDriver(String dbDriver) {
-            this.dbDriver = dbDriver;
         }
     }
 
