@@ -11,7 +11,7 @@ public class ApmDcUtil {
 
     /* Configurations for the Data Collector:
      */
-    public static final String CDC_APM = "CDC_APM";
+    public static final String CDC_APM = "cdc_apm";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE = "instana.sensor-sdk.dc.cdc";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE_VER = "1.0.0";
 
