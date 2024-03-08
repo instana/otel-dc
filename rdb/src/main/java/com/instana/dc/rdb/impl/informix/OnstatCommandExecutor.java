@@ -8,8 +8,10 @@ package com.instana.dc.rdb.impl.informix;
 import com.instana.dc.rdb.impl.Constants;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,16 +41,22 @@ public class OnstatCommandExecutor {
      * Public Util Method to execute the command
      *
      * @param fileName : Name of the file which you want to execute
-     * @param index    : Index of the Result array where intended output is present
-     * @return : Value as String
+     * @return : Value as String[]
      */
-    public String executeCommand(String fileName, int index) {
-        String currentDirectory = System.getProperty(USER_DIR);
-        String absoluteFilePath = currentDirectory + PATH_TO_SCRIPT + fileName;
+    public String[] executeCommand(String fileName) {
+        String path = "scripts/" + fileName;
+        /*
+        File f = new File(p);
+        if (f.exists()) {
+            LOGGER.info("File Path is Correct");
+        } else {
+            LOGGER.info("No File in the Path: " + p);
+        }
+        */
 
         String[] command = new String[]{
                 SHELL_SCRIPT,
-                absoluteFilePath,
+                path,
                 binPath,
                 dbPath,
                 configFile,
@@ -58,7 +66,8 @@ public class OnstatCommandExecutor {
 
         Optional<String[]> result = commandExecutorAndExtractor(command);
         if (result.isPresent()) {
-            return result.get()[index];
+            LOGGER.info("Result: " + Arrays.toString(result.get()));
+            return result.get();
         }
         LOGGER.log(Level.WARNING, "No result present for executable: {}", fileName);
         return null;

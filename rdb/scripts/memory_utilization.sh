@@ -8,6 +8,6 @@ result=$(cd $1 &&
   export INFORMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
-  .onstat -g osi | tail -n 17 | head -n 2)
+  ./onstat -g osi | tail -n 17 | head -n 2)
 
 echo "Buffer metrics" + $result

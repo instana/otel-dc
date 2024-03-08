@@ -216,8 +216,12 @@ public class InformixDc extends AbstractDbDc {
             //getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(connection, InformixUtil.MEMORY_UTILIZATION_SQL));
 
             //TODO: POC Integration
-            Double value = Double.valueOf(onstatCommandExecutor.executeCommand("memory_utilization.sh", 2));
-            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(value);
+            String[] result = onstatCommandExecutor.executeCommand("memory_utilization.sh");
+            Double systemMemory = Double.valueOf(result[5]);
+            Double usedMemory = Double.valueOf(result[10]);
+            double utilizationPercentage = (usedMemory / systemMemory) * 100;
+            LOGGER.info("Memory Utilization Percentage : " + utilizationPercentage);
+            getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(utilizationPercentage);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while retrieving the data : ", e);
         }

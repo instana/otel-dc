@@ -40,6 +40,10 @@ applicationDistribution.from("config") {
     into "config"
 }
 
+applicationDistribution.from("scripts") {
+    into "scripts"
+}
+
 test {
     useJUnitPlatform()
 }

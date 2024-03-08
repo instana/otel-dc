@@ -19,7 +19,7 @@ instances:
     custom.poll.interval:
       high: 10 #polling_value_in_sec
       medium: 120 #polling_value_in_sec
-      low: 30 #polling_value_in_sec
+      low: 300 #polling_value_in_sec
     callback.interval: 20
     otel.backend.url: http://127.0.0.1:4317
     #Custom Input
