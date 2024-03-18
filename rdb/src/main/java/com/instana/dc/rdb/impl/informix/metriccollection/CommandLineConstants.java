@@ -5,7 +5,7 @@ import java.util.Map;
 
 import static com.instana.dc.rdb.DbDcUtil.*;
 
-public class CMDLineConstants {
+public class CommandLineConstants {
 
     private static final Map<String,String> metricScriptMapping = new HashMap<>();
     static {
