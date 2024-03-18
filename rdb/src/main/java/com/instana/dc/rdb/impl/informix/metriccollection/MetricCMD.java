@@ -8,13 +8,29 @@ public class MetricCMD implements Consumer<MetricCollectionMode> {
 
     private MetricCollectionMode defaultMode;
     private final Class<?> returnType;
+
+    private final String[] attr;
     MetricCMD(String sqlCmd, String cmdLine, MetricCollectionMode mode, Class<?> returnType){
         this.sqlCMD = sqlCmd;
         this.cmdLine = cmdLine;
         this.defaultMode = mode;
         this.returnType = returnType;
         accept(defaultMode);
+        this.attr = null;
     }
+    public MetricCMD(String sqlCmd, String cmdLine, MetricCollectionMode mode, Class<?> returnType, String... attr){
+        this.sqlCMD = sqlCmd;
+        this.cmdLine = cmdLine;
+        this.defaultMode = mode;
+        this.returnType = returnType;
+        accept(defaultMode);
+        this.attr = attr;
+    }
+
+    public String[] getAttr() {
+        return attr;
+    }
+
     public String getSqlCMD(){
         return sqlCMD;
     }

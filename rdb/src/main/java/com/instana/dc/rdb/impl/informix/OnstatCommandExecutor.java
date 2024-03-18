@@ -8,7 +8,6 @@ package com.instana.dc.rdb.impl.informix;
 import com.instana.dc.rdb.impl.Constants;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
@@ -44,7 +43,7 @@ public class OnstatCommandExecutor {
      * @return : Value as String[]
      */
     public String[] executeCommand(String fileName) {
-        String path = "scripts/" + fileName;
+        String path = "scripts/informix/" + fileName;
         /*
         File f = new File(p);
         if (f.exists()) {
