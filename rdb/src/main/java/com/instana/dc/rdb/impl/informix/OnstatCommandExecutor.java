@@ -16,10 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OnstatCommandExecutor {
-
     private static final Logger LOGGER = Logger.getLogger(OnstatCommandExecutor.class.getName());
-    public static final String PATH_TO_SCRIPT = "/rdb/src/main/java/com/instana/dc/rdb/impl/informix/scripts/";
-    public static final String USER_DIR = "user.dir";
     public static final String SHELL_SCRIPT = "sh";
     public static final String LINE_BREAK = "\n";
     private final String dbPath;
@@ -43,16 +40,7 @@ public class OnstatCommandExecutor {
      * @return : Value as String[]
      */
     public String[] executeCommand(String fileName) {
-        String path = "scripts/informix/" + fileName;
-        /*
-        File f = new File(p);
-        if (f.exists()) {
-            LOGGER.info("File Path is Correct");
-        } else {
-            LOGGER.info("No File in the Path: " + p);
-        }
-        */
-
+        String path = "scripts/" + fileName;
         String[] command = new String[]{
                 SHELL_SCRIPT,
                 path,

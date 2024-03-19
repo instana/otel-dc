@@ -40,7 +40,7 @@ applicationDistribution.from("config") {
     into "config"
 }
 
-applicationDistribution.from("scripts") {
+applicationDistribution.from("scripts/informix") {
     into "scripts"
 }
 

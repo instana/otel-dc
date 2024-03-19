@@ -23,19 +23,19 @@ public class MetricsCollector {
         MetricCMD metricCMDs = MetricCommandMapping.getMetricCMDMap(metricName);
         T metricValue = null;
         if(metricCMDs!=null){
-            MetricCollectionMode mode = modeSelected;
-            if(modeSelected==MetricCollectionMode.DEFAULT){
-                mode = metricCMDs.getDefaultMode();
-            }
-            switch(mode) {
+            switch(modeSelected){
                 case SQL:
-                    metricValue = collectMetricsUsingSQL(metricCMDs, connection);
+                    metricValue = collectMetricsUsingSQL(metricCMDs,connection);
                     break;
                 case CMD:
-                    metricValue = collectMetricsUsingCMD(metricCMDs, onstatCommandExecutor);
+                    metricValue = collectMetricsUsingCMD(metricCMDs,onstatCommandExecutor);
+                    break;
+                case DEFAULT:
+                    this.modeSelected = metricCMDs.getDefaultMode();
+                    collectMetrics(metricName,connection,onstatCommandExecutor);
                     break;
                 default:
-                    throw new IllegalStateException("Invalid Mode:" + mode);
+                    throw new IllegalStateException("Invalid Mode:"+modeSelected);
             }
             // Type checking to avoid mismatching of data type parsing.
             try{

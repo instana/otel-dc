@@ -35,6 +35,9 @@ public class DataCollector {
         String configFile = System.getenv(CONFIG_ENV);
         if (configFile == null) {
             configFile = CONFIG_YAML;
+            //TODO: Test Purpose only
+            //configFile = "/Users/bikram/instana_code/otel-database-dc/rdb/config/config-informix-test.yaml";
+            configFile = "/Users/bikram/instana_code/otel-database-dc/rdb/config/config.yaml";
         }
         dcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
         int n = dcConfig.getInstances().size();
