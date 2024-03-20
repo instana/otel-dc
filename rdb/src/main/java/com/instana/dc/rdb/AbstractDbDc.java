@@ -7,6 +7,7 @@ package com.instana.dc.rdb;
 import com.instana.dc.AbstractDc;
 import com.instana.dc.DcUtil;
 import com.instana.dc.IDc;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricCollectionMode;
 import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
@@ -42,6 +43,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private String dbName;
     private String serverName;
     private String dbPath;
+    private String dbMode;
     private String dbVersion;
     private String dbEntityType;
     private String dbTenantId;
@@ -80,6 +82,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbPassword = (String) properties.get(DB_PASSWORD);
         serverName = (String) properties.get(DB_SERVER_NAME);
         dbPath = (String) properties.get(DB_SERVER_PATH);
+        dbMode = (String)properties.get(DB_MODE);
         dbEntityType = (String) properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
             dbEntityType = DEFAULT_DB_ENTITY_TYPE;
@@ -242,6 +245,12 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         return serverName;
     }
 
+    public MetricCollectionMode getDbMode(){
+        if(dbMode==null){
+            return MetricCollectionMode.DEFAULT;
+        }
+        return MetricCollectionMode.valueOf(dbMode.toUpperCase());
+    }
     public String getDbPath() {
         return dbPath;
     }

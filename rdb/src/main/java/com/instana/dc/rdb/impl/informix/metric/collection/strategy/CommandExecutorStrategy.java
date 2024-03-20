@@ -6,14 +6,12 @@
 package com.instana.dc.rdb.impl.informix.metric.collection.strategy;
 
 import com.instana.dc.rdb.impl.informix.OnstatCommandExecutor;
-import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataExtractor;
-import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataExtractorMapping;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigMapping;
 
-import java.sql.Connection;
+public class CommandExecutorStrategy implements MetricsExecutionStrategy {
 
-public class CommandExecutorStrategy extends MetricsCollectorStrategy {
-
-    private OnstatCommandExecutor onstatCommandExecutor;
+    private final OnstatCommandExecutor onstatCommandExecutor;
 
     public CommandExecutorStrategy(OnstatCommandExecutor onstatCommandExecutor) {
         this.onstatCommandExecutor = onstatCommandExecutor;
@@ -21,23 +19,14 @@ public class CommandExecutorStrategy extends MetricsCollectorStrategy {
 
     @Override
     public <T> T collectMetrics(String metricName) {
-        MetricDataExtractor dataExtractor = MetricsDataExtractorMapping.getMetricDataExtractor(metricName);
-        T metricValue = null;
-        if (dataExtractor != null) {
-            metricValue = collectMetricsUsingCMD(dataExtractor, onstatCommandExecutor);
-            // Type checking to avoid mismatching of data type parsing.
-            try {
-                dataExtractor.getReturnType().cast(metricValue);
-            } catch (ClassCastException e) {
-                throw new IllegalStateException("Error casting the metric", e);
-            }
-        } else {
-            throw new IllegalArgumentException("Metric not found:" + metricName);
-        }
-        return metricValue;
+        MetricDataConfig metricDataConfig = MetricsDataConfigMapping.getMetricDataConfig(metricName);
+        return (T) collectMetricsUsingCMD(metricDataConfig, onstatCommandExecutor);
     }
 
-    private <T> T collectMetricsUsingCMD(MetricDataExtractor metricCMD, OnstatCommandExecutor onstatCommandExecutor) {
-        return (T) onstatCommandExecutor.executeCommand(metricCMD.getCommand())[0]; //TODO: Need to verify this
+    private Number collectMetricsUsingCMD(MetricDataConfig metricDataConfig, OnstatCommandExecutor onstatCommandExecutor) {
+        if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
+            return Integer.parseInt(onstatCommandExecutor.executeCommand(metricDataConfig.getCommand())[0]); //TODO: Need to verify this
+        }
+        return null;
     }
 }

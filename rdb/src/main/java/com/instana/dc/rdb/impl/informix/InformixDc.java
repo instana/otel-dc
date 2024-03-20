@@ -9,11 +9,10 @@ import com.instana.dc.SimpleQueryResult;
 import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
 import com.instana.dc.rdb.impl.Constants;
-import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataExtractor;
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricCollectionMode;
-import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataExtractorMapping;
-import com.instana.dc.rdb.impl.informix.metric.collection.strategy.MetricsCollectorStrategy;
-import com.instana.dc.rdb.impl.informix.metric.collection.strategy.SqlExecutorStrategy;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricsCollector;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigMapping;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
@@ -43,7 +42,7 @@ public class InformixDc extends AbstractDbDc {
     private final BasicDataSource ds;
     private final OnstatCommandExecutor onstatCommandExecutor;
 
-    private final MetricsCollectorStrategy metricsCollectorStrategy;
+    private final MetricsCollector metricCollector;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
@@ -65,14 +64,14 @@ public class InformixDc extends AbstractDbDc {
         getDbNameAndVersion();
         parseCustomPollRate(properties);
         registerMetricCommands();
-        metricsCollectorStrategy = new SqlExecutorStrategy();
+        metricCollector = getDbMode()==null?new MetricsCollector(MetricCollectionMode.DEFAULT):new MetricsCollector(getDbMode());
     }
 
     private void registerMetricCommands() {
-        MetricsDataExtractorMapping.subscribeDataExtractor(DB_TABLESPACE_SIZE_NAME, new SqlExecutorStrategy(tableSpaceSizeQuery, , List.class, DB_TABLESPACE_SIZE_KEY));
-        MetricsDataExtractorMapping.subscribeDataExtractor(DB_TABLESPACE_USED_NAME, new MetricDataExtractor(tableSpaceUsedQuery, null, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_USED_KEY));
-        MetricsDataExtractorMapping.subscribeDataExtractor(DB_TABLESPACE_UTILIZATION_NAME, new MetricDataExtractor(tableSpaceUtilizationQuery, null, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_UTILIZATION_KEY));
-        MetricsDataExtractorMapping.subscribeDataExtractor(DB_TABLESPACE_MAX_NAME, new MetricDataExtractor(tableSpaceMaxQuery, null, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
+        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_SIZE_NAME, new MetricDataConfig(tableSpaceSizeQuery,null,MetricCollectionMode.SQL, List.class, DB_TABLESPACE_SIZE_KEY));
+        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_USED_NAME, new MetricDataConfig(tableSpaceUsedQuery, null, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_USED_KEY));
+        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_UTILIZATION_NAME, new MetricDataConfig(tableSpaceUtilizationQuery, null, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_UTILIZATION_KEY));
+        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_MAX_NAME, new MetricDataConfig(tableSpaceMaxQuery, null, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
 
     }
 
@@ -189,11 +188,11 @@ public class InformixDc extends AbstractDbDc {
 
     private void mediumPollingInterval() {
         try (Connection connection = ds.getConnection()) {
-            getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_SQL_COUNT_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_SQL_RATE_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_TRANSACTION_COUNT_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_TRANSACTION_COUNT_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_TRANSACTION_COUNT_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricsCollectorStrategy.collectMetrics(DB_SQL_ELAPSED_TIME_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_TRANSACTION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME, connection, onstatCommandExecutor));
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error while retrieving the Informix data for Host: {} ", getServerName());
         }
@@ -202,13 +201,13 @@ public class InformixDc extends AbstractDbDc {
     private void shortPollingInterval() {
         try (Connection connection = ds.getConnection()) {
             getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(1);
-            getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_INSTANCE_COUNT_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_INSTANCE_ACTIVE_COUNT_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DbDcUtil.DB_SESSION_COUNT_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_SESSION_COUNT_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DbDcUtil.DB_SESSION_ACTIVE_COUNT_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_SESSION_ACTIVE_COUNT_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_IO_READ_RATE_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_IO_WRITE_RATE_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((Number) metricsCollectorStrategy.collectMetrics(DB_MEM_UTILIZATION_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DbDcUtil.DB_INSTANCE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_INSTANCE_COUNT_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DbDcUtil.DB_INSTANCE_ACTIVE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_INSTANCE_ACTIVE_COUNT_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DbDcUtil.DB_SESSION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_COUNT_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DbDcUtil.DB_SESSION_ACTIVE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_ACTIVE_COUNT_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_READ_RATE_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_WRITE_RATE_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((Number) metricCollector.collectMetrics(DB_MEM_UTILIZATION_NAME, connection, onstatCommandExecutor));
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error while retrieving the data : ", e);
@@ -217,10 +216,10 @@ public class InformixDc extends AbstractDbDc {
 
     private void longPollingInterval() {
         try (Connection connection = ds.getConnection()) {
-            getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricsCollectorStrategy.collectMetrics(DB_TABLESPACE_SIZE_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricsCollectorStrategy.collectMetrics(DB_TABLESPACE_USED_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricsCollectorStrategy.collectMetrics(DB_TABLESPACE_UTILIZATION_NAME, connection, onstatCommandExecutor));
-            getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricsCollectorStrategy.collectMetrics(DB_TABLESPACE_MAX_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_SIZE_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_USED_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_UTILIZATION_NAME, connection, onstatCommandExecutor));
+            getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_MAX_NAME, connection, onstatCommandExecutor));
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error while retrieving the data : ", e);
         }

@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.instana.dc.IDc;
-import com.instana.dc.rdb.DbDcRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,9 +34,6 @@ public class DataCollector {
         String configFile = System.getenv(CONFIG_ENV);
         if (configFile == null) {
             configFile = CONFIG_YAML;
-            //TODO: Test Purpose only
-            //configFile = "/Users/bikram/instana_code/otel-database-dc/rdb/config/config-informix-test.yaml";
-            configFile = "/Users/bikram/instana_code/otel-database-dc/rdb/config/config.yaml";
         }
         dcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
         int n = dcConfig.getInstances().size();

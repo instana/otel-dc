@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -37,6 +36,7 @@ public class DbDcUtil {
     public static final String DB_PASSWORD = "db.password";
     public static final String DB_SERVER_NAME = "db.serverName";
     public static final String DB_SERVER_PATH = "db.path";
+    public static final String DB_MODE = "db.mode";
     public static final String DB_CONN_URL = "db.connection.url";
     public static final String DB_ENTITY_TYPE = "db.entity.type";
     public static final String DEFAULT_DB_ENTITY_TYPE = "DATABASE";
