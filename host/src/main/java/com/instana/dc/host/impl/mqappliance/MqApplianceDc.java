@@ -38,11 +38,6 @@ public class MqApplianceDc extends AbstractHostDc {
         applianceUser = (String) properties.get(APPLIANCE_USER);
         appliancePassword = (String) properties.get(APPLIANCE_PASSWORD);
     }
-    @Override
-    public void initMeters(OpenTelemetry openTelemetry) {
-        super.initMeters(openTelemetry);
-        initMeter(openTelemetry, HostDcUtil.MeterName.IBMQMGR);
-    }
 
     private void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(this::closeProcess));
