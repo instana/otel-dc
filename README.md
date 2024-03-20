@@ -76,7 +76,26 @@ bin/otel-dc-rdb
 export DC_CONFIG=config/config-oceanbase.yaml
 bin/otel-dc-rdb
 ```
-
+Here are some useful commands:
+1) Run DataCollector with logging configuration
+```bash
+export JAVA_OPTS=-Dconfig/logging.properties
+bin/otel-dc-rdb
+```
+2) Query DataCollector
+```bash
+ps -ef | grep otel-dc-rdb | grep -v grep
+```
+3) Stop DataCollector
+```bash
+ps -ef | grep otel-dc-rdb | grep -v grep | awk '{printf " "$2" "}' | xargs kill -9
+```
+4) Check logging file
+```bash
+ls -l ~/rdb-dc*.log
+```
+5) Change configuration of loggins
+Revise config/logging.properties file.
 
 ## Create Data Collector implementation for a new database
 
