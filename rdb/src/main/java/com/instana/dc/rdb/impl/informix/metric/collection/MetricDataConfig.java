@@ -7,20 +7,28 @@ package com.instana.dc.rdb.impl.informix.metric.collection;
 
 
 public class MetricDataConfig {
-    private final String query;
-    private final String command;
+    private  String query;
+    private  String command;
 
     private final Class<?> returnType;
 
     private final MetricCollectionMode defaultMode;
+    private final MetricCollectionMode selectedModeMode;
     private final String[] attr;
 
-    MetricDataConfig(String query, String command, MetricCollectionMode mode, Class<?> returnType) {
+    //TODO: Two different Constructor
+    MetricDataConfig(String query, MetricCollectionMode mode, Class<?> returnType) {
         this.query = query;
-        this.command = command;
         this.returnType = returnType;
         this.attr = null;
-        this.defaultMode = mode;
+        this.selectedModeMode = mode;
+    }
+
+    MetricDataConfig(String query, MetricCollectionMode mode, Class<?> returnType) {
+        this.query = query;
+        this.returnType = returnType;
+        this.attr = null;
+        this.selectedModeMode = mode;
     }
 
     public MetricDataConfig(String query, String command, MetricCollectionMode mode, Class<?> returnType, String... attr) {
@@ -29,6 +37,10 @@ public class MetricDataConfig {
         this.returnType = returnType;
         this.attr = attr;
         this.defaultMode = mode;
+    }
+
+    public MetricCollectionMode getSelectedModeMode() {
+        return selectedModeMode;
     }
 
     public String[] getAttr() {

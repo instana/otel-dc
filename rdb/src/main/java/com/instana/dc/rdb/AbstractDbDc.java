@@ -43,7 +43,6 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private String dbName;
     private String serverName;
     private String dbPath;
-    private String dbMode;
     private String dbVersion;
     private String dbEntityType;
     private String dbTenantId;
@@ -82,7 +81,6 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbPassword = (String) properties.get(DB_PASSWORD);
         serverName = (String) properties.get(DB_SERVER_NAME);
         dbPath = (String) properties.get(DB_SERVER_PATH);
-        dbMode = (String)properties.get(DB_MODE);
         dbEntityType = (String) properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
             dbEntityType = DEFAULT_DB_ENTITY_TYPE;
@@ -93,14 +91,14 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbName = (String) properties.get(DB_NAME);
         dbVersion = (String) properties.get(DB_VERSION);
     }
-    
+
     @Override
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, serviceName,
                         SemanticAttributes.DB_SYSTEM, dbSystem,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_ADDRESS, dbAddress,
-                        com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_PORT, (long)dbPort,
+                        com.instana.agent.sensorsdk.semconv.ResourceAttributes.SERVER_PORT, (long) dbPort,
                         SemanticAttributes.DB_NAME, dbName,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DB_VERSION, dbVersion
                 )))
@@ -210,9 +208,11 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     public String getServiceInstanceId() {
         return serviceInstanceId;
     }
+
     public void setDbEntityParentId(String dbEntityParentId) {
         this.dbEntityParentId = dbEntityParentId;
     }
+
     public void setServiceInstanceId(String serviceInstanceId) {
         this.serviceInstanceId = serviceInstanceId;
     }
@@ -245,12 +245,6 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         return serverName;
     }
 
-    public MetricCollectionMode getDbMode(){
-        if(dbMode==null){
-            return MetricCollectionMode.DEFAULT;
-        }
-        return MetricCollectionMode.valueOf(dbMode.toUpperCase());
-    }
     public String getDbPath() {
         return dbPath;
     }
