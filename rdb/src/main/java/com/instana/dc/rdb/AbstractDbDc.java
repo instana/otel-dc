@@ -7,7 +7,6 @@ package com.instana.dc.rdb;
 import com.instana.dc.AbstractDc;
 import com.instana.dc.DcUtil;
 import com.instana.dc.IDc;
-import com.instana.dc.rdb.impl.informix.metric.collection.MetricCollectionMode;
 import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;

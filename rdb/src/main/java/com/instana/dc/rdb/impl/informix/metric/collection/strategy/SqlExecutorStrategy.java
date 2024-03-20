@@ -12,7 +12,7 @@ import java.sql.Connection;
 import static com.instana.dc.rdb.DbDcUtil.getMetricWithSql;
 import static com.instana.dc.rdb.DbDcUtil.getSimpleMetricWithSql;
 
-public class SqlExecutorStrategy implements MetricsExecutionStrategy {
+public class SqlExecutorStrategy extends MetricsExecutionStrategy {
 
     private final Connection connection;
     public SqlExecutorStrategy(Connection connection){
@@ -32,7 +32,7 @@ public class SqlExecutorStrategy implements MetricsExecutionStrategy {
         if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
             return (T) getSimpleMetricWithSql(connection, metricDataConfig.getQuery());
         } else if (TypeChecker.isList(metricDataConfig.getReturnType())) {
-            return (T) getMetricWithSql(connection, metricDataConfig.getQuery());
+            return (T) getMetricWithSql(connection, metricDataConfig.getQuery(),metricDataConfig.getAttr());
         }
         return null;
     }

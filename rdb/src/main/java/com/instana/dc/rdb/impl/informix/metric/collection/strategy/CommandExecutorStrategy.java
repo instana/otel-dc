@@ -9,7 +9,7 @@ import com.instana.dc.rdb.impl.informix.OnstatCommandExecutor;
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigMapping;
 
-public class CommandExecutorStrategy implements MetricsExecutionStrategy {
+public class CommandExecutorStrategy extends MetricsExecutionStrategy {
 
     private final OnstatCommandExecutor onstatCommandExecutor;
 

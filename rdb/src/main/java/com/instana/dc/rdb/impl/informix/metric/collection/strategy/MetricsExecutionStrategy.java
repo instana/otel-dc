@@ -10,8 +10,8 @@ import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigMappi
 
 import java.util.List;
 
-public interface MetricsExecutionStrategy { //TODO: Abstract class
-    static MetricDataConfig retrieveMetricDataConfig(String metricName){
+public abstract class MetricsExecutionStrategy {
+    public static MetricDataConfig retrieveMetricDataConfig(String metricName){
         MetricDataConfig metricDataConfig = MetricsDataConfigMapping.getMetricDataConfig(metricName);
         if (metricDataConfig == null) {
             throw new IllegalArgumentException("Metric not found:" + metricName);

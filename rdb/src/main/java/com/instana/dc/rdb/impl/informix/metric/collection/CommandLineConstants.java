@@ -12,18 +12,9 @@ import static com.instana.dc.rdb.DbDcUtil.*;
 
 public class CommandLineConstants {
 
-    private CommandLineConstants() {
-        //Private Constructor
-    }
-
-
-    //This will hold the Mapping between the metrics and its relative script.
     private static final Map<String, String> metricScriptMapping = new HashMap<>();
 
     static {
-        //long polling interval metrics
-
-        //medium polling interval metrics
         metricScriptMapping.put(DB_SQL_COUNT_NAME, "sql_count.sh");
         metricScriptMapping.put(DB_SQL_RATE_NAME, "sql_count.sh");
         metricScriptMapping.put(DB_TRANSACTION_COUNT_NAME, "transaction_count.sh");

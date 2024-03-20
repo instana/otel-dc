@@ -8,21 +8,12 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 public class MetricsCollector {
-
-    private MetricCollectionMode modeSelected;
-
-    private BasicDataSource dataSource;
-    private OnstatCommandExecutor onstatCommandExecutor;
-
-    public MetricsCollector(MetricCollectionMode mode) {
-        this.modeSelected = mode;
-    }
-
+    private final BasicDataSource dataSource;
+    private final OnstatCommandExecutor onstatCommandExecutor;
     public MetricsCollector(BasicDataSource dataSource, OnstatCommandExecutor onstatCommandExecutor) {
         this.onstatCommandExecutor = onstatCommandExecutor;
         this.dataSource = dataSource;
@@ -33,27 +24,18 @@ public class MetricsCollector {
     public <T> T collectMetrics(String metricName) {
         MetricDataConfig metricDataConfig = MetricsExecutionStrategy.retrieveMetricDataConfig(metricName);
 
-        MetricCollectionMode mode = metricDataConfig.getSelectedModeMode();
-
-
-        //TODO: Based on the mode use the strategy
-        if (modeSelected == MetricCollectionMode.DEFAULT) { //CMD
-            mode = metricDataConfig.getDefaultMode();
-        }
-        MetricsExecutionStrategy executionStrategy;
+        MetricCollectionMode mode = metricDataConfig.getSelectedMode();
         if (mode == MetricCollectionMode.SQL) {
             try (Connection connection = dataSource.getConnection()) {
-                executionStrategy = new SqlExecutorStrategy(connection);
+                 return new SqlExecutorStrategy(connection). collectMetrics(metricName);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         } else if (mode == MetricCollectionMode.CMD) {
-            executionStrategy = new CommandExecutorStrategy(onstatCommandExecutor);
+             return new CommandExecutorStrategy(onstatCommandExecutor).collectMetrics(metricName);
         } else {
-            LOGGER.log(Level.SEVERE, "Invalid execution mode: " + mode + " for metrics: " + metricName);
             throw new IllegalStateException("Invalid Mode selected");
         }
-        return executionStrategy.collectMetrics(metricName);
     }
 
 

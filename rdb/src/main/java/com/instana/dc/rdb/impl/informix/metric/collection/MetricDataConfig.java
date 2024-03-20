@@ -9,26 +9,15 @@ package com.instana.dc.rdb.impl.informix.metric.collection;
 public class MetricDataConfig {
     private  String query;
     private  String command;
-
     private final Class<?> returnType;
+    private final MetricCollectionMode selectedMode;
+    private String[] attr;
 
-    private final MetricCollectionMode defaultMode;
-    private final MetricCollectionMode selectedModeMode;
-    private final String[] attr;
-
-    //TODO: Two different Constructor
-    MetricDataConfig(String query, MetricCollectionMode mode, Class<?> returnType) {
+    public MetricDataConfig(String query, Class<?> returnType,String... attr) {
         this.query = query;
         this.returnType = returnType;
-        this.attr = null;
-        this.selectedModeMode = mode;
-    }
-
-    MetricDataConfig(String query, MetricCollectionMode mode, Class<?> returnType) {
-        this.query = query;
-        this.returnType = returnType;
-        this.attr = null;
-        this.selectedModeMode = mode;
+        this.selectedMode = MetricCollectionMode.SQL;
+        this.attr = attr;
     }
 
     public MetricDataConfig(String query, String command, MetricCollectionMode mode, Class<?> returnType, String... attr) {
@@ -36,21 +25,16 @@ public class MetricDataConfig {
         this.command = command;
         this.returnType = returnType;
         this.attr = attr;
-        this.defaultMode = mode;
+        this.selectedMode = mode;
     }
 
-    public MetricCollectionMode getSelectedModeMode() {
-        return selectedModeMode;
+    public MetricCollectionMode getSelectedMode() {
+        return selectedMode;
     }
 
     public String[] getAttr() {
         return attr;
     }
-
-    public MetricCollectionMode getDefaultMode() {
-        return defaultMode;
-    }
-
     public String getQuery() {
         return query;
     }
