@@ -7,25 +7,26 @@ package com.instana.dc.rdb.impl.informix.metric.collection.strategy;
 
 import com.instana.dc.rdb.impl.informix.OnstatCommandExecutor;
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
-import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigMapping;
+
+import java.util.Optional;
 
 public class CommandExecutorStrategy extends MetricsExecutionStrategy {
-
     private final OnstatCommandExecutor onstatCommandExecutor;
 
-    public CommandExecutorStrategy(OnstatCommandExecutor onstatCommandExecutor) {
+    protected CommandExecutorStrategy(OnstatCommandExecutor onstatCommandExecutor) {
         this.onstatCommandExecutor = onstatCommandExecutor;
     }
 
-    @Override
-    public <T> T collectMetrics(String metricName) {
-        MetricDataConfig metricDataConfig = MetricsDataConfigMapping.getMetricDataConfig(metricName);
+    protected <T> T collectMetrics(MetricDataConfig metricDataConfig) {
         return (T) collectMetricsUsingCMD(metricDataConfig, onstatCommandExecutor);
     }
 
     private Number collectMetricsUsingCMD(MetricDataConfig metricDataConfig, OnstatCommandExecutor onstatCommandExecutor) {
         if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
-            return Integer.parseInt(onstatCommandExecutor.executeCommand(metricDataConfig.getCommand())[0]); //TODO: Need to verify this
+            Optional<String[]> result = onstatCommandExecutor.executeCommand(metricDataConfig.getScriptName());
+            if (result.isPresent()) {
+                return Integer.parseInt(result.get()[0]); //TODO: Need to verify this
+            }
         }
         return null;
     }

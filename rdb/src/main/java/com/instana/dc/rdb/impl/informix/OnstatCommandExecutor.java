@@ -10,7 +10,6 @@ import com.instana.dc.rdb.impl.Constants;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,7 +38,7 @@ public class OnstatCommandExecutor {
      * @param fileName : Name of the file which you want to execute
      * @return : Value as String[]
      */
-    public String[] executeCommand(String fileName) {
+    public Optional<String[]> executeCommand(String fileName) {
         String path = "scripts/" + fileName;
         String[] command = new String[]{
                 SHELL_SCRIPT,
@@ -53,11 +52,10 @@ public class OnstatCommandExecutor {
 
         Optional<String[]> result = commandExecutorAndExtractor(command);
         if (result.isPresent()) {
-            LOGGER.info("Result: " + Arrays.toString(result.get()));
-            return result.get();
+            return Optional.of(result.get());
         }
         LOGGER.log(Level.WARNING, "No result present for executable: {}", fileName);
-        return null;
+        return Optional.empty();
     }
 
 

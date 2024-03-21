@@ -6,33 +6,42 @@
 package com.instana.dc.rdb.impl.informix.metric.collection.strategy;
 
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
+import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.instana.dc.rdb.DbDcUtil.getMetricWithSql;
 import static com.instana.dc.rdb.DbDcUtil.getSimpleMetricWithSql;
 
 public class SqlExecutorStrategy extends MetricsExecutionStrategy {
 
-    private final Connection connection;
-    public SqlExecutorStrategy(Connection connection){
-        this.connection = connection;
+    private static final Logger LOGGER = Logger.getLogger(SqlExecutorStrategy.class.getName());
+    private final BasicDataSource dataSource;
+
+    protected SqlExecutorStrategy(BasicDataSource dataSource) {
+        this.dataSource = dataSource;
     }
+
     @Override
-    public <T> T collectMetrics(String metricName) {
-        MetricDataConfig metricDataConfig = MetricsExecutionStrategy.retrieveMetricDataConfig(metricName);
-        T metricValue = null;
-        metricValue = collectMetricsUsingSQL(metricDataConfig,this.connection);
-        TypeChecker.checkCast(metricValue,metricDataConfig.getReturnType());
-
-        return metricValue;
+    protected <T> T collectMetrics(MetricDataConfig metricDataConfig) {
+        try (Connection connection = dataSource.getConnection()) {
+            T metricValue = collectMetricsUsingSQL(metricDataConfig, connection);
+            TypeChecker.checkCast(metricValue, metricDataConfig.getReturnType());
+            return metricValue;
+        } catch (SQLException exp) {
+            LOGGER.log(Level.SEVERE, "Unable to execute the sql command, Exception: " + exp);
+        }
+        return null;
     }
 
-    private static <T> T collectMetricsUsingSQL(MetricDataConfig metricDataConfig, Connection connection) {
+    private <T> T collectMetricsUsingSQL(MetricDataConfig metricDataConfig, Connection connection) {
         if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
             return (T) getSimpleMetricWithSql(connection, metricDataConfig.getQuery());
         } else if (TypeChecker.isList(metricDataConfig.getReturnType())) {
-            return (T) getMetricWithSql(connection, metricDataConfig.getQuery(),metricDataConfig.getAttr());
+            return (T) getMetricWithSql(connection, metricDataConfig.getQuery(), metricDataConfig.getAttr());
         }
         return null;
     }

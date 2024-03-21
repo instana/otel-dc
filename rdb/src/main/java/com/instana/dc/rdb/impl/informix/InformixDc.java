@@ -11,6 +11,7 @@ import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
 import com.instana.dc.rdb.impl.Constants;
 import com.instana.dc.rdb.impl.informix.metric.collection.*;
+import com.instana.dc.rdb.impl.informix.metric.collection.strategy.MetricsCollector;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
@@ -26,18 +27,24 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.instana.dc.rdb.DbDcUtil.*;
+import static com.instana.dc.rdb.impl.Constants.IO_READ_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.IO_WRITE_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.MEMORY_UTILIZATION_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.SQL_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.TRANSACTION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
 public class InformixDc extends AbstractDbDc {
     private static final Logger LOGGER = Logger.getLogger(InformixDc.class.getName());
+    public static final String SESSION_COUNT_SCRIPT = "session_count.sh";
     private String tableSpaceSizeQuery;
     private String tableSpaceUsedQuery;
     private String tableSpaceUtilizationQuery;
     private String tableSpaceMaxQuery;
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
-    private final BasicDataSource ds;
+    private final BasicDataSource dataSource;
     private final OnstatCommandExecutor onstatCommandExecutor;
 
     private final MetricsCollector metricCollector;
@@ -49,40 +56,68 @@ public class InformixDc extends AbstractDbDc {
         setDbPassword(InformixUtil.decodePassword(getDbPassword()));
         setDbConnUrl();
 
-        ds = new BasicDataSource();
-        ds.setDriverClassName(getDbDriver());
-        ds.setUsername(getDbUserName());
-        ds.setPassword(getDbPassword());
-        ds.setUrl(getDbConnUrl());
-        ds.setInitialSize(3);
-        ds.setMaxIdle(1);
+        dataSource = getDataSource();
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
         getDbNameAndVersion();
         parseCustomPollRate(properties);
-        registerMetricsForOperations();
-        metricCollector = new MetricsCollector(ds, onstatCommandExecutor);
+        registerMetricsMetadata();
+        metricCollector = new MetricsCollector(dataSource, onstatCommandExecutor);
     }
 
-    private void registerMetricsForOperations() {
+    private BasicDataSource getDataSource() {
+        final BasicDataSource dataSource;
+        dataSource = new BasicDataSource();
+        dataSource.setDriverClassName(getDbDriver());
+        dataSource.setUsername(getDbUserName());
+        dataSource.setPassword(getDbPassword());
+        dataSource.setUrl(getDbConnUrl());
+        dataSource.setInitialSize(3);
+        dataSource.setMaxIdle(1);
+        return dataSource;
+    }
 
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_SIZE_NAME, new MetricDataConfig(tableSpaceSizeQuery, List.class, DB_TABLESPACE_SIZE_KEY));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_USED_NAME, new MetricDataConfig(tableSpaceUsedQuery, List.class, DB_TABLESPACE_USED_KEY));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_UTILIZATION_NAME, new MetricDataConfig(tableSpaceUtilizationQuery, List.class, DB_TABLESPACE_UTILIZATION_KEY));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TABLESPACE_MAX_NAME, new MetricDataConfig(tableSpaceMaxQuery, List.class, DB_TABLESPACE_MAX_KEY));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_SQL_COUNT_NAME, new MetricDataConfig(InformixUtil.SQL_COUNT_SQL, CommandLineConstants.getMetricScriptMapping(DB_SQL_COUNT_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_SQL_RATE_NAME, new MetricDataConfig(InformixUtil.SQL_COUNT_SQL, CommandLineConstants.getMetricScriptMapping(DB_SQL_RATE_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TRANSACTION_COUNT_NAME, new MetricDataConfig(InformixUtil.TRANSACTION_COUNT_SQL, CommandLineConstants.getMetricScriptMapping(DB_TRANSACTION_COUNT_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_TRANSACTION_RATE_NAME, new MetricDataConfig(InformixUtil.TRANSACTION_COUNT_SQL, CommandLineConstants.getMetricScriptMapping(DB_TRANSACTION_RATE_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_SQL_ELAPSED_TIME_NAME, new MetricDataConfig(InformixUtil.SQL_ELAPSED_TIME_SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_INSTANCE_COUNT_NAME, new MetricDataConfig(InformixUtil.INSTANCE_COUNT_SQL, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_INSTANCE_ACTIVE_COUNT_NAME, new MetricDataConfig(InformixUtil.INSTANCE_ACTIVE_COUNT_SQL, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_SESSION_COUNT_NAME, new MetricDataConfig(InformixUtil.SESSION_COUNT_SQL, CommandLineConstants.getMetricScriptMapping(DB_SESSION_COUNT_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, new MetricDataConfig(InformixUtil.ACTIVE_SESSION, CommandLineConstants.getMetricScriptMapping(DB_SESSION_ACTIVE_COUNT_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_IO_READ_RATE_NAME, new MetricDataConfig(InformixUtil.IO_READ_COUNT_SQL, CommandLineConstants.getMetricScriptMapping(DB_IO_READ_RATE_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_IO_WRITE_RATE_NAME, new MetricDataConfig(InformixUtil.IO_WRITE_COUNT_SQL, CommandLineConstants.getMetricScriptMapping(DB_IO_WRITE_RATE_NAME), MetricCollectionMode.CMD, Number.class));
-        MetricsDataConfigMapping.subscribeMetricDataConfig(DB_MEM_UTILIZATION_NAME, new MetricDataConfig(InformixUtil.MEMORY_UTILIZATION_SQL, CommandLineConstants.getMetricScriptMapping(DB_MEM_UTILIZATION_NAME), MetricCollectionMode.CMD, Number.class));
+    /**
+     * Util method to register all the available metrics Informix support with some basic metadata like Mode of execution, Query or command details etc.
+     */
+    private void registerMetricsMetadata() {
+        //Metrics via SQL
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_SIZE_NAME,
+                new MetricDataConfig(tableSpaceSizeQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_SIZE_KEY));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_USED_NAME,
+                new MetricDataConfig(tableSpaceUsedQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_USED_KEY));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_UTILIZATION_NAME,
+                new MetricDataConfig(tableSpaceUtilizationQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_UTILIZATION_KEY));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_MAX_NAME,
+                new MetricDataConfig(tableSpaceMaxQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_ELAPSED_TIME_NAME,
+                new MetricDataConfig(InformixUtil.SQL_ELAPSED_TIME_SQL, MetricCollectionMode.SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_COUNT_NAME,
+                new MetricDataConfig(InformixUtil.INSTANCE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_ACTIVE_COUNT_NAME,
+                new MetricDataConfig(InformixUtil.INSTANCE_ACTIVE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
+
+
+        //Metrics via onstat command
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
+                new MetricDataConfig(DB_SQL_COUNT_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_RATE_NAME,
+                new MetricDataConfig(DB_SQL_RATE_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_COUNT_NAME,
+                new MetricDataConfig(DB_TRANSACTION_COUNT_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_RATE_NAME,
+                new MetricDataConfig(DB_TRANSACTION_RATE_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_COUNT_NAME,
+                new MetricDataConfig(DB_SESSION_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME,
+                new MetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_READ_RATE_NAME,
+                new MetricDataConfig(DB_IO_READ_RATE_NAME, IO_READ_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_WRITE_RATE_NAME,
+                new MetricDataConfig(DB_IO_WRITE_RATE_NAME, IO_WRITE_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_MEM_UTILIZATION_NAME,
+                new MetricDataConfig(DB_MEM_UTILIZATION_NAME, MEMORY_UTILIZATION_SCRIPT, MetricCollectionMode.CMD, Number.class));
     }
 
     /**
@@ -163,7 +198,7 @@ public class InformixDc extends AbstractDbDc {
     }
 
     private void getDbNameAndVersion() throws SQLException {
-        try (Connection connection = ds.getConnection()) {
+        try (Connection connection = dataSource.getConnection()) {
             ResultSet rs = DbDcUtil.executeQuery(connection, DB_HOST_AND_VERSION_SQL);
             rs.next();
             setDbVersion(rs.getString("Version"));
