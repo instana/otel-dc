@@ -50,18 +50,20 @@ cd otel-dc/ai
 
 ## Run
 
-- ### Run with source code
+- ### Run with source code (Take the database plugin as an example)
 
 1) Make sure code is built with Java SDK required version.
 
 2) Refine configuration file (config/config.yaml) according to your own database. Right now we provide Data Collector for following databases:
   - DaMeng database
+  - Oceanbase
+  - Informix
   
-  >*Note: We respect the OTel community conventions and consider more about popular database engines for conventionss. While we may create 
-  > implementations from those databases without OTel support based on user requirements or developer contributions. *
+  >*Note: We respect the OTel community conventions and consider more about popular database engines for conventionss. While we may create implementations from those databases without OTel support based on user requirements or developer contributions. *
 
 3) Start up your OTLP backend which accept OTLP connections. Right now we support following protocols:
 - otlp/grpc
+- otlp/http
 
 4) Option-1: Run the Data Collector with gradle
 ```bash
@@ -74,56 +76,50 @@ tar vxf otel-dc-rdb-*.tar
 rm -f *.tar *.zip
 cd otel-dc-rdb-*
 ```
+Refer to following chapter to run the Data Collector. 
 
 - ### Run with release
 Download the latest  [Release package](https://github.com/instana/otel-dc/releases/tag/Release) according to the operating system.
+
 ### Modify the configuration file.
 Then, make sure following configuration files are correct for your environment.:
   - config/config.yaml
   - config/logging.properties
 
-Run the Data Collector with following command according to your current OS:
+Run the Data Collector with following command according to your current implentation:
 - **host**
 ```bash
 export DC_CONFIG=config/config.yaml
+export JAVA_OPTS=-Dconfig/logging.properties
 bin/otel-dc-host
 ```
-- **databases**
-```bash
-export DC_CONFIG=config/config-oceanbase.yaml
-bin/otel-dc-rdb
-```
+
 - **ai**
 ```bash
 export DC_CONFIG=config/config.yaml
+export JAVA_OPTS=-Dconfig/logging.properties
 bin/otel-dc-ai
 ```
-*Note:* The default configuration file is config/config.yaml, you can also use environment variable "DC_CONFIG" to speficy the configuration file, for example:
+
+*Note:* 
+1) You can omit this line to set DC_CONFIG because the default configuration file is "config/config.yaml", you can also use environment variable "DC_CONFIG" to speficy the configuration file, for example:
 ```bash
 export DC_CONFIG=config/config-oceanbase.yaml
-```
-
-**Optional:**
-1) Run DataCollector with logging configuration before run the data collector
-```bash
 export JAVA_OPTS=-Dconfig/logging.properties
 bin/otel-dc-rdb
 ```
+
 2) Query DataCollector
 ```bash
-ps -ef | grep otel-dc-rdb | grep -v grep
+ps -ef | grep otel-dc | grep -v grep
 ```
+
 3) Stop DataCollector
 ```bash
-ps -ef | grep otel-dc-rdb | grep -v grep | awk '{printf " "$2" "}' | xargs kill -9
+ps -ef | grep otel-dc | grep -v grep | awk '{printf " "$2" "}' | xargs kill -9
 ```
+
 4) Check logging file
 ```bash
-ls -l ~/rdb-dc*.log
+ls -l ~/*-dc*.log
 ```
-5) Change configuration of loggins
-Revise config/logging.properties file.
-
-## Create Data Collector implementation for a new database
-
-Please refer to "[How to create data collector implementation for a new database](docs/developer/new-db.md)".
