@@ -37,12 +37,10 @@ public class MetricsCollector {
         MetricCollectionMode mode = metricDataConfig.getSelectedMode();
         if (mode == MetricCollectionMode.SQL) {
             T response = sqlExecutorStrategy.collectMetrics(metricDataConfig);
-            //TODO: For Testing only
             LOGGER.info("SQL - For Metric: " + metricName + " response: " + response);
             return response;
         } else if (mode == MetricCollectionMode.CMD) {
             T response = commandExecutorStrategy.collectMetrics(metricDataConfig);
-            //TODO: For Testing only
             LOGGER.info("CMD - For Metric: " + metricName + " response: " + response);
             return response;
         }

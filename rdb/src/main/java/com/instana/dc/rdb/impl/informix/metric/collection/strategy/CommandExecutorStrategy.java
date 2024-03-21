@@ -25,7 +25,7 @@ public class CommandExecutorStrategy extends MetricsExecutionStrategy {
         if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
             Optional<String[]> result = onstatCommandExecutor.executeCommand(metricDataConfig.getScriptName());
             if (result.isPresent()) {
-                return Integer.parseInt(result.get()[0]); //TODO: Need to verify this
+                return Integer.parseInt(result.get()[0]);
             }
         }
         return null;
