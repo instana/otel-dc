@@ -1,36 +1,29 @@
-#Database properties:
-db.system: dameng
-db.driver: dm.jdbc.driver.DmDriver
+db.system: informix
+db.driver: com.informix.jdbc.IfxDriver
 
 instances:
-  - db.address: 9.46.118.22
-    db.port: 5236
-    db.username: SYSDBA
-    db.password: VXMzcnBhODgq
-    db.connection.url: jdbc:dm://9.46.118.22:5236
-    db.name: myDB1
-
-    #Data collector properties:
-    poll.interval: 30
-    callback.interval: 20
-    otel.backend.url: http://9.112.252.66:4318/v1/metrics
-    otel.backend.using.http: true
+  - db.address: 9.46.251.113
+    db.port: 9088
+    db.serverName: ol_informix1410
+    db.username: informix
+    db.password: cGFzc3dvcmQ=
+    db.name: TestInformixDB
+    db.path: /opt/IBM/Informix_Software_Bundle
 
     #OTel properties:
-    otel.service.name: DamengDC1
-
-  - db.address: 9.46.118.22
-    db.port: 5236
-    db.username: SYSDBA
-    db.password: VXMzcnBhODgq
-    db.connection.url: jdbc:dm://9.46.118.22:5236
-    db.name: myDB2
+    otel.service.name: InformixDB
 
     #Data collector properties:
+    #Either use `poll.interval` or Use `custom.poll.interval`
     poll.interval: 30
+    #All three category value is Mandatory if leveraging Custom Poll Rate
+    custom.poll.interval:
+      high: 10 #polling_value_in_sec
+      medium: 120 #polling_value_in_sec
+      low: 30 #polling_value_in_sec
     callback.interval: 20
-    otel.backend.url: http://9.112.252.66:4318/v1/metrics
-    otel.backend.using.http: true
+    otel.backend.url: http://127.0.0.1:4317
 
-    #OTel properties:
-    otel.service.name: DamengDC2
+    #Custom Input
+    custom.input:
+      db.names: 'instana, instana_1, instana_2'
