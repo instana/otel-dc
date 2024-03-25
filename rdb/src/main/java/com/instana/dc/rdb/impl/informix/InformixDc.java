@@ -158,7 +158,7 @@ public class InformixDc extends AbstractDbDc {
             while (rs.next()) {
                 int n = 2;
                 for (String attribute : Arrays.asList("owner", "created", "is_logging", "is_buff_log", "is_ansi", "is_nls", "is_case_insens")) {
-                    attributes.put("db.sysdatabases." + rs.getString(1).trim() + "." + attribute, rs.getString(n++));
+                    attributes.put("db.sysdatabases." + rs.getString(1).trim() + "." + attribute, rs.getString(n++).trim());
                 }
             }
         }
