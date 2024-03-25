@@ -84,11 +84,11 @@ public class DamengDc extends AbstractDbDc {
             getRawMetric(DB_TABLESPACE_MAX_NAME).setValue(getMetricWithSql(conn, TABLESPACE_MAX_SQL, DB_TABLESPACE_MAX_KEY));
             getRawMetric(DB_CPU_UTILIZATION_NAME).setValue(getSimpleMetricWithSql(conn, CPU_UTILIZATION_SQL));
             List<Long> listMemData = getSimpleListWithSql(conn, MEM_UTILIZATION_SQL);
-            if (listMemData != null) {
+            if (!listMemData.isEmpty()) {
                 getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((double) listMemData.get(0) / listMemData.get(1));
             }
             List<Long> listDiskData = getSimpleListWithSql(conn, DISK_USAGE_SQL);
-            if (listDiskData != null) {
+            if (!listDiskData.isEmpty()) {
                 long free = listDiskData.get(0);
                 long total = listDiskData.get(1);
                 getRawMetric(DB_DISK_UTILIZATION_NAME).getDataPoint("default").setValue((double) free / total, Collections.singletonMap("path", "default"));
