@@ -32,6 +32,8 @@ public class SemanticAttributes {
   public static final AttributeKey<Double> DB_IO_WRITE_RATE = AttributeKey.doubleKey("db.io.write.rate");
   public static final AttributeKey<Long> DB_TASK_WAIT_COUNT = AttributeKey.longKey("db.task.wait_count");
   public static final AttributeKey<Double> DB_TASK_AVG_WAIT_TIME = AttributeKey.doubleKey("db.task.avg_wait_time");
+  public static final AttributeKey<Long> DB_DISK_WRITES = AttributeKey.longKey("db.disk.writes");
+  public static final AttributeKey<Double> DB_DISK_READS = AttributeKey.doubleKey("db.disk.reads");
 
   public static final AttributeKey<Double> DB_CACHE_HIT = AttributeKey.doubleKey("db.cache.hit");
   public static final AttributeKey<Double> DB_SQL_ELAPSED_TIME = AttributeKey.doubleKey("db.sql.elapsed_time");
