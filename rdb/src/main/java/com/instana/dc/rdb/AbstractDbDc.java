@@ -54,6 +54,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private final String serviceName;
     private String serviceInstanceId;
     private String dbEntityParentId;
+    private Map<String, Object> sysdatabases;
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
@@ -99,6 +100,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
                         SemanticAttributes.DB_NAME, dbName,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DB_VERSION, dbVersion
                 )))
+                .merge(Resource.create(convertMapToAttributes(getSysdatabases())))
                 .merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_INSTANCE_ID, serviceInstanceId,
                         com.instana.agent.sensorsdk.semconv.ResourceAttributes.DB_ENTITY_TYPE, dbEntityType,
                         stringKey(DcUtil.INSTANA_PLUGIN),
@@ -240,6 +242,13 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         return serverName;
     }
 
+    public Map<String, Object> getSysdatabases() {
+        return sysdatabases;
+    }
+
+    public void setSysdatabases(Map<String, Object> sysdatabases) {
+        this.sysdatabases = sysdatabases;
+    }
 
     @Override
     public void initDC() throws Exception {

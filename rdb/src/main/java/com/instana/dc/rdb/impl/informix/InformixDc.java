@@ -14,6 +14,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,6 +32,7 @@ import static com.instana.dc.rdb.DbDcUtil.DB_TABLESPACE_UTILIZATION_KEY;
 import static com.instana.dc.rdb.DbDcUtil.getMetricWithSql;
 import static com.instana.dc.rdb.DbDcUtil.getSimpleMetricWithSql;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
+import static com.instana.dc.rdb.impl.informix.InformixUtil.SYSDATABASES_SQL;
 
 
 public class InformixDc extends AbstractDbDc {
@@ -60,6 +63,7 @@ public class InformixDc extends AbstractDbDc {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
         getDbNameAndVersion();
+        setSysdatabases();
         parseCustomPollRate(properties);
     }
 
@@ -147,6 +151,21 @@ public class InformixDc extends AbstractDbDc {
         }
     }
 
+    private void setSysdatabases() throws SQLException {
+        Map<String, Object> attributes = new HashMap<>();
+        try (Connection connection = ds.getConnection()) {
+            ResultSet rs = DbDcUtil.executeQuery(connection, SYSDATABASES_SQL);
+            while (rs.next()) {
+                int n = 2;
+                for (String attribute : Arrays.asList("owner", "created", "is_logging", "is_buff_log", "is_ansi", "is_nls", "is_case_insens")) {
+                    attributes.put("db.sysdatabases." + rs.getString(1).trim() + "." + attribute, rs.getString(n++));
+                }
+            }
+        }
+        setSysdatabases(attributes);
+    }
+
+
     @Override
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(getDbConnUrl());
@@ -178,6 +197,8 @@ public class InformixDc extends AbstractDbDc {
             getRawMetric(DbDcUtil.DB_IO_READ_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_READ_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_IO_WRITE_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.IO_WRITE_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_MEM_UTILIZATION_NAME).setValue(getMetricWithSql(connection, InformixUtil.MEMORY_UTILIZATION_SQL));
+            getRawMetric(DbDcUtil.DB_DISK_WRITES_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.DISK_WRITES_SQL));
+            getRawMetric(DbDcUtil.DB_DISK_READS_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.DISK_READS_SQL));
             getRawMetric(DbDcUtil.DB_TABLESPACE_SIZE_NAME).setValue(getMetricWithSql(connection, tableSpaceSizeQuery, DB_TABLESPACE_SIZE_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_USED_NAME).setValue(getMetricWithSql(connection, tableSpaceUsedQuery, DB_TABLESPACE_USED_KEY));
             getRawMetric(DbDcUtil.DB_TABLESPACE_UTILIZATION_NAME).setValue(getMetricWithSql(connection, tableSpaceUtilizationQuery, DB_TABLESPACE_UTILIZATION_KEY));
@@ -195,6 +216,8 @@ public class InformixDc extends AbstractDbDc {
             getRawMetric(DbDcUtil.DB_TRANSACTION_COUNT_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_TRANSACTION_RATE_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.TRANSACTION_COUNT_SQL));
             getRawMetric(DbDcUtil.DB_SQL_ELAPSED_TIME_NAME).setValue(getMetricWithSql(connection, InformixUtil.SQL_ELAPSED_TIME_SQL, DbDcUtil.DB_SQL_ELAPSED_TIME_KEY, SQL_TEXT.getKey()));
+            getRawMetric(DbDcUtil.DB_DISK_WRITES_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.DISK_WRITES_SQL));
+            getRawMetric(DbDcUtil.DB_DISK_READS_NAME).setValue(getSimpleMetricWithSql(connection, InformixUtil.DISK_READS_SQL));
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error while retrieving the Informix data for Host: {} ", getServerName());
         }
