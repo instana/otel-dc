@@ -209,10 +209,6 @@ public class DbDcUtil {
     public static <T> List<T> getSimpleListWithSql(Connection connection, String queryStr) {
         try {
             ResultSet rs = executeQuery(connection, queryStr);
-            if (rs.isClosed()) {
-                logger.severe("getSimpleObjectWithSql: ResultSet is closed");
-                return Collections.emptyList();
-            }
             List<T> list = new ArrayList<>();
             int nColumn = rs.getMetaData().getColumnCount();
             if (rs.next()) {
@@ -224,8 +220,12 @@ public class DbDcUtil {
                 logger.log(Level.WARNING, "getSimpleObjectWithSql: No result");
                 return Collections.emptyList();
             }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "getSimpleObjectWithSql: Error occurred", e);
+        } catch (Exception exp) {
+            logger.log(Level.SEVERE, "getSimpleObjectWithSql: Error occurred", exp);
+            //If Unable to execute the query or closed result set
+            if (exp instanceof SQLException) {
+                return null;
+            }
             return Collections.emptyList();
         }
     }
@@ -247,7 +247,7 @@ public class DbDcUtil {
                     if (obj == null) {
                         obj = "null";
                     }
-                    if(obj instanceof String){
+                    if (obj instanceof String) {
                         obj = ((String) obj).trim();
                     }
                     result.setAttribute(attr, obj);
