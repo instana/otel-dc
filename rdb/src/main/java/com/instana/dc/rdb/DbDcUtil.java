@@ -209,6 +209,10 @@ public class DbDcUtil {
     public static <T> List<T> getSimpleListWithSql(Connection connection, String queryStr) {
         try {
             ResultSet rs = executeQuery(connection, queryStr);
+            if (rs.isClosed()) {
+                logger.severe("getMetricWithSql: ResultSet is closed");
+                return null;
+            }
             List<T> list = new ArrayList<>();
             int nColumn = rs.getMetaData().getColumnCount();
             if (rs.next()) {
@@ -222,11 +226,7 @@ public class DbDcUtil {
             }
         } catch (Exception exp) {
             logger.log(Level.SEVERE, "getSimpleObjectWithSql: Error occurred", exp);
-            //If Unable to execute the query or closed result set
-            if (exp instanceof SQLException) {
-                return null;
-            }
-            return Collections.emptyList();
+            return null;
         }
     }
 
@@ -236,7 +236,7 @@ public class DbDcUtil {
             ResultSet rs = executeQuery(connection, queryStr);
             if (rs.isClosed()) {
                 logger.severe("getMetricWithSql: ResultSet is closed");
-                return Collections.emptyList();
+                return null;
             }
             while (rs.next()) {
                 int n = 1;
@@ -260,7 +260,7 @@ public class DbDcUtil {
             return results;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "getMetricWithSql: Error occurred", e);
-            return Collections.emptyList();
+            return null;
         }
     }
 
