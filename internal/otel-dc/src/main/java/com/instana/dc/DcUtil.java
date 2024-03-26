@@ -15,6 +15,7 @@ import io.opentelemetry.sdk.resources.Resource;
 
 import java.lang.management.ManagementFactory;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,6 +42,7 @@ public class DcUtil {
 
     //Standard environment variables;
     public static final String OTEL_RESOURCE_ATTRIBUTES = "OTEL_RESOURCE_ATTRIBUTES";
+    public static final String OTEL_EXPORTER_OTLP_HEADERS = "OTEL_EXPORTER_OTLP_HEADERS";
 
     //Configuration files;
     public static final String LOGGING_PROP = "config/logging.properties";
@@ -64,6 +66,22 @@ public class DcUtil {
             }
         }
         return resource;
+    }
+
+    public static Map<String, String> getHeaderFromEnv() {
+        Map<String, String> map = new HashMap<>();
+        String resAttrs = System.getenv(OTEL_EXPORTER_OTLP_HEADERS);
+        if (resAttrs != null) {
+            for (String resAttr : resAttrs.split(",")) {
+                String[] kv = resAttr.split("=");
+                if (kv.length != 2)
+                    continue;
+                String key = kv[0].trim();
+                String value = kv[1].trim();
+                map.put(key, value);
+            }
+        }
+        return map;
     }
 
     public static void _registerMeterWithLongMetric(Meter meter, InstrumentType instrumentType, String metricName, String unit, String desc, AtomicLong data) {

@@ -4,6 +4,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
+import io.opentelemetry.sdk.common.export.RetryPolicy;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
@@ -56,13 +57,27 @@ public abstract class AbstractDc implements IDc {
 
     @Override
     public SdkMeterProvider getDefaultSdkMeterProvider(Resource resource, String otelBackendUrl, long callbackInterval, boolean usingHTTP, long timeout) {
+        Map<String, String> map = DcUtil.getHeaderFromEnv();
         if (!usingHTTP)
             return SdkMeterProvider.builder().setResource(resource)
-                    .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(timeout, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
+                    .registerMetricReader(PeriodicMetricReader.builder(
+                                    OtlpGrpcMetricExporter.builder()
+                                            .setEndpoint(otelBackendUrl)
+                                            .setTimeout(timeout, TimeUnit.SECONDS)
+                                            .setHeaders(() -> map)
+                                            .setRetryPolicy(RetryPolicy.builder().setMaxAttempts(5).build())
+                                            .build())
+                            .setInterval(Duration.ofSeconds(callbackInterval)).build())
                     .build();
         return SdkMeterProvider.builder().setResource(resource)
-                .registerMetricReader(PeriodicMetricReader.builder(OtlpHttpMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(timeout, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
+                .registerMetricReader(PeriodicMetricReader.builder(
+                                OtlpHttpMetricExporter.builder()
+                                        .setEndpoint(otelBackendUrl)
+                                        .setTimeout(timeout, TimeUnit.SECONDS)
+                                        .setHeaders(() -> map)
+                                        .setRetryPolicy(RetryPolicy.builder().setMaxAttempts(5).build())
+                                        .build())
+                        .setInterval(Duration.ofSeconds(callbackInterval)).build())
                 .build();
     }
-
 }
