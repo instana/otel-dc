@@ -11,6 +11,7 @@ import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigRegister;
 import org.apache.commons.dbcp2.BasicDataSource;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MetricsCollector {
@@ -32,19 +33,22 @@ public class MetricsCollector {
      * @return : metric value
      */
     public <T> T collectMetrics(String metricName) {
-        MetricDataConfig metricDataConfig = MetricsDataConfigRegister.getMetricDataConfig(metricName);
-
-        MetricCollectionMode mode = metricDataConfig.getSelectedMode();
-        if (mode == MetricCollectionMode.SQL) {
-            T response = sqlExecutorStrategy.collectMetrics(metricDataConfig);
-            LOGGER.info("SQL - For Metric: " + metricName + " response: " + response);
-            return response;
-        } else if (mode == MetricCollectionMode.CMD) {
-            T response = commandExecutorStrategy.collectMetrics(metricDataConfig);
-            LOGGER.info("CMD - For Metric: " + metricName + " response: " + response);
-            return response;
+        try {
+            MetricDataConfig metricDataConfig = MetricsDataConfigRegister.getMetricDataConfig(metricName);
+            MetricCollectionMode mode = metricDataConfig.getSelectedMode();
+            if (mode == MetricCollectionMode.SQL) {
+                T response = sqlExecutorStrategy.collectMetrics(metricDataConfig);
+                LOGGER.info("SQL - For Metric: " + metricName + " response: " + response);
+                return response;
+            } else if (mode == MetricCollectionMode.CMD) {
+                T response = commandExecutorStrategy.collectMetrics(metricDataConfig);
+                LOGGER.info("CMD - For Metric: " + metricName + " response: " + response);
+                return response;
+            }
+            throw new IllegalStateException("For Metric: " + metricName + " Invalid Mode selected: " + mode);
+        }catch (Exception e){
+            LOGGER.log(Level.SEVERE, "Failed to update metric {0} due to exception: {1}", new Object[]{metricName,e});
         }
-        throw new IllegalStateException("For Metric: " + metricName + " Invalid Mode selected: " + mode);
+        return null;
     }
-
 }

@@ -22,9 +22,12 @@ public class CommandExecutorStrategy extends MetricsExecutionStrategy {
     }
 
     private Number collectMetricsUsingCMD(MetricDataConfig metricDataConfig, OnstatCommandExecutor onstatCommandExecutor) {
-        if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
-            Optional<String[]> result = onstatCommandExecutor.executeCommand(metricDataConfig.getScriptName());
-            if (result.isPresent()) {
+        Optional<String[]> result = onstatCommandExecutor.executeCommand(metricDataConfig.getScriptName());
+        if (result.isPresent()) {
+            if(TypeChecker.isDouble(metricDataConfig.getReturnType())){
+                return Double.parseDouble(result.get()[0]);
+            }
+            else if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
                 return Integer.parseInt(result.get()[0]);
             }
         }
