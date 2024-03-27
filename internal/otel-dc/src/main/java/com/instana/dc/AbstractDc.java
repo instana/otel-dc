@@ -3,7 +3,9 @@ package com.instana.dc;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
+import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporterBuilder;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
@@ -12,6 +14,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import static com.instana.dc.DcUtil.getCert;
 
 public abstract class AbstractDc implements IDc {
     private final Map<String, Meter> meters = new ConcurrentHashMap<>();
@@ -54,15 +58,50 @@ public abstract class AbstractDc implements IDc {
         return rawMetricsMap;
     }
 
-    @Override
-    public SdkMeterProvider getDefaultSdkMeterProvider(Resource resource, String otelBackendUrl, long callbackInterval, boolean usingHTTP, long timeout) {
-        if (!usingHTTP)
-            return SdkMeterProvider.builder().setResource(resource)
-                    .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(timeout, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
-                    .build();
-        return SdkMeterProvider.builder().setResource(resource)
-                .registerMetricReader(PeriodicMetricReader.builder(OtlpHttpMetricExporter.builder().setEndpoint(otelBackendUrl).setTimeout(timeout, TimeUnit.SECONDS).build()).setInterval(Duration.ofSeconds(callbackInterval)).build())
-                .build();
+    public static OtlpGrpcMetricExporter createOtlpGrpcMetricExporter(String otelBackendUrl, long timeout, Map<String, String> headers, byte[] cert) {
+        OtlpGrpcMetricExporterBuilder builder = OtlpGrpcMetricExporter.builder()
+                .setEndpoint(otelBackendUrl)
+                .setTimeout(timeout, TimeUnit.SECONDS);
+
+        if (headers != null) {
+            builder.setHeaders(() -> headers);
+        }
+        if (cert != null) {
+            builder.setTrustedCertificates(cert);
+        }
+
+        return builder.build();
     }
 
+    public static OtlpHttpMetricExporter createOtlpHttpMetricExporter(String otelBackendUrl, long timeout, Map<String, String> headers, byte[] cert) {
+        OtlpHttpMetricExporterBuilder builder = OtlpHttpMetricExporter.builder()
+                .setEndpoint(otelBackendUrl)
+                .setTimeout(timeout, TimeUnit.SECONDS);
+
+        if (headers != null) {
+            builder.setHeaders(() -> headers);
+        }
+        if (cert != null) {
+            builder.setTrustedCertificates(cert);
+        }
+        return builder.build();
+    }
+
+    @Override
+    public SdkMeterProvider getDefaultSdkMeterProvider(Resource resource, String otelBackendUrl, long callbackInterval, boolean usingHTTP, long timeout) {
+        Map<String, String> headers = DcUtil.getHeadersFromEnv();
+        byte[] cert = getCert();
+
+        if (!usingHTTP)
+            return SdkMeterProvider.builder().setResource(resource)
+                    .registerMetricReader(PeriodicMetricReader.builder(
+                                    createOtlpGrpcMetricExporter(otelBackendUrl, timeout, headers, cert))
+                            .setInterval(Duration.ofSeconds(callbackInterval)).build())
+                    .build();
+        return SdkMeterProvider.builder().setResource(resource)
+                .registerMetricReader(PeriodicMetricReader.builder(
+                                createOtlpHttpMetricExporter(otelBackendUrl, timeout, headers, cert))
+                        .setInterval(Duration.ofSeconds(callbackInterval)).build())
+                .build();
+    }
 }
