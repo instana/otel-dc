@@ -40,6 +40,10 @@ applicationDistribution.from("config") {
     into "config"
 }
 
+applicationDistribution.from("scripts/informix") {
+    into "scripts"
+}
+
 test {
     useJUnitPlatform()
 }
