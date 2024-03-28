@@ -80,6 +80,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         initMeter(openTelemetry, HostDcUtil.MeterName.FILESYSTEM);
         initMeter(openTelemetry, HostDcUtil.MeterName.PROCESSES);
         initMeter(openTelemetry, HostDcUtil.MeterName.PAGING);
+        initMeter(openTelemetry, HostDcUtil.MeterName.IBMQMGR);
      }
 
     @Override

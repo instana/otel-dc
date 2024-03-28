@@ -13,8 +13,10 @@ instances:
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
-    otel.backend.url: http://9.112.252.66:4318/v1/metrics
-    otel.backend.using.http: true
+    otel.backend.url: http://9.112.252.66:4317
+    #otel.backend.using.http: true
+    #otel.backend.url: https://host.docker.internal:8991/v1/metrics
+    #otel.backend.url: http://9.112.252.66:4318
 
     #OTel properties:
     otel.service.name: DamengDC1
@@ -29,8 +31,10 @@ instances:
     #Data collector properties:
     poll.interval: 30
     callback.interval: 20
-    otel.backend.url: http://9.112.252.66:4318/v1/metrics
-    otel.backend.using.http: true
+    otel.backend.url: http://9.112.252.66:4317
+    #otel.backend.using.http: true
+    #otel.backend.url: https://host.docker.internal:8991/v1/metrics
+    #otel.backend.url: http://9.112.252.66:4318
 
     #OTel properties:
     otel.service.name: DamengDC2
