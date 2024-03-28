@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.instana.dc.IDc;
-import com.instana.dc.rdb.DbDcRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
