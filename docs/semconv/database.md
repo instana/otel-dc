@@ -81,18 +81,18 @@ All metrics in `db.instance` instruments should be attached to a [Instance resou
 
 ## Resource Usage
 
-| Name                        | Description                                 | Unit | Instrument Type  | Value Type | Requirement Level | Attribute Key(s)                        | Attribute Values  |
-|-----------------------------|---------------------------------------------|------|------------------|------------|-------------------|-----------------------------------------|-------------------|
-| `db.disk.usage`             | The size (in bytes) of the used disk space. | By   | UpDownCounter    | Int64      | Recommended       | `path`(Recommended) The disk path.      | (path)            |
-| `db.disk.utilization`       | The percentage of used disk space.          | 1    | Gauge            | Double     | Recommended       | `path`(Recommended) The disk path.      | (path)            |
-| `db.cpu.utilization`        | The percentage of used CPU.                 | 1    | Gauge            | Double     | Recommended       |                                         |                   |
-| `db.mem.utilization`        | The percentage of used memory               | 1    | Gauge            | Double     | Recommended       |                                         |                   |
-| `db.tablespace.size`        | The size (in bytes) of the tablespace.      | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
-| `db.tablespace.used`        | The used size (in bytes) of the tablespace. | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
-| `db.tablespace.utilization` | The used percentage of the tablespace.      | 1    | Gauge            | Double     | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
-| `db.tablespace.max`         | The max size (in bytes) of the tablespace.  | By   | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
-| `db.disk.writes`            | Actual number of writes to disk             | By   | UpDownCounter    | Int64      | Optional          |                                         |                   |
-| `db.disk.reads`             | Actual number of reads to disk              | By   | UpDownCounter    | Int64      | Optional          |                                         |                   |
+| Name                         | Description                                 | Unit    | Instrument Type  | Value Type | Requirement Level | Attribute Key(s)                        | Attribute Values  |
+|------------------------------|---------------------------------------------|---------|------------------|------------|-------------------|-----------------------------------------|-------------------|
+| `db.disk.usage`              | The size (in bytes) of the used disk space. | By      | UpDownCounter    | Int64      | Recommended       | `path`(Recommended) The disk path.      | (path)            |
+| `db.disk.utilization`        | The percentage of used disk space.          | 1       | Gauge            | Double     | Recommended       | `path`(Recommended) The disk path.      | (path)            |
+| `db.cpu.utilization`         | The percentage of used CPU.                 | 1       | Gauge            | Double     | Recommended       |                                         |                   |
+| `db.mem.utilization`         | The percentage of used memory               | 1       | Gauge            | Double     | Recommended       |                                         |                   |
+| `db.tablespace.size`         | The size (in bytes) of the tablespace.      | By      | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
+| `db.tablespace.used`         | The used size (in bytes) of the tablespace. | By      | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
+| `db.tablespace.utilization`  | The used percentage of the tablespace.      | 1       | Gauge            | Double     | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
+| `db.tablespace.max`          | The max size (in bytes) of the tablespace.  | By      | UpDownCounter    | Int64      | Optional          | `tablespace_name`(Required) identifier. | {tablespace_name} |
+| `db.disk.write.count`        | Actual number of physical writes to disk    | {write} | UpDownCounter    | Int64      | Optional          |                                         |                   |
+| `db.disk.read.count`         | Actual number of physical reads to disk     | {read}  | UpDownCounter    | Int64      | Optional          |                                         |                   |
 
 ## Maintenance
 
@@ -102,13 +102,13 @@ All metrics in `db.instance` instruments should be attached to a [Instance resou
 
 
 ## Settings
-| Name                          | Description                                                                                   | Unit | Instrument Type | Value Type | Requirement Level | Attribute Key(s)                       | Attribute Values    |
-|-------------------------------|-----------------------------------------------------------------------------------------------|------|-----------------|------------|-------------------|----------------------------------------|---------------------|
-| db.database.log.enabled       | Database logging is enabled or not. 1 (Active), 0 (Inactive).                                 | By   | Gauge           | Int        | Optional          | db.database.name(Required) identifier. | {db.database.name}  |
-| db.database.buff.log.enabled  | Database Buffered logging is enabled or not. 1 (Active), 0 (Inactive).                        | By   | Gauge           | Int        | Optional          | db.database.name(Required) identifier. | {db.database.name}  |
-| db.database.ansi.compliant    | Database is ANSI/ISO-compliant or not. 1 (Active), 0 (Inactive).                              | By   | Gauge           | Int        | Optional          | db.database.name(Required) identifier. | {db.database.name}  |
-| db.database.nls.enabled       | Database is GLS-enabled or not. 1 (Active), 0 (Inactive).                                     | By   | Gauge           | Int        | Optional          | db.database.name(Required) identifier. | {db.database.name}  | 
-| db.database.case.insensitive  | Database is case-insensitive for NCHAR and NVARCHAR columns or not. 1 (Active), 0 (Inactive). | By   | Gauge           | Int        | Optional          | db.database.name(Required) identifier. | {db.database.name}  | 
+| Name                          | Description                                                                                   | Unit | Instrument Type | Value Type | Requirement Level | Attribute Key(s) | Attribute Values |
+|-------------------------------|-----------------------------------------------------------------------------------------------|------|-----------------|------------|-------------------|------------------|------------------|
+| db.database.log.enabled       | Database logging is enabled or not. 1 (Active), 0 (Inactive).                                 | By   | Gauge           | Int        | Optional          |                  |                  |
+| db.database.buff.log.enabled  | Database Buffered logging is enabled or not. 1 (Active), 0 (Inactive).                        | By   | Gauge           | Int        | Optional          |                  |                  |
+| db.database.ansi.compliant    | Database is ANSI/ISO-compliant or not. 1 (Active), 0 (Inactive).                              | By   | Gauge           | Int        | Optional          |                  |                  |
+| db.database.nls.enabled       | Database is GLS-enabled or not. 1 (Active), 0 (Inactive).                                     | By   | Gauge           | Int        | Optional          |                  |                  | 
+| db.database.case.insensitive  | Database is case-insensitive for NCHAR and NVARCHAR columns or not. 1 (Active), 0 (Inactive). | By   | Gauge           | Int        | Optional          |                  |                  | 
 
 
 # Custom metrics
