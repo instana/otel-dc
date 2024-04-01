@@ -44,8 +44,16 @@ This page tries to describe a semantic convention for the attributes and metrics
   - [Metric `db.tablespace.used`](#metric-dbtablespaceused)
   - [Metric `db.tablespace.max`](#metric-dbtablespacemax)
   - [Metric `db.tablespace.utilization`](#metric-dbtablespaceutilization)
+  - [Metric `db.disk.write.count`](#metric-dbdiskwritecount)
+  - [Metric `db.disk.read.count`](#metric-dbdiskreadcount)
 - [Maintenance Metrics](#maintenance-metrics)
   - [Metric `db.backup.cycle`](#metric-dbbackupcycle)
+- [Settings Metrics](#settings_metrics)
+  - [Metric `db.database.log.enabled`](#metric-dbdatabaselogenabled)
+  - [Metric `db.database.buff.log.enabled`](#metric-dbdatabasebufflogenabled)
+  - [Metric `db.database.ansi.compliant`](#metric-databaseansicompliant)
+  - [Metric `db.database.nls.enabled`](#metric-dbdatabasenlsenable)
+  - [Metric `db.database.case.insensitive`](#metric-databasecaseinsensitive)
 - [Custom metrics](#custom-metrics)
 
 
@@ -302,6 +310,21 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 | Attribute            | Type   | Description                 | Example                | Requirement Level |
 |----------------------|--------|-----------------------------|------------------------|-------------------|
 | `tablespace_name`    | String | Tablespace name identifier. | `default`; `sysmaster` | Required          |
+
+### Metric: `db.disk.write.count`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                    | Instrument Type  | Units (UCUM)  | Description                               |
+|-------------------------|------------------|---------------|-------------------------------------------|
+| `db.disk.write.count`   | UpDownCounter    | {write}       | Actual number of physical writes to disk. |
+
+### Metric: `db.disk.read.count`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                 | Instrument Type    | Units (UCUM) | Description                              |
+|----------------------|--------------------|--------------|------------------------------------------|
+| `db.disk.read.count` | UpDownCounter      | {read}       | Actual number of physical reads to disk. |
+
 ## Maintenance Metrics
 ### Metric: `db.backup.cycle`
 This metric is [recommended](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#recommended).
@@ -309,6 +332,70 @@ This metric is [recommended](https://github.com/open-telemetry/semantic-conventi
 | Name              | Instrument Type | Units (UCUM) | Description    |
 |-------------------|-----------------|--------------|----------------|
 | `db.backup.cycle` | UpDownCounter   | `s`          | Backup cycle.  |
+
+
+## Settings Metrics
+
+### Metric: `db.database.log.enabled`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                       | Instrument Type | Units (UCUM) | Description                                                   |
+|----------------------------|-----------------|--------------|---------------------------------------------------------------|
+| `db.database.log.enabled`  | Gauge           | by           | Database logging is enabled or not. 1 (Active), 0 (Inactive). |
+
+| Attribute            | Type   | Description               | Example                | Requirement Level |
+|----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`      | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+
+
+### Metric: `db.database.buff.log.enabled`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                           | Instrument Type | Units (UCUM) | Description                                                            |
+|--------------------------------|-----------------|--------------|------------------------------------------------------------------------|
+| `db.database.buff.log.enabled` | Gauge           | by           | Database Buffered logging is enabled or not. 1 (Active), 0 (Inactive). |
+
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+
+
+### Metric: `db.database.ansi.compliant`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                         | Instrument Type | Units (UCUM) | Description                                                       |
+|------------------------------|-----------------|--------------|-------------------------------------------------------------------|
+| `db.database.ansi.compliant` | Gauge           | by           | Database is ANSI/ISO-compliant or not. 1 (Active), 0 (Inactive).  |
+
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+
+
+### Metric: `db.database.nls.enabled`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                      | Instrument Type | Units (UCUM) | Description                                               |
+|---------------------------|-----------------|--------------|-----------------------------------------------------------|
+| `db.database.nls.enabled` | Gauge           | by           | Database is GLS-enabled or not. 1 (Active), 0 (Inactive). |
+
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+
+
+### Metric: `db.database.case.insensitive`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                           | Instrument Type | Units (UCUM) | Description                                                                                   |
+|--------------------------------|-----------------|--------------|-----------------------------------------------------------------------------------------------|
+| `db.database.case.insensitive` | Gauge           | by           | Database is case-insensitive for NCHAR and NVARCHAR columns or not. 1 (Active), 0 (Inactive). |
+
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+
+
 ## Custom metrics
 Please follow the guidebook if custom metrics sent, follow this specification to name the custom metrics.
 1. [Instrument Naming](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.22.0/specification/common/attribute-naming.md)
