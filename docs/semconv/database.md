@@ -343,9 +343,9 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 |----------------------------|-----------------|--------------|---------------------------------------------------------------|
 | `db.database.log.enabled`  | Gauge           | by           | Database logging is enabled or not. 1 (Active), 0 (Inactive). |
 
-| Attribute              | Type   | Description               | Example                | Requirement Level |
-|------------------------|--------|---------------------------|------------------------|-------------------|
-| `db_database_name`     | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+| Attribute            | Type   | Description               | Example                | Requirement Level |
+|----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`      | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
 
 
 ### Metric: `db.database.buff.log.enabled`
@@ -355,9 +355,9 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 |--------------------------------|-----------------|--------------|------------------------------------------------------------------------|
 | `db.database.buff.log.enabled` | Gauge           | by           | Database Buffered logging is enabled or not. 1 (Active), 0 (Inactive). |
 
-| Attribute              | Type   | Description               | Example                | Requirement Level |
-|------------------------|--------|---------------------------|------------------------|-------------------|
-| `db_database_name`     | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
 
 
 ### Metric: `db.database.ansi.compliant`
@@ -367,9 +367,9 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 |------------------------------|-----------------|--------------|-------------------------------------------------------------------|
 | `db.database.ansi.compliant` | Gauge           | by           | Database is ANSI/ISO-compliant or not. 1 (Active), 0 (Inactive).  |
 
-| Attribute              | Type   | Description               | Example                | Requirement Level |
-|------------------------|--------|---------------------------|------------------------|-------------------|
-| `db_database_name`     | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
 
 
 ### Metric: `db.database.nls.enabled`
@@ -379,9 +379,9 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 |---------------------------|-----------------|--------------|-----------------------------------------------------------|
 | `db.database.nls.enabled` | Gauge           | by           | Database is GLS-enabled or not. 1 (Active), 0 (Inactive). |
 
-| Attribute              | Type   | Description               | Example                | Requirement Level |
-|------------------------|--------|---------------------------|------------------------|-------------------|
-| `db_database_name`     | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
 
 
 ### Metric: `db.database.case.insensitive`
@@ -391,9 +391,9 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 |--------------------------------|-----------------|--------------|-----------------------------------------------------------------------------------------------|
 | `db.database.case.insensitive` | Gauge           | by           | Database is case-insensitive for NCHAR and NVARCHAR columns or not. 1 (Active), 0 (Inactive). |
 
-| Attribute              | Type   | Description               | Example                | Requirement Level |
-|------------------------|--------|---------------------------|------------------------|-------------------|
-| `db_database_name`     | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
+| Attribute             | Type   | Description               | Example                | Requirement Level |
+|-----------------------|--------|---------------------------|------------------------|-------------------|
+| `database_name`       | String | Database name identifier. | `prod_db`; `sysmaster` | Required          |
 
 
 ## Custom metrics
