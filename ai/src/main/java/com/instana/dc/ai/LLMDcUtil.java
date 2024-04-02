@@ -19,6 +19,8 @@ public class LLMDcUtil {
     public static final String DEFAULT_INSTRUMENTATION_SCOPE_VER = "1.0.0";
     public static final String SERVICE_NAME = "service.name";
     public static final String SERVICE_INSTANCE_ID = "service.instance.id";
+    public final static String PRICE_PROMPT_TOKES_PER_KILO = "price.prompt.tokens.per.kilo";
+    public final static String PRICE_COMPLETE_TOKES_PER_KILO = "price.complete.tokens.per.kilo";
 
     /* Configurations for Metrics:
      */
