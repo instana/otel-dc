@@ -22,6 +22,7 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
     implementation(files("libs/otel-dc-0.9.7.jar"))
     implementation(files("libs/ngdbc-2.4.64.jar"))
+    implementation(files("libs/mssql-jdbc-12.4.2.jre8.jar"))
     implementation("org.apache.commons:commons-dbcp2:2.11.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")

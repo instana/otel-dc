@@ -51,6 +51,7 @@ public class DcUtil {
     //Configuration files;
     public static final String LOGGING_PROP = "config/logging.properties";
     public static final String CONFIG_YAML = "config/config.yaml";
+    public static final String CONFIG_MSSQL_YAML = "config/config-mssql.yaml";
     public static final String CONFIG_ENV = "DC_CONFIG";
     public static final String INSTANA_PLUGIN = "INSTANA_PLUGIN";
 
