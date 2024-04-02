@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +19,11 @@ import java.util.logging.Logger;
 import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
 
 public class DbDcUtil {
+
+    private DbDcUtil() {
+        //private Constructor
+    }
+
     private static final Logger logger = Logger.getLogger(DbDcUtil.class.getName());
 
     /* Configurations for the Data Collector:
@@ -29,6 +35,8 @@ public class DbDcUtil {
     public static final String DB_USERNAME = "db.username";
     public static final String DB_PASSWORD = "db.password";
     public static final String DB_SERVER_NAME = "db.serverName";
+    public static final String DB_SERVER_PATH = "db.path";
+    public static final String DB_MODE = "db.mode";
     public static final String DB_CONN_URL = "db.connection.url";
     public static final String DB_ENTITY_TYPE = "db.entity.type";
     public static final String DEFAULT_DB_ENTITY_TYPE = "DATABASE";
@@ -210,7 +218,7 @@ public class DbDcUtil {
         try {
             ResultSet rs = executeQuery(connection, queryStr);
             if (rs.isClosed()) {
-                logger.severe("getSimpleObjectWithSql: ResultSet is closed");
+                logger.severe("getMetricWithSql: ResultSet is closed");
                 return null;
             }
             List<T> list = new ArrayList<>();
@@ -222,10 +230,10 @@ public class DbDcUtil {
                 return list;
             } else {
                 logger.log(Level.WARNING, "getSimpleObjectWithSql: No result");
-                return null;
+                return Collections.emptyList();
             }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "getSimpleObjectWithSql: Error occurred", e);
+        } catch (Exception exp) {
+            logger.log(Level.SEVERE, "getSimpleObjectWithSql: Error occurred", exp);
             return null;
         }
     }
@@ -247,7 +255,7 @@ public class DbDcUtil {
                     if (obj == null) {
                         obj = "null";
                     }
-                    if(obj instanceof String){
+                    if (obj instanceof String) {
                         obj = ((String) obj).trim();
                     }
                     result.setAttribute(attr, obj);

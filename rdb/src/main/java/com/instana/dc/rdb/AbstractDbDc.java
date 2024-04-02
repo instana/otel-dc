@@ -42,6 +42,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private String dbPassword;
     private String dbName;
     private String serverName;
+    private String dbPath;
     private String dbVersion;
     private String dbEntityType;
     private String dbTenantId;
@@ -80,6 +81,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbUserName = (String) properties.get(DB_USERNAME);
         dbPassword = (String) properties.get(DB_PASSWORD);
         serverName = (String) properties.get(DB_SERVER_NAME);
+        dbPath = (String) properties.get(DB_SERVER_PATH);
         dbEntityType = (String) properties.get(DB_ENTITY_TYPE);
         if (dbEntityType == null) {
             dbEntityType = DEFAULT_DB_ENTITY_TYPE;
@@ -90,7 +92,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
         dbName = (String) properties.get(DB_NAME);
         dbVersion = (String) properties.get(DB_VERSION);
     }
-    
+
     @Override
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
@@ -249,6 +251,9 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
 
     public void setSysdatabases(Map<String, Object> sysdatabases) {
         this.sysdatabases = sysdatabases;
+    }
+    public String getDbPath() {
+        return dbPath;
     }
 
     @Override

@@ -13,8 +13,12 @@ import io.opentelemetry.api.metrics.ObservableDoubleMeasurement;
 import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import io.opentelemetry.sdk.resources.Resource;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,6 +45,8 @@ public class DcUtil {
 
     //Standard environment variables;
     public static final String OTEL_RESOURCE_ATTRIBUTES = "OTEL_RESOURCE_ATTRIBUTES";
+    public static final String OTEL_EXPORTER_OTLP_HEADERS = "OTEL_EXPORTER_OTLP_HEADERS";
+    public static final String OTEL_EXPORTER_OTLP_CERTIFICATE = "OTEL_EXPORTER_OTLP_CERTIFICATE";
 
     //Configuration files;
     public static final String LOGGING_PROP = "config/logging.properties";
@@ -64,6 +70,35 @@ public class DcUtil {
             }
         }
         return resource;
+    }
+
+    public static Map<String, String> getHeadersFromEnv() {
+        String resAttrs = System.getenv(OTEL_EXPORTER_OTLP_HEADERS);
+        if (resAttrs == null) {
+            return null;
+        }
+        Map<String, String> map = new HashMap<>();
+        for (String resAttr : resAttrs.split(",")) {
+            String[] kv = resAttr.split("=");
+            if (kv.length != 2)
+                continue;
+            String key = kv[0].trim();
+            String value = kv[1].trim();
+            map.put(key, value);
+        }
+        return map;
+    }
+
+    public static byte[] getCert() {
+        String certFile = System.getenv(OTEL_EXPORTER_OTLP_CERTIFICATE);
+        if (certFile != null) {
+            try {
+                return Files.readAllBytes(new File(certFile).toPath());
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Certification file is invalid: {0}", certFile);
+            }
+        }
+        return null;
     }
 
     public static void _registerMeterWithLongMetric(Meter meter, InstrumentType instrumentType, String metricName, String unit, String desc, AtomicLong data) {
