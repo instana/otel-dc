@@ -21,6 +21,7 @@ import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,7 +55,7 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     private final String serviceName;
     private String serviceInstanceId;
     private String dbEntityParentId;
-    private Map<String, Object> sysdatabases;
+    private Map<String, Object> sysdatabases = new HashMap<>();
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 

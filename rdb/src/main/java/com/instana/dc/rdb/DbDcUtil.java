@@ -101,11 +101,11 @@ public class DbDcUtil {
     public static final String DB_TASK_AVG_WAIT_TIME_NAME = DB_TASK_AVG_WAIT_TIME.getKey();
     public static final String DB_TASK_AVG_WAIT_TIME_DESC = "Average task wait time";
 
-    public static final String DB_DISK_WRITES_NAME = DB_DISK_READS.getKey();
-    public static final String DB_DISK_WRITES_DESC = DB_DISK_WRITES.getKey();
+    public static final String DB_DISK_WRITES_NAME = DB_DISK_WRITES.getKey();
+    public static final String DB_DISK_WRITES_DESC = "Number of disk writes";
     public static final String DB_DISK_WRITES_UNIT = "{writes}";
 
-    public static final String DB_DISK_READS_NAME = "db.disk.reads";
+    public static final String DB_DISK_READS_NAME = DB_DISK_READS.getKey();
     public static final String DB_DISK_READS_DESC = "Number of disk reads";
     public static final String DB_DISK_READS_UNIT = "{reads}";
 

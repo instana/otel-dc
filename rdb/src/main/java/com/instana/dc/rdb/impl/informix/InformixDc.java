@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,6 +38,7 @@ import static com.instana.dc.rdb.impl.informix.InformixUtil.SYSDATABASES_SQL;
 
 public class InformixDc extends AbstractDbDc {
     private static final Logger LOGGER = Logger.getLogger(InformixDc.class.getName());
+    private static final List<String> DB_ATTRIBUTES = Arrays.asList("owner", "created", "is_logging", "is_buff_log", "is_ansi", "is_nls", "is_case_insens");
     private String tableSpaceSizeQuery;
     private String tableSpaceUsedQuery;
     private String tableSpaceUtilizationQuery;
@@ -157,7 +159,7 @@ public class InformixDc extends AbstractDbDc {
             ResultSet rs = DbDcUtil.executeQuery(connection, SYSDATABASES_SQL);
             while (rs.next()) {
                 int n = 2;
-                for (String attribute : Arrays.asList("owner", "created", "is_logging", "is_buff_log", "is_ansi", "is_nls", "is_case_insens")) {
+                for (String attribute : DB_ATTRIBUTES) {
                     attributes.put("db.sysdatabases." + rs.getString(1).trim() + "." + attribute, rs.getString(n++).trim());
                 }
             }
