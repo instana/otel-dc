@@ -98,6 +98,21 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_ACTIVE_COUNT_NAME,
                 new MetricDataConfig(InformixUtil.INSTANCE_ACTIVE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
 
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_WRITE_COUNT_NAME,
+                new MetricDataConfig(InformixUtil.DB_DISK_WRITE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_READ_COUNT_NAME,
+                new MetricDataConfig(InformixUtil.DB_DISK_READ_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
+
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_LOG_ENABLED_NAME,
+                new MetricDataConfig(InformixUtil.DB_DATABASE_LOG_ENABLED_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_BUFF_LOG_ENABLED_NAME,
+                new MetricDataConfig(InformixUtil.DB_DATABASE_BUFF_LOG_ENABLED_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_ANSI_COMPLAINT_NAME,
+                new MetricDataConfig(InformixUtil.DB_DATABASE_ANSI_COMPLAINT_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_NLS_ENABLED_NAME,
+                new MetricDataConfig(InformixUtil.DB_DATABASE_NLS_ENABLED_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_CASE_INCENSITIVE_NAME,
+                new MetricDataConfig(InformixUtil.DB_DATABASE_CASE_INCENSITIVE_SQL, MetricCollectionMode.SQL, Number.class));
 
         //Metrics via onstat command
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
@@ -118,6 +133,8 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(DB_IO_WRITE_RATE_NAME, IO_WRITE_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_MEM_UTILIZATION_NAME,
                 new MetricDataConfig(DB_MEM_UTILIZATION_NAME, MEMORY_UTILIZATION_SCRIPT, MetricCollectionMode.CMD, Double.class));
+
+
     }
 
     /**

@@ -156,8 +156,38 @@ public class DbDcUtil {
     public static final String DB_DISK_USAGE_DESC = "The size (in bytes) of the used disk space on the file system";
     public static final String DB_DISK_USAGE_KEY = PATH.getKey();
 
+    public static final String DB_DISK_WRITE_COUNT_NAME = DB_DISK_WRITE_COUNT.getKey();
+    public static final String DB_DISK_WRITE_COUNT_DESC = "Actual number of physical writes to disk";
+    public static final String DB_DISK_WRITE_COUNT_UNIT = "{write}";
+
+    public static final String DB_DISK_READ_COUNT_NAME = DB_DISK_READ_COUNT.getKey();
+    public static final String DB_DISK_READ_COUNT_DESC = "Actual number of physical reads to disk";
+    public static final String DB_DISK_READ_COUNT_UNIT = "{read}";
+
     public static final String DB_BACKUP_CYCLE_NAME = DB_BACKUP_CYCLE.getKey();
     public static final String DB_BACKUP_CYCLE_DESC = "Backup cycle";
+
+    public static final String DB_DATABASE_LOG_ENABLED_NAME = DB_DATABASE_LOG_ENABLED.getKey();
+    public static final String DB_DATABASE_LOG_ENABLED_DESC = "Database logging is enabled or not";
+    public static final String DB_DATABASE_LOG_ENABLED_KEY = DATABASE_NAME.getKey();
+
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_NAME = DB_DATABASE_BUFF_LOG_ENABLED.getKey();
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_DESC = "Database Buffered logging is enabled or not";
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_KEY = DATABASE_NAME.getKey();
+
+    public static final String DB_DATABASE_ANSI_COMPLAINT_NAME = DB_DATABASE_ANSI_COMPLAINT.getKey();
+    public static final String DB_DATABASE_ANSI_COMPLAINT_DESC = "Database is ANSI/ISO-compliant or not";
+    public static final String DB_DATABASE_ANSI_COMPLAINT_KEY = DATABASE_NAME.getKey();
+
+    public static final String DB_DATABASE_NLS_ENABLED_NAME = DB_DATABASE_NLS_ENABLED.getKey();
+    public static final String DB_DATABASE_NLS_ENABLED_DESC = "Database is GLS-enabled or not";
+    public static final String DB_DATABASE_NLS_ENABLED_KEY = DATABASE_NAME.getKey();
+
+    public static final String DB_DATABASE_CASE_INCENSITIVE_NAME = DB_DATABASE_CASE_INCENSITIVE.getKey();
+    public static final String DB_DATABASE_CASE_INCENSITIVE_DESC = "Database is case-insensitive for NCHAR and NVARCHAR columns or not";
+    public static final String DB_DATABASE_CASE_INCENSITIVE_KEY = DATABASE_NAME.getKey();
+
+
 
 
     /* Utilities:
