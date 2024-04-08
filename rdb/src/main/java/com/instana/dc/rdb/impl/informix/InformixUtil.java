@@ -42,7 +42,11 @@ public class InformixUtil {
     public static final String TABLESPACE_UTILIZATION_SQL = "select case WHEN (pt.nptotal > 0) THEN ((pt.npused) /pt.nptotal) * 100 ELSE 0 END AS table_utilization, tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
     public static final String TABLESPACE_MAX_SQL = "SELECT(pt.nptotal * pt.pagesize)  * 1024 AS total_kb, tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
 
-    public static final String SYSDATABASES_SQL = "SELECT name, owner, created, is_logging, is_buff_log, is_ansi, is_nls, is_case_insens FROM sysdatabases";
+    public static final String DBS_LOG_ENABLED_SQL = "SELECT is_logging,name AS database_name FROM sysdatabases";
+    public  static final String DBS_BUFF_LOG_ENABLED_SQL = "SELECT name AS database_name, is_buff_log FROM sysdatabases";
+
+
+    public static final String SYSDATABASES_SQL = "SELECT is_logging, name AS database_name, is_buff_log, is_ansi, is_nls, is_case_insens FROM sysdatabases";
 
     public static String decodePassword(String encodedPwd) {
         return new String(Base64.getDecoder().decode(encodedPwd));

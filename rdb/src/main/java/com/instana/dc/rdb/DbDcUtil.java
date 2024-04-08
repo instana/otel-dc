@@ -117,6 +117,26 @@ public class DbDcUtil {
     public static final String DB_DISK_READS_DESC = "Number of disk reads";
     public static final String DB_DISK_READS_UNIT = "{reads}";
 
+    public static final String DB_DATABASE_LOG_ENABLED_NAME = DB_DATABASE_LOG_ENABLED.getKey();
+    public static final String DB_DATABASE_LOG_ENABLED_DESC = "Database logging is enabled or not";
+    public static final String DB_DATABASE_LOG_ENABLED_KEY = IS_LOGGING.getKey();
+
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_NAME = DB_DATABASE_BUFF_LOG_ENABLED.getKey();
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_DESC = "Database Buffered logging is enabled or not";
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_KEY = IS_BUFF_LOG.getKey();
+
+    public static final String DB_DATABASE_ANSI_COMPLIANT_NAME = DB_DATABASE_ANSI_COMPLIANT.getKey();
+    public static final String DB_DATABASE_ANSI_COMPLIANT_DESC = "Database is ANSI/ISO-compliant or not";
+    public static final String DB_DATABASE_ANSI_COMPLIANT_KEY = IS_ANSI.getKey();
+
+    public static final String DB_DATABASE_NLS_ENABLED_NAME = DB_DATABASE_NLS_ENABLED.getKey();
+    public static final String DB_DATABASE_NLS_ENABLED_DESC = "Database is NLS enabled or not";
+    public static final String DB_DATABASE_NLS_ENABLED_KEY = IS_NLS.getKey();
+
+    public static final String DB_DATABASE_CASE_INSENSITIVE_NAME = DB_DATABASE_CASE_INSENSITIVE.getKey();
+    public static final String DB_DATABASE_CASE_INSENSITIVE_DESC = "Database is case-insensitive for NCHAR and NVARCHAR enabled or not";
+    public static final String DB_DATABASE_CASE_INSENSITIVE_KEY = IS_CASE_INSENS.getKey();
+
     public static final String DB_CACHE_HIT_NAME = DB_CACHE_HIT.getKey();
     public static final String DB_CACHE_HIT_DESC = "The cache hit ratio/percentage";
     public static final String DB_CACHE_HIT_KEY = TYPE.getKey();

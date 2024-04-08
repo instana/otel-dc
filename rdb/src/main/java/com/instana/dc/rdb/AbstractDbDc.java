@@ -248,10 +248,6 @@ public abstract class AbstractDbDc extends AbstractDc implements IDc {
     public Map<String, Object> getSysdatabases() {
         return sysdatabases;
     }
-
-    public void setSysdatabases(Map<String, Object> sysdatabases) {
-        this.sysdatabases = sysdatabases;
-    }
     public String getDbPath() {
         return dbPath;
     }

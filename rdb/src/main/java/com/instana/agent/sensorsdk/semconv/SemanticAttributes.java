@@ -51,6 +51,19 @@ public class SemanticAttributes {
 
   public static final AttributeKey<Double> DB_BACKUP_CYCLE = AttributeKey.doubleKey("db.backup.cycle");
 
+  public static final AttributeKey<Long> DB_DATABASE_LOG_ENABLED= AttributeKey.longKey("db.database.log.enabled");
+  public static final AttributeKey<Long> DB_DATABASE_BUFF_LOG_ENABLED = AttributeKey.longKey("db.database.buff.log.enabled");
+  public static final AttributeKey<Long> DB_DATABASE_ANSI_COMPLIANT = AttributeKey.longKey("db.database.ansi.compliant");
+  public static final AttributeKey<Long> DB_DATABASE_NLS_ENABLED = AttributeKey.longKey("db.database.nls.enabled");
+  public static final AttributeKey<Long> DB_DATABASE_CASE_INSENSITIVE = AttributeKey.longKey("db.database.case.insensitive");
+
+  public static final AttributeKey<String> DATABASE_NAME = AttributeKey.stringKey("database_name");
+
+  public static final AttributeKey<Long> IS_LOGGING = AttributeKey.longKey("is_logging");
+  public static final AttributeKey<Long> IS_BUFF_LOG = AttributeKey.longKey("is_buff_log");
+  public static final AttributeKey<Long> IS_NLS = AttributeKey.longKey("is_nls");
+  public static final AttributeKey<Long> IS_CASE_INSENS = AttributeKey.longKey("is_case_insens");
+  public static final AttributeKey<Long> IS_ANSI = AttributeKey.longKey("is_ansi");
   public static final AttributeKey<String> STATE = AttributeKey.stringKey("state");
   public static final AttributeKey<String> TYPE = AttributeKey.stringKey("type");
   public static final AttributeKey<String> PATH = AttributeKey.stringKey("path");

@@ -10,7 +10,9 @@ import com.instana.dc.SimpleQueryResult;
 import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
 import com.instana.dc.rdb.impl.Constants;
-import com.instana.dc.rdb.impl.informix.metric.collection.*;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricCollectionMode;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigRegister;
 import com.instana.dc.rdb.impl.informix.metric.collection.strategy.MetricsCollector;
 import org.apache.commons.dbcp2.BasicDataSource;
 
@@ -19,7 +21,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -28,14 +29,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.DATABASE_NAME;
 import static com.instana.dc.rdb.DbDcUtil.*;
-import static com.instana.dc.rdb.impl.Constants.IO_READ_COUNT_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.IO_WRITE_COUNT_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.MEMORY_UTILIZATION_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.SQL_COUNT_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.TRANSACTION_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.*;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
-import static com.instana.dc.rdb.impl.informix.InformixUtil.SYSDATABASES_SQL;
 
 
 public class InformixDc extends AbstractDbDc {
@@ -65,7 +62,6 @@ public class InformixDc extends AbstractDbDc {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
         getDbNameAndVersion();
-        setSysdatabases();
         parseCustomPollRate(properties);
         registerMetricsMetadata();
         metricCollector = new MetricsCollector(dataSource, onstatCommandExecutor);
@@ -102,7 +98,10 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(InformixUtil.INSTANCE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_ACTIVE_COUNT_NAME,
                 new MetricDataConfig(InformixUtil.INSTANCE_ACTIVE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
-
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_LOG_ENABLED_NAME,
+                new MetricDataConfig(InformixUtil.DBS_LOG_ENABLED_SQL, MetricCollectionMode.SQL,List.class,
+                        DB_DATABASE_LOG_ENABLED_KEY,
+                        String.valueOf(DATABASE_NAME)));
 
         //Metrics via onstat command
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
@@ -209,21 +208,6 @@ public class InformixDc extends AbstractDbDc {
         }
     }
 
-    private void setSysdatabases() throws SQLException {
-        Map<String, Object> attributes = new HashMap<>();
-        try (Connection connection = dataSource.getConnection()) {
-            ResultSet rs = DbDcUtil.executeQuery(connection, SYSDATABASES_SQL);
-            while (rs.next()) {
-                int n = 2;
-                for (String attribute : DB_ATTRIBUTES) {
-                    attributes.put("db.sysdatabases." + rs.getString(1).trim() + "." + attribute, rs.getString(n++).trim());
-                }
-            }
-        }
-        setSysdatabases(attributes);
-    }
-
-
     @Override
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(getDbConnUrl());
@@ -275,6 +259,15 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_USED_NAME));
         getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_UTILIZATION_NAME));
         getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_MAX_NAME));
+
+
+        List<SimpleQueryResult> listOfDatabaseUsed = metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME);
+        getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue(listOfDatabaseUsed);
+        getRawMetric(DB_DATABASE_BUFF_LOG_ENABLED_NAME).setValue(listOfDatabaseUsed);
+        getRawMetric(DB_DATABASE_ANSI_COMPLIANT_NAME).setValue(listOfDatabaseUsed);
+        getRawMetric(DB_DATABASE_NLS_ENABLED_NAME).setValue(listOfDatabaseUsed);
+        getRawMetric(DB_DATABASE_CASE_INSENSITIVE_NAME).setValue(listOfDatabaseUsed);
+
 
     }
 
