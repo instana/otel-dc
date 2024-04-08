@@ -266,6 +266,15 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_IO_READ_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_READ_RATE_NAME));
         getRawMetric(DB_IO_WRITE_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_WRITE_RATE_NAME));
         getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((Number) metricCollector.collectMetrics(DB_MEM_UTILIZATION_NAME));
+
+        getRawMetric(DB_DISK_WRITE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_WRITE_COUNT_NAME));
+        getRawMetric(DB_DISK_READ_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_READ_COUNT_NAME));
+
+        getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue((Number) metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME));
+        getRawMetric(DB_DATABASE_BUFF_LOG_ENABLED_NAME).setValue((Number) metricCollector.collectMetrics(DB_DATABASE_BUFF_LOG_ENABLED_NAME));
+        getRawMetric(DB_DATABASE_ANSI_COMPLAINT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DATABASE_ANSI_COMPLAINT_NAME));
+        getRawMetric(DB_DATABASE_NLS_ENABLED_NAME).setValue((Number) metricCollector.collectMetrics(DB_DATABASE_NLS_ENABLED_NAME));
+        getRawMetric(DB_DATABASE_CASE_INCENSITIVE_NAME).setValue((Number) metricCollector.collectMetrics(DB_DATABASE_CASE_INCENSITIVE_NAME));
     }
 
     private void longPollingInterval() {
