@@ -27,11 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.instana.dc.rdb.DbDcUtil.*;
-import static com.instana.dc.rdb.impl.Constants.IO_READ_COUNT_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.IO_WRITE_COUNT_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.MEMORY_UTILIZATION_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.SQL_COUNT_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.TRANSACTION_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.*;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
@@ -133,8 +129,10 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(DB_IO_WRITE_RATE_NAME, IO_WRITE_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_MEM_UTILIZATION_NAME,
                 new MetricDataConfig(DB_MEM_UTILIZATION_NAME, MEMORY_UTILIZATION_SCRIPT, MetricCollectionMode.CMD, Double.class));
-
-
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_READ_COUNT_NAME,
+                new MetricDataConfig(DB_DISK_READ_COUNT_NAME, DISK_READ_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_WRITE_COUNT_NAME,
+                new MetricDataConfig(DB_DISK_WRITE_COUNT_NAME, DISK_WRITE_SCRIPT, MetricCollectionMode.CMD, Number.class));
     }
 
     /**
@@ -255,6 +253,8 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
         getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME));
 
+        getRawMetric(DB_DISK_READ_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_READ_COUNT_NAME));
+        getRawMetric(DB_DISK_WRITE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_WRITE_COUNT_NAME));
     }
 
     private void shortPollingInterval() {
