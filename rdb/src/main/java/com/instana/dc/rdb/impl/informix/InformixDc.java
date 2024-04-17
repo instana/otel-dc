@@ -33,7 +33,6 @@ import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_
 
 public class InformixDc extends AbstractDbDc {
     private static final Logger LOGGER = Logger.getLogger(InformixDc.class.getName());
-    public static final String SESSION_COUNT_SCRIPT = "session_count.sh";
     private String tableSpaceSizeQuery;
     private String tableSpaceUsedQuery;
     private String tableSpaceUtilizationQuery;
@@ -120,9 +119,9 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_RATE_NAME,
                 new MetricDataConfig(DB_TRANSACTION_RATE_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_COUNT_NAME,
-                new MetricDataConfig(DB_SESSION_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_SESSION_COUNT_NAME, TOTAL_SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME,
-                new MetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, ACTIVE_SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_READ_RATE_NAME,
                 new MetricDataConfig(DB_IO_READ_RATE_NAME, IO_READ_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_WRITE_RATE_NAME,
@@ -133,6 +132,8 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(DB_DISK_READ_COUNT_NAME, DISK_READ_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_WRITE_COUNT_NAME,
                 new MetricDataConfig(DB_DISK_WRITE_COUNT_NAME, DISK_WRITE_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TASK_WAIT_COUNT_NAME,
+                new MetricDataConfig(DB_TASK_WAIT_COUNT_NAME, TASK_WAIT_COUNT_SCRIPT,MetricCollectionMode.CMD,Number.class));
     }
 
     /**
@@ -266,6 +267,7 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_IO_READ_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_READ_RATE_NAME));
         getRawMetric(DB_IO_WRITE_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_WRITE_RATE_NAME));
         getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((Number) metricCollector.collectMetrics(DB_MEM_UTILIZATION_NAME));
+        getRawMetric(DB_TASK_WAIT_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_TASK_WAIT_COUNT_NAME));
 
         getRawMetric(DB_DISK_WRITE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_WRITE_COUNT_NAME));
         getRawMetric(DB_DISK_READ_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_READ_COUNT_NAME));
