@@ -38,12 +38,12 @@ public class InformixUtil {
     public static final String TABLESPACE_USED_SQL = "SELECT(pt.npused  * pt.pagesize)  * 1024 AS used_kb,tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in (%s)) order by tabname desc Limit 40;";
     public static final String TABLESPACE_UTILIZATION_SQL = "select case WHEN (pt.nptotal > 0) THEN ((pt.npused) /pt.nptotal) * 100 ELSE 0 END AS table_utilization, tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
     public static final String TABLESPACE_MAX_SQL = "SELECT(pt.nptotal * pt.pagesize)  * 1024 AS total_kb, tabname FROM sysmaster:sysptnhdr pt INNER JOIN sysmaster:systabnames tn ON tn.partnum = pt.partnum where (tn.dbsname in ('instana')) order by tabname desc Limit 40;";
-
-    public static final String DB_DATABASE_LOG_ENABLED_SQL = "SELECT is_logging, name FROM sysdatabases";
-    public static final String DB_DATABASE_BUFF_LOG_ENABLED_SQL = "SELECT is_buff_log, name FROM sysdatabases";
-    public static final String DB_DATABASE_ANSI_COMPLAINT_SQL = "SELECT is_ansi, name FROM sysdatabases";
-    public static final String DB_DATABASE_NLS_ENABLED_SQL = "SELECT is_nls, name FROM sysdatabases";
-    public static final String DB_DATABASE_CASE_INCENSITIVE_SQL = "SELECT is_case_insens, name FROM sysdatabases";
+    //Database Queries
+    public static final String DB_DATABASE_LOG_ENABLED_SQL = "SELECT is_logging, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_SQL = "SELECT is_buff_log, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_ANSI_COMPLAINT_SQL = "SELECT is_ansi, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_NLS_ENABLED_SQL = "SELECT is_nls, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_CASE_INCENSITIVE_SQL = "SELECT is_case_insens, name as database_name FROM sysdatabases";
     public static String decodePassword(String encodedPwd) {
         return new String(Base64.getDecoder().decode(encodedPwd));
     }
