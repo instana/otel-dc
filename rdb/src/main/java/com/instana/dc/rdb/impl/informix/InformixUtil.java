@@ -42,11 +42,11 @@ public class InformixUtil {
     public static final String DB_DISK_WRITE_COUNT_SQL = "SELECT value From sysprofile where name = 'dskwrites'";
     public static final String DB_DISK_READ_COUNT_SQL = "SELECT value From sysprofile where name = 'dskreads'";
 
-    public static final String DB_DATABASE_LOG_ENABLED_SQL = "SELECT is_logging FROM sysdatabases";
-    public static final String DB_DATABASE_BUFF_LOG_ENABLED_SQL = "SELECT is_buff_log FROM sysdatabases";
-    public static final String DB_DATABASE_ANSI_COMPLAINT_SQL = "SELECT is_ansi FROM sysdatabases";
-    public static final String DB_DATABASE_NLS_ENABLED_SQL = "SELECT is_nls FROM sysdatabases";
-    public static final String DB_DATABASE_CASE_INCENSITIVE_SQL = "SELECT is_case_insens FROM sysdatabases";
+    public static final String DB_DATABASE_LOG_ENABLED_SQL = "SELECT is_logging, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_BUFF_LOG_ENABLED_SQL = "SELECT is_buff_log, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_ANSI_COMPLAINT_SQL = "SELECT is_ansi, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_NLS_ENABLED_SQL = "SELECT is_nls, name as database_name FROM sysdatabases";
+    public static final String DB_DATABASE_CASE_INCENSITIVE_SQL = "SELECT is_case_insens, name as database_name FROM sysdatabases";
     public static String decodePassword(String encodedPwd) {
         return new String(Base64.getDecoder().decode(encodedPwd));
     }
