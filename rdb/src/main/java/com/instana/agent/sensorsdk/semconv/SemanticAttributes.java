@@ -47,7 +47,16 @@ public class SemanticAttributes {
   public static final AttributeKey<Double> DB_TABLESPACE_UTILIZATION = AttributeKey.doubleKey("db.tablespace.utilization");
   public static final AttributeKey<Long> DB_TABLESPACE_MAX = AttributeKey.longKey("db.tablespace.max");
 
+  public static final AttributeKey<Long> DB_DISK_WRITE_COUNT = AttributeKey.longKey("db.disk.write.count");
+  public static final AttributeKey<Long> DB_DISK_READ_COUNT = AttributeKey.longKey("db.disk.read.count");
+
   public static final AttributeKey<Double> DB_BACKUP_CYCLE = AttributeKey.doubleKey("db.backup.cycle");
+
+  public static final AttributeKey<Long> DB_DATABASE_LOG_ENABLED = AttributeKey.longKey("db.database.log.enabled");
+  public static final AttributeKey<Long> DB_DATABASE_BUFF_LOG_ENABLED = AttributeKey.longKey("db.database.buff.log.enabled");
+  public static final AttributeKey<Long> DB_DATABASE_ANSI_COMPLAINT = AttributeKey.longKey("db.database.ansi.compliant");
+  public static final AttributeKey<Long> DB_DATABASE_NLS_ENABLED = AttributeKey.longKey("db.database.nls.enabled");
+  public static final AttributeKey<Long> DB_DATABASE_CASE_INCENSITIVE = AttributeKey.longKey("db.database.case.insensitive");
 
   public static final AttributeKey<String> STATE = AttributeKey.stringKey("state");
   public static final AttributeKey<String> TYPE = AttributeKey.stringKey("type");
@@ -59,4 +68,5 @@ public class SemanticAttributes {
   public static final AttributeKey<String> BLOCKER_SESS_ID = AttributeKey.stringKey("blocker_sess_id");
   public static final AttributeKey<String> LOCKED_OBJ_NAME = AttributeKey.stringKey("locked_obj_name");
   public static final AttributeKey<String> TABLESPACE_NAME = AttributeKey.stringKey("tablespace_name");
+  public static final AttributeKey<String> DATABASE_NAME = AttributeKey.stringKey("database_name");
 }
