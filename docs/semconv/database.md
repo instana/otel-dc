@@ -35,6 +35,11 @@ This page tries to describe a semantic convention for the attributes and metrics
   - [Metric `db.sql.elapsed_time`](#metric-dbsqlelapsedtime)
   - [Metric `db.lock.count`](#metric-dblockcount)
   - [Metric `db.lock.time`](#metric-dblocktime)
+  - [Metric `db.seq.scan.count`](#metric-dbseqscancount)
+  - [Metric `db.seq.scan.table.count`](#metric-dbseqscantablecount)
+  - [Metric `db.overflow.lock.count`](#metric-dboverflowlockcount)
+  - [Metric `db.overflow.transaction.count`](#metric-dboverflowtransactioncount)
+  - [Metric `db.overflow.user.count`](#metric-dboverflowusercount)
 - [Resource Usage Metrics](#resource-usage-metrics)
   - [Metric `db.disk.usage`](#metric-dbdiskusage)
   - [Metric `db.disk.utilization`](#metric-dbdiskutilization)
@@ -48,7 +53,7 @@ This page tries to describe a semantic convention for the attributes and metrics
   - [Metric `db.disk.read.count`](#metric-dbdiskreadcount)
 - [Maintenance Metrics](#maintenance-metrics)
   - [Metric `db.backup.cycle`](#metric-dbbackupcycle)
-- [Settings Metrics](#settings_metrics)
+- [Settings Metrics](#settings-metrics)
   - [Metric `db.database.log.enabled`](#metric-dbdatabaselogenabled)
   - [Metric `db.database.buff.log.enabled`](#metric-dbdatabasebufflogenabled)
   - [Metric `db.database.ansi.compliant`](#metric-databaseansicompliant)
@@ -215,6 +220,47 @@ This metric is [recommended](https://github.com/open-telemetry/semantic-conventi
 | `blocking_sess_id` | string | The blocking session identifier. | `28871001`     | Recommended       |
 | `blocker_sess_id`  | string | The blocker session identifier.  | `28871041`     | Recommended       |
 | `locked_obj_name`  | string | The locked object name.          | `gv$instance`  | Recommended       |
+
+### Metric: `db.seq.scan.count`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                | Instrument Type | Units (UCUM) | Description                            |
+|---------------------|-----------------|--------------|----------------------------------------|
+| `db.seq.scan.count` | UpDownCounter   | `{scan}`     | Count of Sequential Scans for a table. |
+
+| Attribute    | Type   | Description        | Example            | Requirement Level |
+|--------------|--------|--------------------|--------------------|-------------------|
+| `table_name` | string | Name of the table. | `user` ; `product` | Required          |
+
+### Metric: `db.seq.scan.table.count`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                      | Instrument Type | Units (UCUM)  | Description                                       |
+|---------------------------|-----------------|---------------|---------------------------------------------------|
+| `db.seq.scan.table.count` | UpDownCounter   | `{tableScan}` | Number of tables which is having sequential scan. |
+
+### Metric: `db.overflow.lock.count`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                     | Instrument Type | Units (UCUM)     | Description                                                                        |
+|--------------------------|-----------------|------------------|------------------------------------------------------------------------------------|
+| `db.overflow.lock.count` | UpDownCounter   | `{overflowLock}` | Number of times a thread attempted to acquire a lock when no locks were available. |
+
+
+### Metric: `db.overflow.transaction.count`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                            | Instrument Type | Units (UCUM)            | Description                                                                                                                                      |
+|---------------------------------|-----------------|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `db.overflow.transaction.count` | UpDownCounter   | `{overflowTransaction}` | Number of times a thread attempted to allocate an entry in the transaction table when no entries in the shared-memory table were available.      |
+
+### Metric: `db.overflow.user.count`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                     | Instrument Type | Units (UCUM)     | Description                                                                                  |
+|--------------------------|-----------------|------------------|----------------------------------------------------------------------------------------------|
+| `db.overflow.user.count` | UpDownCounter   | `{overflowUser}` | Number of times a User thread attempted to acquire a lock when no locks were available.      |
+
 ## Resource Usage Metrics
 ### Metric: `db.disk.usage`
 This metric is [recommended](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#recommended).
