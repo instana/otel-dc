@@ -35,7 +35,7 @@ public class LLMDc extends AbstractLLMDc {
     /**
      * The poll rate in the configuration, in seconds. In other words, the number of
      * seconds between calls to Watsonx.
-    */
+     */
 
     private class ModelAggregation { 
         private final String modelId;
@@ -196,7 +196,6 @@ public class LLMDc extends AbstractLLMDc {
             double intervalPromptCost = (intervalPromptTokens/1000) * pricePromptTokens;
             double intervalCompleteCost = (intervalCompleteTokens/1000) * priceCompleteTokens;
             double intervalTotalCost = intervalPromptCost + intervalCompleteCost;
-            double intervalRequests = (double)requestCount/LLM_POLL_INTERVAL;
             aggr.resetMetrics();
 
             Map<String, Object> attributes = new HashMap<>();
@@ -206,13 +205,13 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_DURATION_MAX_NAME).setValue(maxDuration, attributes);
             getRawMetric(LLM_COST_NAME).setValue(intervalTotalCost, attributes);
             getRawMetric(LLM_TOKEN_NAME).setValue(intervalTotalTokens, attributes);
-            getRawMetric(LLM_REQ_COUNT_NAME).setValue(intervalRequests, attributes);
+            getRawMetric(LLM_REQ_COUNT_NAME).setValue(requestCount, attributes);
 
             logger.info("LLM_DURATION_NAME: " + avgDuration);
             logger.info("LLM_DURATION_MAX_NAME: " + maxDuration);
             logger.info("LLM_COST_NAME: " + intervalTotalCost);
             logger.info("LLM_TOKEN_NAME: " + intervalTotalTokens);
-            logger.info("LLM_REQ_COUNT_NAME: " + intervalRequests);
+            logger.info("LLM_REQ_COUNT_NAME: " + requestCount);
         }
     }
 }
