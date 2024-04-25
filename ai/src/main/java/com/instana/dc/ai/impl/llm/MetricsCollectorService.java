@@ -75,23 +75,23 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
 
             Resource resource = resourceMetrics.getResource();
             for (KeyValue reskv : resource.getAttributesList()) {
-                System.out.println("Received metric resouce --- attrKey: " + reskv.getKey());
-                System.out.println("Received metric resouce --- attrVal: " + reskv.getValue().getStringValue());
+                System.out.println("Received metric --- Resource attrKey: " + reskv.getKey());
+                System.out.println("Received metric --- Resource attrVal: " + reskv.getValue().getStringValue());
             }
 
             for (ScopeMetrics scoMetrics : resourceMetrics.getScopeMetricsList()) {
                 InstrumentationScope instrumentationScope = scoMetrics.getScope();
                 instrumentationScope.getAttributesList();
                 for (KeyValue inskv : instrumentationScope.getAttributesList()) {
-                    System.out.println("Received metric scope --- attrKey: " + inskv.getKey());
-                    System.out.println("Received metric scope --- attrVal: " + inskv.getValue().getStringValue());
+                    System.out.println("Received metric --- Scope attrKey: " + inskv.getKey());
+                    System.out.println("Received metric --- Scope attrVal: " + inskv.getValue().getStringValue());
                 }
 
                 for (Metric metric : scoMetrics.getMetricsList()) {
-                    System.out.println("Received metric --- Name: " + metric.getName());
-                    System.out.println("Received metric --- Desc: " + metric.getDescription());
-                    System.out.println("Received metric --- Unit: " + metric.getUnit());
-                    System.out.println("Received metric --- Case: " + metric.getDataCase().getNumber());
+                    System.out.println("Received metric --- Scope Name: " + metric.getName());
+                    System.out.println("Received metric --- Scope Desc: " + metric.getDescription());
+                    System.out.println("Received metric --- Scope Unit: " + metric.getUnit());
+                    System.out.println("Received metric --- Scope Case: " + metric.getDataCase().getNumber());
 
                     switch(metric.getDataCase()) {
                         case SUM:
@@ -105,8 +105,8 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                                     String modelId = "";
                                     String tokenType = "";
                                     for (KeyValue kv : kvList) {
-                                        System.out.println("Received metric --- Sum attrKey: " + kv.getKey());
-                                        System.out.println("Received metric --- Sum attrVal: " + kv.getValue().getStringValue());
+                                        System.out.println("Received metric --- Tokens attrKey: " + kv.getKey());
+                                        System.out.println("Received metric --- Tokens attrVal: " + kv.getValue().getStringValue());
                                         if(kv.getKey().compareTo("llm.response.model") == 0) {
                                             modelId = kv.getValue().getStringValue();
                                         } else if(kv.getKey().compareTo("llm.usage.token_type") == 0) {
@@ -118,10 +118,10 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                                     long completeTokens = 0;
                                     if (tokenType.compareTo("prompt") == 0) {
                                         promptTokens = dataPoint.getAsInt();
-                                        System.out.println("Received metric --- Sum Prompt Value: " + promptTokens);
+                                        System.out.println("Received metric --- Prompt Value: " + promptTokens);
                                     } else if (tokenType.compareTo("completion") == 0) {
                                         completeTokens = dataPoint.getAsInt();
-                                        System.out.println("Received metric --- Sum Complete Value: " + completeTokens);
+                                        System.out.println("Received metric --- Complete Value: " + completeTokens);
                                     }
 
                                     if (!modelId.isEmpty()) {
@@ -144,15 +144,15 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
 
                                     String modelId = "";
                                     for (KeyValue kv : kvList) {
-                                        System.out.println("Received metric --- Histogram attrKey: " + kv.getKey());
-                                        System.out.println("Received metric --- Histogram attrVal: " + kv.getValue().getStringValue());
+                                        System.out.println("Received metric --- Duration attrKey: " + kv.getKey());
+                                        System.out.println("Received metric --- Duration attrVal: " + kv.getValue().getStringValue());
                                         if(kv.getKey().compareTo("llm.response.model") == 0) {
                                             modelId = kv.getValue().getStringValue();
                                         }
                                     }
                                   
                                     Double durationSum = dataPoint.getSum();
-                                    System.out.println("Received metric --- Histogram Sum Value: " + durationSum);
+                                    System.out.println("Received metric --- Duration Sum Value: " + durationSum);
 
                                     if(!modelId.isEmpty()) {
                                         OtelMetric otelMetric = new OtelMetric();

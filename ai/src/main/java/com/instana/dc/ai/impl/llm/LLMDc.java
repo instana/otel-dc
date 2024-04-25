@@ -217,11 +217,15 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_TOKEN_NAME).setValue(intervalTotalTokens, attributes);
             getRawMetric(LLM_REQ_COUNT_NAME).setValue(requestCount, attributes);
 
-            logger.info("LLM_DURATION_NAME: " + avgDuration);
-            logger.info("LLM_DURATION_MAX_NAME: " + maxDuration);
-            logger.info("LLM_COST_NAME: " + intervalTotalCost);
-            logger.info("LLM_TOKEN_NAME: " + intervalTotalTokens);
-            logger.info("LLM_REQ_COUNT_NAME: " + requestCount);
+            System.out.println("-----------------------------------------");
+            System.out.println("ModelId         : " + attributes.get("model_id"));
+            System.out.println("UserId          : " + attributes.get("user_id"));
+            System.out.println("AvgDuration     : " + avgDuration);
+            System.out.println("MaxDuration     : " + maxDuration);
+            System.out.println("IntervalTokens  : " + intervalTotalTokens);
+            System.out.println("IntervalCost    : " + intervalTotalCost);
+            System.out.println("IntervalRequest : " + requestCount);
+            System.out.println("-----------------------------------------");
         }
     }
 }
