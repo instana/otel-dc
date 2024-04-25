@@ -40,13 +40,15 @@ public class LLMDc extends AbstractLLMDc {
     private class ModelAggregation { 
         private final String modelId;
         private final String userId;
-        private int totalPromptTokens;
-        private int totalCompleteTokens;
-        private int totalDuration;
+        private int deltaPromptTokens;
+        private int deltaCompleteTokens;
+        private int deltaDuration;
+        private int deltaReqCount;
         private int maxDuration;
-        private int totalReqCount;
         private int lastTotalPromptTokens;
         private int lastTotalCompleteTokens;
+        private int lastTotalDuration;
+        private int lastTotalReqCount;
         
         public ModelAggregation(String modelId, String userId) {
             this.modelId = modelId;
@@ -58,61 +60,76 @@ public class LLMDc extends AbstractLLMDc {
         public String getUserId() {
             return userId;
         }
-        public void addTotalPromptTokens(int currTokens) {
+        public void addDeltaPromptTokens(int currTokens) {
             if(currTokens == 0) {
                 return;
             }
-            int deltaPromptTokens = 0;
+            int diffPromptTokens = 0;
             if(currTokens > lastTotalPromptTokens && lastTotalPromptTokens != 0) {
-                deltaPromptTokens = currTokens - lastTotalPromptTokens;
+                diffPromptTokens = currTokens - lastTotalPromptTokens;
             }
             lastTotalPromptTokens = currTokens;
-            totalPromptTokens += deltaPromptTokens;
+            deltaPromptTokens += diffPromptTokens;
         }
 
-        public int getTotalPromptTokens() {
-            return totalPromptTokens;
+        public int getDeltaPromptTokens() {
+            return deltaPromptTokens;
         }
-        public void addTotalCompleteTokens(int currTokens) {
+        public void addDeltaCompleteTokens(int currTokens) {
             if(currTokens == 0) {
                 return;
             }
-            int deltaCompleteTokens = 0;
+            int diffCompleteTokens = 0;
             if(currTokens > lastTotalCompleteTokens && lastTotalCompleteTokens != 0) {
-                deltaCompleteTokens = currTokens - lastTotalCompleteTokens;
+                diffCompleteTokens = currTokens - lastTotalCompleteTokens;
             }
             lastTotalCompleteTokens = currTokens;
-            totalCompleteTokens += deltaCompleteTokens;
+            deltaCompleteTokens += diffCompleteTokens;
         }
-        public int getTotalCompleteTokens() {
-            return totalCompleteTokens;
+        public int getDeltaCompleteTokens() {
+            return deltaCompleteTokens;
         }
-        public void addTotalDuration(int duration) {
-            if(duration == 0) {
+        public void addDeltaDuration(int currDuration) {
+            if(currDuration == 0) {
                 return;
             }
-            totalDuration += duration;
-            if(duration > maxDuration)
-               maxDuration = duration;
+            int diffDuration = 0;
+            if(currDuration > lastTotalDuration && lastTotalDuration != 0) {
+                diffDuration = currDuration - lastTotalDuration;
+            }
+            lastTotalDuration = currDuration;
+            deltaDuration += diffDuration;
+
+            if(deltaDuration > maxDuration) {
+               maxDuration = deltaDuration;
+            }
         }
-        public int getTotalDuration() {
-            return totalDuration;
+        public int getDeltaDuration() {
+            return deltaDuration;
         }
         public int getMaxDuration() {
             return maxDuration;
         }
-        public void addReqCount(int count) {
-            totalReqCount += count;
+        public void addDeltaReqCount(int currCount) {
+            if(currCount == 0) {
+                return;
+            }
+            int diffReqCount = 0;
+            if(currCount > lastTotalReqCount && lastTotalReqCount != 0) {
+                diffReqCount = currCount - lastTotalReqCount;
+            }
+            lastTotalReqCount = currCount;
+            deltaReqCount += diffReqCount;
         }
-        public int getReqCount() {
-            return totalReqCount;
+        public int getDeltaReqCount() {
+            return deltaReqCount;
         }
         public void resetMetrics() {
-            totalPromptTokens = 0;
-            totalCompleteTokens = 0;
-            totalDuration = 0;
+            deltaPromptTokens = 0;
+            deltaCompleteTokens = 0;
+            deltaDuration = 0;
             maxDuration = 0;
-            totalReqCount = 0;
+            deltaReqCount = 0;
         }
     }
 
@@ -172,6 +189,7 @@ public class LLMDc extends AbstractLLMDc {
                 long promptTokens = metric.getPromtTokens();
                 long completeTokens = metric.getCompleteTokens();
                 double duration = metric.getDuration();
+                long requestCount = metric.getReqCount();
 
                 ModelAggregation modelAggr = modelAggrMap.get(modelId);
                 if (modelAggr == null) {
@@ -179,29 +197,27 @@ public class LLMDc extends AbstractLLMDc {
                     modelAggrMap.put(modelId, modelAggr);
                 }
 
-                modelAggr.addTotalPromptTokens((int)(promptTokens));
-                modelAggr.addTotalCompleteTokens((int)(completeTokens));
-                modelAggr.addTotalDuration((int)(duration*1000));
-                if(promptTokens != 0) {
-                    modelAggr.addReqCount(1);
-                }
+                modelAggr.addDeltaPromptTokens((int)(promptTokens));
+                modelAggr.addDeltaCompleteTokens((int)(completeTokens));
+                modelAggr.addDeltaDuration((int)(duration*1000));
+                modelAggr.addDeltaReqCount((int)(requestCount));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        getRawMetric(LLM_STATUS_NAME).setValue(1);
         for(Map.Entry<String,ModelAggregation> entry : modelAggrMap.entrySet()){
             ModelAggregation aggr = entry.getValue();
-            int requestCount = aggr.getReqCount();
-            int totalDuration = aggr.getTotalDuration();
+            int deltaRequestCount = aggr.getDeltaReqCount();
+            int deltaDuration = aggr.getDeltaDuration();
+            int deltaPromptTokens = aggr.getDeltaPromptTokens();
+            int deltaCompleteTokens = aggr.getDeltaCompleteTokens();
             int maxDuration = aggr.getMaxDuration();
-            int totalPromptTokens = aggr.getTotalPromptTokens();
-            int totalCompleteTokens = aggr.getTotalCompleteTokens();
 
-            int avgDuration = totalDuration/(requestCount==0?1:requestCount);
-            double intervalPromptTokens = (double)totalPromptTokens/LLM_POLL_INTERVAL;
-            double intervalCompleteTokens = (double)totalCompleteTokens/LLM_POLL_INTERVAL;
+            int avgDuration = deltaDuration/(deltaRequestCount==0?1:deltaRequestCount);
+            double intervalReqCount = (double)deltaRequestCount/LLM_POLL_INTERVAL;
+            double intervalPromptTokens = (double)deltaPromptTokens/LLM_POLL_INTERVAL;
+            double intervalCompleteTokens = (double)deltaCompleteTokens/LLM_POLL_INTERVAL;
             double intervalTotalTokens = intervalPromptTokens + intervalCompleteTokens;
             double intervalPromptCost = (intervalPromptTokens/1000) * pricePromptTokens;
             double intervalCompleteCost = (intervalCompleteTokens/1000) * priceCompleteTokens;
@@ -211,11 +227,12 @@ public class LLMDc extends AbstractLLMDc {
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("model_id", aggr.getModelId());
             attributes.put("user_id", aggr.getUserId());
+            getRawMetric(LLM_STATUS_NAME).setValue(1);
             getRawMetric(LLM_DURATION_NAME).setValue(avgDuration, attributes);
             getRawMetric(LLM_DURATION_MAX_NAME).setValue(maxDuration, attributes);
             getRawMetric(LLM_COST_NAME).setValue(intervalTotalCost, attributes);
             getRawMetric(LLM_TOKEN_NAME).setValue(intervalTotalTokens, attributes);
-            getRawMetric(LLM_REQ_COUNT_NAME).setValue(requestCount, attributes);
+            getRawMetric(LLM_REQ_COUNT_NAME).setValue(intervalReqCount, attributes);
 
             System.out.println("-----------------------------------------");
             System.out.println("ModelId         : " + attributes.get("model_id"));
@@ -224,7 +241,7 @@ public class LLMDc extends AbstractLLMDc {
             System.out.println("MaxDuration     : " + maxDuration);
             System.out.println("IntervalTokens  : " + intervalTotalTokens);
             System.out.println("IntervalCost    : " + intervalTotalCost);
-            System.out.println("IntervalRequest : " + requestCount);
+            System.out.println("IntervalRequest : " + intervalReqCount);
             System.out.println("-----------------------------------------");
         }
     }

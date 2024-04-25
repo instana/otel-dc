@@ -26,6 +26,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
         private long promptTokens;
         private long completeTokens;
         private double duration;
+        private long requestCount;
  
         public String getModelId() {
             return modelId;
@@ -39,6 +40,9 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
         public double getDuration() {
             return duration;
         }
+        public long getReqCount() {
+            return requestCount;
+        }
         public void setModelId(String modelId) {
             this.modelId = modelId;
         }
@@ -50,6 +54,9 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
         }
         public void setDuration(double duration) {
             this.duration = duration;
+        }
+        public void setReqCount(long requestCount) {
+            this.requestCount = requestCount;
         }
     }
 
@@ -152,12 +159,15 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                                     }
                                   
                                     Double durationSum = dataPoint.getSum();
+                                    long requestCount = dataPoint.getCount();
                                     System.out.println("Received metric --- Duration Sum Value: " + durationSum);
+                                    System.out.println("Received metric --- Duration Count Value: " + requestCount);
 
                                     if(!modelId.isEmpty()) {
                                         OtelMetric otelMetric = new OtelMetric();
                                         otelMetric.setModelId(modelId);
                                         otelMetric.setDuration(durationSum);
+                                        otelMetric.setReqCount(requestCount);
                                         exportMetrics.add(otelMetric);
                                     }
                                 }
