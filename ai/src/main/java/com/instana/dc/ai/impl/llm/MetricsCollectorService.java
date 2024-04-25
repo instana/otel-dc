@@ -73,7 +73,6 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
         List<ResourceMetrics> allResourceMetrics = request.getResourceMetricsList();
         for (ResourceMetrics resourceMetrics : allResourceMetrics) {
 
-            OtelMetric otelMetric = new OtelMetric();
             Resource resource = resourceMetrics.getResource();
             for (KeyValue reskv : resource.getAttributesList()) {
                 System.out.println("Received metric resouce --- attrKey: " + reskv.getKey());
@@ -95,81 +94,76 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                     System.out.println("Received metric --- Case: " + metric.getDataCase().getNumber());
 
                     switch(metric.getDataCase()) {
-                        case GAUGE:
-                            List<NumberDataPoint> gaugeDataPoints = metric.getGauge().getDataPointsList();
-                            for (NumberDataPoint dataPoint : gaugeDataPoints) {
-
-                                List<KeyValue> kvList = dataPoint.getAttributesList();
-
-                                for (KeyValue kv : kvList) {
-                                    System.out.println("Received metric --- Gauge attrKey: " + kv.getKey());
-                                    System.out.println("Received metric --- Gauge attrVal: " + kv.getValue().getStringValue());
-                                }
-                                switch(dataPoint.getValueCase()) {
-                                    case AS_INT:
-                                        System.out.println("Received metric --- Gauge Int Value: " + dataPoint.getAsInt());
-                                        break;
-                                    case AS_DOUBLE:
-                                        System.out.println("Received metric --- Gauge Double Value: " + dataPoint.getAsDouble());
-                                        break;
-                                    default:
-                                        System.out.println("Unsupported metric Gauge ValueCase: " + dataPoint.getValueCase());
-                                }
-                            }
-                            break;
                         case SUM:
-                            List<NumberDataPoint> sumDataPoints = metric.getSum().getDataPointsList();
-                            for (NumberDataPoint dataPoint : sumDataPoints) {
+                            if(metric.getName().compareTo("llm.watsonx.completions.tokens") == 0) {
 
-                                List<KeyValue> kvList = dataPoint.getAttributesList();
+                                List<NumberDataPoint> sumDataPoints = metric.getSum().getDataPointsList();
+                                for (NumberDataPoint dataPoint : sumDataPoints) {
 
-                                String tokenType = "";
-                                String modelId = "";
-                                for (KeyValue kv : kvList) {
-                                    System.out.println("Received metric --- Sum attrKey: " + kv.getKey());
-                                    System.out.println("Received metric --- Sum attrVal: " + kv.getValue().getStringValue());
-                                    if(kv.getKey().compareTo("llm.response.model") == 0) {
-                                        modelId = kv.getValue().getStringValue();
-                                        otelMetric.setModelId(modelId);
-                                    } else if(kv.getKey().compareTo("llm.usage.token_type") == 0) {
-                                        tokenType = kv.getValue().getStringValue();
-                                    }
-                                }
-                                switch(dataPoint.getValueCase()) {
-                                    case AS_INT:
-                                        System.out.println("Received metric --- Sum Int Value: " + dataPoint.getAsInt());
-                                       if(tokenType.compareTo("prompt") == 0) {
-                                            otelMetric.setPromptTokens(dataPoint.getAsInt());  
-                                        } else if(tokenType.compareTo("completion") == 0) {
-                                            otelMetric.setCompleteTokens(dataPoint.getAsInt());  
+                                    List<KeyValue> kvList = dataPoint.getAttributesList();
+
+                                    String modelId = "";
+                                    String tokenType = "";
+                                    for (KeyValue kv : kvList) {
+                                        System.out.println("Received metric --- Sum attrKey: " + kv.getKey());
+                                        System.out.println("Received metric --- Sum attrVal: " + kv.getValue().getStringValue());
+                                        if(kv.getKey().compareTo("llm.response.model") == 0) {
+                                            modelId = kv.getValue().getStringValue();
+                                        } else if(kv.getKey().compareTo("llm.usage.token_type") == 0) {
+                                            tokenType = kv.getValue().getStringValue();
                                         }
-                                        break;
-                                    case AS_DOUBLE:
-                                        System.out.println("Received metric --- Sum Double Value: " + dataPoint.getAsDouble());
-                                        break;
-                                    default:
-                                        System.out.println("Unsupported metric Sum ValueCase: " + dataPoint.getValueCase());
+                                    }
+
+                                    long promptTokens = 0;
+                                    long completeTokens = 0;
+                                    if (tokenType.compareTo("prompt") == 0) {
+                                        promptTokens = dataPoint.getAsInt();
+                                        System.out.println("Received metric --- Sum Prompt Value: " + promptTokens);
+                                    } else if (tokenType.compareTo("completion") == 0) {
+                                        completeTokens = dataPoint.getAsInt();
+                                        System.out.println("Received metric --- Sum Complete Value: " + completeTokens);
+                                    }
+
+                                    if (!modelId.isEmpty()) {
+                                        OtelMetric otelMetric = new OtelMetric();
+                                        otelMetric.setModelId(modelId);
+                                        otelMetric.setPromptTokens(promptTokens);
+                                        otelMetric.setCompleteTokens(completeTokens);
+                                        exportMetrics.add(otelMetric);
+                                    }
                                 }
                             }
                             break;
                         case HISTOGRAM:
-                            List<HistogramDataPoint> histDataPoints = metric.getHistogram().getDataPointsList();
-                            for (HistogramDataPoint dataPoint : histDataPoints) {
+                            if(metric.getName().compareTo("llm.watsonx.completions.duration") == 0) {
 
-                                List<KeyValue> kvList = dataPoint.getAttributesList();
+                                List<HistogramDataPoint> histDataPoints = metric.getHistogram().getDataPointsList();
+                                for (HistogramDataPoint dataPoint : histDataPoints) {
 
-                                for (KeyValue kv : kvList) {
-                                    System.out.println("Received metric --- Histogram attrKey: " + kv.getKey());
-                                    System.out.println("Received metric --- Histogram attrVal: " + kv.getValue().getStringValue());
+                                    List<KeyValue> kvList = dataPoint.getAttributesList();
+
+                                    String modelId = "";
+                                    for (KeyValue kv : kvList) {
+                                        System.out.println("Received metric --- Histogram attrKey: " + kv.getKey());
+                                        System.out.println("Received metric --- Histogram attrVal: " + kv.getValue().getStringValue());
+                                        if(kv.getKey().compareTo("llm.response.model") == 0) {
+                                            modelId = kv.getValue().getStringValue();
+                                        }
+                                    }
+                                  
+                                    Double durationSum = dataPoint.getSum();
+                                    System.out.println("Received metric --- Histogram Sum Value: " + durationSum);
+
+                                    if(!modelId.isEmpty()) {
+                                        OtelMetric otelMetric = new OtelMetric();
+                                        otelMetric.setModelId(modelId);
+                                        otelMetric.setDuration(durationSum);
+                                        exportMetrics.add(otelMetric);
+                                    }
                                 }
-                                System.out.println("Received metric --- Histogram Double Value: " + dataPoint.getSum());
-
-                                if(metric.getName().compareTo("llm.watsonx.completions.duration") == 0) {
-                                    otelMetric.setDuration(dataPoint.getSum());
-                                }
-                                
                             }
                             break;
+                        case GAUGE:
                         case SUMMARY:
                         default:
                             System.out.println("Unsupported metric DataCase: " + metric.getDataCase());
@@ -177,7 +171,6 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                     }
                 }
             }
-            exportMetrics.add(otelMetric);
         }
         
         responseObserver.onNext(ExportMetricsServiceResponse.getDefaultInstance());

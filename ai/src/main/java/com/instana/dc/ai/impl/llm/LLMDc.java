@@ -59,6 +59,9 @@ public class LLMDc extends AbstractLLMDc {
             return userId;
         }
         public void addTotalPromptTokens(int currTokens) {
+            if(currTokens == 0) {
+                return;
+            }
             int deltaPromptTokens = 0;
             if(currTokens > lastTotalPromptTokens && lastTotalPromptTokens != 0) {
                 deltaPromptTokens = currTokens - lastTotalPromptTokens;
@@ -71,6 +74,9 @@ public class LLMDc extends AbstractLLMDc {
             return totalPromptTokens;
         }
         public void addTotalCompleteTokens(int currTokens) {
+            if(currTokens == 0) {
+                return;
+            }
             int deltaCompleteTokens = 0;
             if(currTokens > lastTotalCompleteTokens && lastTotalCompleteTokens != 0) {
                 deltaCompleteTokens = currTokens - lastTotalCompleteTokens;
@@ -82,6 +88,9 @@ public class LLMDc extends AbstractLLMDc {
             return totalCompleteTokens;
         }
         public void addTotalDuration(int duration) {
+            if(duration == 0) {
+                return;
+            }
             totalDuration += duration;
             if(duration > maxDuration)
                maxDuration = duration;
@@ -172,9 +181,10 @@ public class LLMDc extends AbstractLLMDc {
 
                 modelAggr.addTotalPromptTokens((int)(promptTokens));
                 modelAggr.addTotalCompleteTokens((int)(completeTokens));
-                modelAggr.addReqCount(1);
                 modelAggr.addTotalDuration((int)(duration*1000));
-
+                if(promptTokens != 0) {
+                    modelAggr.addReqCount(1);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
