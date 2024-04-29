@@ -32,12 +32,12 @@ public class InformixUtil {
 
     public static final String SQL_COUNT_SQL = "SELECT COUNT(1) FROM SYSSQLTRACE WHERE (dbinfo('utc_current') - sql_finishtime)<24*60*60;";
     public static final String TRANSACTION_COUNT_SQL = "SELECT COUNT(1) FROM SYSTRANS;";
-    public static final String SQL_ELAPSED_TIME_SQL = "SELECT sql_runtime*1000 AS ELAPSED_TIME_MILLIS, sql_id AS sql_id, sql_statement AS sql_text FROM SYSMASTER:SYSSQLTRACE  WHERE sql_statement NOT LIKE '%syssqltrace%' ORDER BY sql_runtime DESC LIMIT 20;";
+    public static final String SQL_ELAPSED_TIME_SQL = "SELECT sql_runtime*1000 AS ELAPSED_TIME_MILLIS, sql_id AS sql_id, sql_statement AS sql_text FROM informix.syssqltrace WHERE sql_finishtime >= (dbinfo('utc_current') - 900) AND sql_database IN (%s) ORDER BY ELAPSED_TIME_MILLIS DESC LIMIT 20;";
     //Table Space Queries
     public static final String TABLESPACE_SIZE_SQL = "SELECT(pt.nptotal * pt.pagesize)  * 1024 AS total_kb,tabname FROM SYSMASTER:SYSPTNHDR pt INNER JOIN SYSMASTER:SYSTABNAMES tn ON tn.partnum = pt.partnum WHERE (tn.dbsname IN ( %s )) ORDER BY tabname DESC LIMIT 40;";
     public static final String TABLESPACE_USED_SQL = "SELECT(pt.npused  * pt.pagesize)  * 1024 AS used_kb,tabname FROM SYSMASTER:SYSPTNHDR pt INNER JOIN SYSMASTER:SYSTABNAMES tn ON tn.partnum = pt.partnum WHERE (tn.dbsname IN (%s)) ORDER BY tabname DESC LIMIT 40;";
-    public static final String TABLESPACE_UTILIZATION_SQL = "SELECT CASE WHEN (pt.nptotal > 0) THEN ((pt.npused) /pt.nptotal) * 100 ELSE 0 END AS table_utilization, tabname FROM SYSMASTER:SYSPTNHDR pt INNER JOIN SYSMASTER:SYSTABNAMES tn ON tn.partnum = pt.partnum WHERE (tn.dbsname IN ('instana')) ORDER BY tabname DESC LIMIT 40;";
-    public static final String TABLESPACE_MAX_SQL = "SELECT(pt.nptotal * pt.pagesize)  * 1024 AS total_kb, tabname FROM SYSMASTER:SYSPTNHDR pt INNER JOIN SYSMASTER:SYSTABNAMES tn ON tn.partnum = pt.partnum WHERE (tn.dbsname IN ('instana')) ORDER BY tabname DESC LIMIT 40;";
+    public static final String TABLESPACE_UTILIZATION_SQL = "SELECT CASE WHEN (pt.nptotal > 0) THEN ((pt.npused) /pt.nptotal) * 100 ELSE 0 END AS table_utilization, tabname FROM SYSMASTER:SYSPTNHDR pt INNER JOIN SYSMASTER:SYSTABNAMES tn ON tn.partnum = pt.partnum WHERE (tn.dbsname IN ('%s')) ORDER BY tabname DESC LIMIT 40;";
+    public static final String TABLESPACE_MAX_SQL = "SELECT(pt.nptotal * pt.pagesize)  * 1024 AS total_kb, tabname FROM SYSMASTER:SYSPTNHDR pt INNER JOIN SYSMASTER:SYSTABNAMES tn ON tn.partnum = pt.partnum WHERE (tn.dbsname IN ('%s')) ORDER BY tabname DESC LIMIT 40;";
 
     public static final String DB_DISK_WRITE_COUNT_SQL = "SELECT value FROM SYSPROFILE WHERE name = 'dskwrites';";
     public static final String DB_DISK_READ_COUNT_SQL = "SELECT value FROM SYSPROFILE WHERE name = 'dskreads';";

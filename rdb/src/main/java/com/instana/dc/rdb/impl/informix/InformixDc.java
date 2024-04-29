@@ -46,6 +46,7 @@ public class InformixDc extends AbstractDbDc {
     private String tableSpaceUsedQuery;
     private String tableSpaceUtilizationQuery;
     private String tableSpaceMaxQuery;
+    private String sqlElapsedTimeQuery;
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
     private final BasicDataSource dataSource;
@@ -96,7 +97,7 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_MAX_NAME,
                 new MetricDataConfig(tableSpaceMaxQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_ELAPSED_TIME_NAME,
-                new MetricDataConfig(InformixUtil.SQL_ELAPSED_TIME_SQL, MetricCollectionMode.SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
+                new MetricDataConfig(sqlElapsedTimeQuery, MetricCollectionMode.SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_COUNT_NAME,
                 new MetricDataConfig(InformixUtil.INSTANCE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_ACTIVE_COUNT_NAME,
@@ -204,6 +205,7 @@ public class InformixDc extends AbstractDbDc {
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, sb);
         tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, sb);
         tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, sb);
+        sqlElapsedTimeQuery = String.format(InformixUtil.SQL_ELAPSED_TIME_SQL,sb);
     }
 
     private void setDbConnUrl() {
