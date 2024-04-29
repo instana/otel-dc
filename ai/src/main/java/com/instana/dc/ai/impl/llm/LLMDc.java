@@ -206,6 +206,7 @@ public class LLMDc extends AbstractLLMDc {
             }
         }
 
+        System.out.println("-----------------------------------------");
         for(Map.Entry<String,ModelAggregation> entry : modelAggrMap.entrySet()){
             ModelAggregation aggr = entry.getValue();
             int deltaRequestCount = aggr.getDeltaReqCount();
@@ -234,7 +235,6 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_TOKEN_NAME).setValue(intervalTotalTokens, attributes);
             getRawMetric(LLM_REQ_COUNT_NAME).setValue(intervalReqCount, attributes);
 
-            System.out.println("-----------------------------------------");
             System.out.println("ModelId         : " + attributes.get("model_id"));
             System.out.println("UserId          : " + attributes.get("user_id"));
             System.out.println("AvgDuration     : " + avgDuration);
@@ -242,7 +242,8 @@ public class LLMDc extends AbstractLLMDc {
             System.out.println("IntervalTokens  : " + intervalTotalTokens);
             System.out.println("IntervalCost    : " + intervalTotalCost);
             System.out.println("IntervalRequest : " + intervalReqCount);
-            System.out.println("-----------------------------------------");
+            System.out.println("");
         }
+        System.out.println("-----------------------------------------");
     }
 }
