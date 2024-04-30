@@ -44,6 +44,13 @@ public class InformixUtil {
     public static final String DB_DATABASE_ANSI_COMPLAINT_SQL = "SELECT is_ansi, name as database_name FROM sysdatabases";
     public static final String DB_DATABASE_NLS_ENABLED_SQL = "SELECT is_nls, name as database_name FROM sysdatabases";
     public static final String DB_DATABASE_CASE_INCENSITIVE_SQL = "SELECT is_case_insens, name as database_name FROM sysdatabases";
+
+    public static final String SCANS_SQL = "SELECT tabname,seqscans FROM SYSPTPROF WHERE dbsname = 'instana' and seqscans >= 0 and tabname not like 'sys%'";
+
+    public static final String TABLES_SCANNED_SQL = "SELECT count(tabname)  as number_of_tables_having_sequential_scans FROM SYSPTPROF WHERE dbsname = 'instana' and seqscans >= 0 and tabname not like 'sys%';";
+
+    public static final String LOCK_OVF_SQL = "select cast(value as int) as value from sysprofile where name = 'ovlock'";
+
     public static String decodePassword(String encodedPwd) {
         return new String(Base64.getDecoder().decode(encodedPwd));
     }

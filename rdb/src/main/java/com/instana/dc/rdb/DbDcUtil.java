@@ -188,6 +188,11 @@ public class DbDcUtil {
     public static final String DB_DATABASE_CASE_INCENSITIVE_KEY = DATABASE_NAME.getKey();
 
 
+    public static final String DATABASE_LOCK_TABLE_OVERFLOW_NAME = DATABASE_LOCK_TABLE_OVERFLOW.getKey();
+    public static final String DATABASE_LOCK_TABLE_OVERFLOW_DESC = "Number of times a thread attempted to acquire a lock when no locks were available";
+    public static final String DATABASE_LOCK_TABLE_OVERFLOW_UNIT = "{overflowLock}";
+
+
 
 
     /* Utilities:

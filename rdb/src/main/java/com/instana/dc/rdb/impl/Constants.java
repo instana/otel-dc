@@ -20,6 +20,7 @@ public class Constants {
     public static final String MEMORY_UTILIZATION_SCRIPT = "memory_utilization.sh";
     public static final String DISK_READ_SCRIPT = "disk_read.sh";
     public static final String DISK_WRITE_SCRIPT = "disk_write.sh";
+    public static final String LOCK_COUNT_SCRIPT = "lock_count.sh";
 
     private Constants() {
         //Private constructor
