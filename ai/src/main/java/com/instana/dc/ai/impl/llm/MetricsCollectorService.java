@@ -129,7 +129,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                                             System.out.println("Received metric --- Tokens attrKey: " + kv.getKey());
                                             System.out.println("Received metric --- Tokens attrVal: "
                                                     + kv.getValue().getStringValue());
-                                            if (kv.getKey().compareTo("llm.response.model") == 0) {
+                                            if (kv.getKey().compareTo("llm.response.model") == 0 || kv.getKey().compareTo("gen_ai.response.model") == 0) {
                                                 modelId = kv.getValue().getStringValue();
                                             } else if (kv.getKey().compareTo("llm.usage.token_type") == 0) {
                                                 tokenType = kv.getValue().getStringValue();
@@ -169,7 +169,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                                             System.out.println("Received metric --- Duration attrKey: " + kv.getKey());
                                             System.out.println("Received metric --- Duration attrVal: "
                                                     + kv.getValue().getStringValue());
-                                            if (kv.getKey().compareTo("llm.response.model") == 0) {
+                                            if (kv.getKey().compareTo("llm.response.model") == 0 || kv.getKey().compareTo("gen_ai.response.model") == 0) {
                                                 modelId = kv.getValue().getStringValue();
                                             }
                                         }

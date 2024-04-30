@@ -238,7 +238,7 @@ public class LLMDc extends AbstractLLMDc {
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("model_id", modelId);
             attributes.put("user_id", userId);
-            getRawMetric(LLM_STATUS_NAME).getDataPoint(modelId).setValue(1);
+            getRawMetric(LLM_STATUS_NAME).setValue(1);
             getRawMetric(LLM_DURATION_NAME).getDataPoint(modelId).setValue(avgDuration, attributes);
             getRawMetric(LLM_DURATION_MAX_NAME).getDataPoint(modelId).setValue(maxDuration, attributes);
             getRawMetric(LLM_COST_NAME).getDataPoint(modelId).setValue(intervalTotalCost, attributes);
