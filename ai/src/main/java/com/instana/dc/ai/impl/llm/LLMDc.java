@@ -209,6 +209,8 @@ public class LLMDc extends AbstractLLMDc {
         System.out.println("-----------------------------------------");
         for(Map.Entry<String,ModelAggregation> entry : modelAggrMap.entrySet()){
             ModelAggregation aggr = entry.getValue();
+            String modelId = aggr.getModelId();
+            String userId = aggr.getUserId();
             int deltaRequestCount = aggr.getDeltaReqCount();
             int deltaDuration = aggr.getDeltaDuration();
             int deltaPromptTokens = aggr.getDeltaPromptTokens();
@@ -225,24 +227,23 @@ public class LLMDc extends AbstractLLMDc {
             double intervalTotalCost = intervalPromptCost + intervalCompleteCost;
             aggr.resetMetrics();
 
-            Map<String, Object> attributes = new HashMap<>();
-            attributes.put("model_id", aggr.getModelId());
-            attributes.put("user_id", aggr.getUserId());
-            getRawMetric(LLM_STATUS_NAME).setValue(1);
-            getRawMetric(LLM_DURATION_NAME).setValue(avgDuration, attributes);
-            getRawMetric(LLM_DURATION_MAX_NAME).setValue(maxDuration, attributes);
-            getRawMetric(LLM_COST_NAME).setValue(intervalTotalCost, attributes);
-            getRawMetric(LLM_TOKEN_NAME).setValue(intervalTotalTokens, attributes);
-            getRawMetric(LLM_REQ_COUNT_NAME).setValue(intervalReqCount, attributes);
-
-            System.out.println("ModelId         : " + attributes.get("model_id"));
-            System.out.println("UserId          : " + attributes.get("user_id"));
+            System.out.println("ModelId         : " + modelId);
+            System.out.println("UserId          : " + userId);
             System.out.println("AvgDuration     : " + avgDuration);
             System.out.println("MaxDuration     : " + maxDuration);
             System.out.println("IntervalTokens  : " + intervalTotalTokens);
             System.out.println("IntervalCost    : " + intervalTotalCost);
             System.out.println("IntervalRequest : " + intervalReqCount);
-            System.out.println("");
+
+            Map<String, Object> attributes = new HashMap<>();
+            attributes.put("model_id", modelId);
+            attributes.put("user_id", userId);
+            getRawMetric(LLM_STATUS_NAME).getDataPoint(modelId).setValue(1);
+            getRawMetric(LLM_DURATION_NAME).getDataPoint(modelId).setValue(avgDuration, attributes);
+            getRawMetric(LLM_DURATION_MAX_NAME).getDataPoint(modelId).setValue(maxDuration, attributes);
+            getRawMetric(LLM_COST_NAME).getDataPoint(modelId).setValue(intervalTotalCost, attributes);
+            getRawMetric(LLM_TOKEN_NAME).getDataPoint(modelId).setValue(intervalTotalTokens, attributes);
+            getRawMetric(LLM_REQ_COUNT_NAME).getDataPoint(modelId).setValue(intervalReqCount, attributes);
         }
         System.out.println("-----------------------------------------");
     }
