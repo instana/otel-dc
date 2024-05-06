@@ -80,50 +80,10 @@ public class DataCollector {
     }
 
     static public class CustomDcConfig {
-        @JsonProperty("llm.platform")
-        private String platform;
         @JsonProperty("llm.application")
         private String application;
-        @JsonProperty("server.address")
-        private String serverAddress;
-        @JsonProperty("server.port")
-        private String port;
-        @JsonProperty("server.scheme")
-        private String scheme;
 
         private final List<Map<String, Object>> instances = new ArrayList<>();
-
-        public void setPlatform(String platform) {
-            this.platform = platform;
-        }
-
-        public String getPlatform() {
-            return platform;
-        }
-
-        public void setServerAddr(String serverAddress) {
-            this.serverAddress = serverAddress;
-        }
-
-        public String getServerAddr() {
-            return serverAddress;
-        }
-
-        public void setServerPort(String port) {
-            this.port = port;
-        }
-
-        public String getServerPort() {
-            return port;
-        }
-
-        public void setScheme(String scheme) {
-            this.scheme = scheme;
-        }
-
-        public String getScheme() {
-            return scheme;
-        }
 
         public void setApplication(String application) {
             this.application = application;
@@ -137,5 +97,4 @@ public class DataCollector {
             return instances;
         }
     }
-
 }

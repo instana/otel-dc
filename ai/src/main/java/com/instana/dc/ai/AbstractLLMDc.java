@@ -13,6 +13,8 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.resources.Resource;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,6 +42,14 @@ public abstract class AbstractLLMDc extends AbstractDc {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
+    public String getHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "UnknownName";
+        }
+    }
+
     public AbstractLLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
         super(new LLMRawMetricRegistry().getMap());
 		// pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
@@ -49,7 +59,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
         otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
         serviceName = (String) properties.get(OTEL_SERVICE_NAME);
-        serviceInstanceId = cdcConfig.getServerAddr() + "(" + cdcConfig.getServerPort() + ")@" + serviceName;
+        serviceInstanceId = "LLMONITOR:" + serviceName + "@" + getHostName();
         this.cdcConfig = cdcConfig;
     }
 
@@ -57,9 +67,6 @@ public abstract class AbstractLLMDc extends AbstractDc {
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(
-                    stringKey(LLM_SERVER_ADDR), cdcConfig.getServerAddr(),
-                    stringKey(LLM_SERVER_PORT), cdcConfig.getServerPort(),
-                    stringKey(LLM_PLATFORM_NAME), cdcConfig.getPlatform(),
                     stringKey(SERVICE_NAME), serviceName,
                     stringKey(SERVICE_INSTANCE_ID), serviceInstanceId
                 )))

@@ -11,10 +11,6 @@ public class LLMDcUtil {
 
     /* Configurations for the Data Collector:
      */
-    public static final String LLM_SERVER_ADDR = "server.address";
-    public static final String LLM_SERVER_PORT = "server.port";
-    public static final String LLM_SERVER_SCHEME = "server.scheme";
-    public static final String LLM_PLATFORM_NAME = "llm.platform";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE = "instana.sensor-sdk.dc.llm";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE_VER = "1.0.0";
     public static final String SERVICE_NAME = "service.name";

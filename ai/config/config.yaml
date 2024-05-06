@@ -1,8 +1,4 @@
-llm.platform: watsonx
-llm.application: llm-dc
-server.address: bam-api.res.ibm.com
-server.port: 443
-server.scheme: https
+llm.application: LLM_DC
 
 instances:
   - otel.backend.url: http://localhost:4317
