@@ -2,13 +2,13 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai;
+package com.instana.dc.llm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.instana.dc.IDc;
-import com.instana.dc.ai.LLMDcRegistry;
+import com.instana.dc.llm.LLMDcRegistry;
 
 import java.io.File;
 import java.util.ArrayList;

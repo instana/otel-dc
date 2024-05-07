@@ -2,10 +2,10 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai;
+package com.instana.dc.llm;
 
 import com.instana.dc.AbstractDc;
-import com.instana.dc.ai.DataCollector.CustomDcConfig;
+import com.instana.dc.llm.DataCollector.CustomDcConfig;
 import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.*;
-import static com.instana.dc.ai.LLMDcUtil.*;
+import static com.instana.dc.llm.LLMDcUtil.*;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 public abstract class AbstractLLMDc extends AbstractDc {
     private static final Logger logger = Logger.getLogger(AbstractLLMDc.class.getName());

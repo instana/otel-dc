@@ -2,11 +2,11 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai.impl.llm;
+package com.instana.dc.llm.impl.llm;
 
-import com.instana.dc.ai.AbstractLLMDc;
-import com.instana.dc.ai.DataCollector.CustomDcConfig;
-import com.instana.dc.ai.impl.llm.MetricsCollectorService.OtelMetric;
+import com.instana.dc.llm.AbstractLLMDc;
+import com.instana.dc.llm.DataCollector.CustomDcConfig;
+import com.instana.dc.llm.impl.llm.MetricsCollectorService.OtelMetric;
 
 import java.util.logging.Logger;
 import java.util.*;
@@ -20,7 +20,7 @@ import com.linecorp.armeria.server.grpc.GrpcService;
 import com.linecorp.armeria.server.healthcheck.HealthCheckService;
 
 //import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
-import static com.instana.dc.ai.LLMDcUtil.*;
+import static com.instana.dc.llm.LLMDcUtil.*;
 
 @SuppressWarnings("null")
 public class LLMDc extends AbstractLLMDc {

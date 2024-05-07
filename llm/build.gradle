@@ -34,7 +34,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'com.instana.dc.ai.DataCollector'
+    mainClass = 'com.instana.dc.llm.DataCollector'
 }
 
 applicationDistribution.from("config") {

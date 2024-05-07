@@ -17,7 +17,7 @@ ODCD (OpenTelemetry based Data Collector for Telemetry Data) is a collection of 
 ### Requirements
 - Data Collectors for Host **Java 8+**
 - Data Collectors for Databases **Java 8+**
-- Data Collectors for AI **Java 11+**
+- Data Collectors for LLM **Java 11+**
 
 ## Build & Installation
 
@@ -38,11 +38,11 @@ cd otel-dc/host
 ```bash
 cd otel-dc/rdb
 ```
-- Data Collectors for AI
+- Data Collectors for LLM
 ```bash
-cd otel-dc/ai
+cd otel-dc/llm
 ```
-3) Build with Gradle
+1) Build with Gradle
 ```bash
 ./gradlew clean build
 ```
@@ -115,17 +115,17 @@ export JAVA_OPTS=-Dconfig/logging.properties
 nohup bin/otel-dc-host > /dev/null 2>&1 &
 ```
 
-- **ai**
+- **llm**
 ```bash
 export DC_CONFIG=config/config.yaml
 export JAVA_OPTS=-Dconfig/logging.properties
-bin/otel-dc-ai
+bin/otel-dc-llm
 ```
 Or run Data Collector in background
 ```bash
 export DC_CONFIG=config/config.yaml
 export JAVA_OPTS=-Dconfig/logging.properties
-nohup bin/otel-dc-ai > /dev/null 2>&1 &
+nohup bin/otel-dc-llm > /dev/null 2>&1 &
 ```
 
 *Note:* 

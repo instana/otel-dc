@@ -1,4 +1,4 @@
-package com.instana.dc.ai.impl.llm;
+package com.instana.dc.llm.impl.llm;
 
 import com.google.common.collect.ImmutableList;
 import io.grpc.stub.StreamObserver;

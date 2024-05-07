@@ -2,7 +2,7 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai;
+package com.instana.dc.llm;
 
 //import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
 

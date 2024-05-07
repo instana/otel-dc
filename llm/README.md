@@ -1,6 +1,6 @@
-# ODCAI (OTel based Data Collector for AI)
+# ODCL (OTel based Data Collector for LLM)
 
-ODCAI (OTel based Data Collector for AI) is the tool or template to generate OpenTelemetry metrics for various LLM and LLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
+ODCL (OTel based Data Collector for LLM) is the tool or template to generate OpenTelemetry metrics for various LLM and LLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
 
 ## Requirements
 
@@ -15,16 +15,16 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/Release/otel-dc-ai_1.0.0_linux_amd64.tar.gz
+curl -O https://github.com/instana/otel-dc/releases/download/Release/otel-dc-llm_1.0.0_linux_amd64.tar.gz
 ```
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-ai_1.0.0_linux_amd64.tar.gz
+tar vxf otel-dc-llm_1.0.0_linux_amd64.tar.gz
 ```
 
 ## Configuration
 ```bash
-cd otel-dc-ai-1.0.0
+cd otel-dc-llm-1.0.0
 vi config/config.yaml
 ```
 The following options are required：
@@ -34,10 +34,10 @@ The following options are required：
 - `price.complete.tokens.per.kilo`：The unit price per thousand complete tokens.
 
 
-## Run ODCAI
+## Run ODCL
 Run the Data Collector with the following command according to your current system:
 ```bash
-nohup ./bin/otel-dc-ai &
+nohup ./bin/otel-dc-llm &
 ```
 
 ## Reference
