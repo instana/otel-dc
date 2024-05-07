@@ -59,7 +59,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
         otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
         serviceName = (String) properties.get(OTEL_SERVICE_NAME);
-        serviceInstanceId = "LLMONITOR:" + serviceName + "@" + getHostName();
+        serviceInstanceId = serviceName + "@" + getHostName();
         this.cdcConfig = cdcConfig;
     }
 
@@ -67,6 +67,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(
+                    stringKey("llm.platform"), "LLM",
                     stringKey(SERVICE_NAME), serviceName,
                     stringKey(SERVICE_INSTANCE_ID), serviceInstanceId
                 )))

@@ -2,6 +2,6 @@ llm.application: LLM_DC
 
 instances:
   - otel.backend.url: http://localhost:4317
-    otel.service.name: LLMDC1
+    otel.service.name: DC1
     price.prompt.tokens.per.kilo: 0.0
     price.complete.tokens.per.kilo: 0.0
