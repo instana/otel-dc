@@ -2,10 +2,10 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai;
+package com.instana.dc.llm;
 
 import com.instana.dc.AbstractDc;
-import com.instana.dc.ai.DataCollector.CustomDcConfig;
+import com.instana.dc.llm.DataCollector.CustomDcConfig;
 import com.instana.dc.resources.ContainerResource;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
@@ -13,6 +13,8 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.resources.Resource;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.*;
-import static com.instana.dc.ai.LLMDcUtil.*;
+import static com.instana.dc.llm.LLMDcUtil.*;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 public abstract class AbstractLLMDc extends AbstractDc {
     private static final Logger logger = Logger.getLogger(AbstractLLMDc.class.getName());
@@ -40,6 +42,14 @@ public abstract class AbstractLLMDc extends AbstractDc {
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
+    public String getHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "UnknownName";
+        }
+    }
+
     public AbstractLLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
         super(new LLMRawMetricRegistry().getMap());
 		// pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
@@ -49,7 +59,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
         otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
         serviceName = (String) properties.get(OTEL_SERVICE_NAME);
-        serviceInstanceId = cdcConfig.getServerAddr() + "(" + cdcConfig.getServerPort() + ")@" + serviceName;
+        serviceInstanceId = serviceName + "@" + getHostName();
         this.cdcConfig = cdcConfig;
     }
 
@@ -57,9 +67,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
     public Resource getResourceAttributes() {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(
-                    stringKey(LLM_SERVER_ADDR), cdcConfig.getServerAddr(),
-                    stringKey(LLM_SERVER_PORT), cdcConfig.getServerPort(),
-                    stringKey(LLM_PLATFORM_NAME), cdcConfig.getPlatform(),
+                    stringKey("llm.platform"), "LLM",
                     stringKey(SERVICE_NAME), serviceName,
                     stringKey(SERVICE_INSTANCE_ID), serviceInstanceId
                 )))
