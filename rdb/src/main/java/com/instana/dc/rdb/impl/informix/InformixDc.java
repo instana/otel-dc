@@ -124,30 +124,30 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, MetricCollectionMode.SQL, Number.class));
 
         //Metrics via onstat command
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
-//                new MetricDataConfig(DB_SQL_COUNT_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_RATE_NAME,
-//                new MetricDataConfig(DB_SQL_RATE_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_COUNT_NAME,
-//                new MetricDataConfig(DB_TRANSACTION_COUNT_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_RATE_NAME,
-//                new MetricDataConfig(DB_TRANSACTION_RATE_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_COUNT_NAME,
-//                new MetricDataConfig(DB_SESSION_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME,
-//                new MetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_READ_RATE_NAME,
-//                new MetricDataConfig(DB_IO_READ_RATE_NAME, IO_READ_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_WRITE_RATE_NAME,
-//                new MetricDataConfig(DB_IO_WRITE_RATE_NAME, IO_WRITE_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_MEM_UTILIZATION_NAME,
-//                new MetricDataConfig(DB_MEM_UTILIZATION_NAME, MEMORY_UTILIZATION_SCRIPT, MetricCollectionMode.CMD, Double.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_READ_COUNT_NAME,
-//                new MetricDataConfig(DB_DISK_READ_COUNT_NAME, DISK_READ_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_WRITE_COUNT_NAME,
-//                new MetricDataConfig(DB_DISK_WRITE_COUNT_NAME, DISK_WRITE_SCRIPT, MetricCollectionMode.CMD, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_COUNT_NAME,
-//                new MetricDataConfig(DB_LOCK_COUNT_NAME, LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
+                new MetricDataConfig(DB_SQL_COUNT_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_RATE_NAME,
+                new MetricDataConfig(DB_SQL_RATE_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_COUNT_NAME,
+                new MetricDataConfig(DB_TRANSACTION_COUNT_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_RATE_NAME,
+                new MetricDataConfig(DB_TRANSACTION_RATE_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_COUNT_NAME,
+                new MetricDataConfig(DB_SESSION_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME,
+                new MetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_READ_RATE_NAME,
+                new MetricDataConfig(DB_IO_READ_RATE_NAME, IO_READ_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_WRITE_RATE_NAME,
+                new MetricDataConfig(DB_IO_WRITE_RATE_NAME, IO_WRITE_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_MEM_UTILIZATION_NAME,
+                new MetricDataConfig(DB_MEM_UTILIZATION_NAME, MEMORY_UTILIZATION_SCRIPT, MetricCollectionMode.CMD, Double.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_READ_COUNT_NAME,
+                new MetricDataConfig(DB_DISK_READ_COUNT_NAME, DISK_READ_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DISK_WRITE_COUNT_NAME,
+                new MetricDataConfig(DB_DISK_WRITE_COUNT_NAME, DISK_WRITE_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_COUNT_NAME,
+                new MetricDataConfig(DB_LOCK_COUNT_NAME, LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
     }
 
     /**
