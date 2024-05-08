@@ -113,6 +113,15 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(InformixUtil.DB_DATABASE_CASE_INCENSITIVE_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_CASE_INCENSITIVE_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_LOCK_TABLE_OVERFLOW_NAME,
                 new MetricDataConfig(InformixUtil.LOCK_OVF_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_TRANSACTION_OVERFLOW_NAME,
+                new MetricDataConfig(InformixUtil.TRANSACTION_OVF_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_USER_OVERFLOW_NAME,
+                new MetricDataConfig(InformixUtil.USER_OVF_SQL, MetricCollectionMode.SQL, Number.class));
+
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_SEQ_SCAN_NAME,
+                new MetricDataConfig(InformixUtil.DB_SEQ_SCAN_SQL, MetricCollectionMode.SQL, List.class, DATABASE_SEQ_SCAN_KEY));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_SEQ_SCAN_TABLE_NAME,
+                new MetricDataConfig(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, MetricCollectionMode.SQL, Number.class));
 
         //Metrics via onstat command
 //        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
@@ -266,7 +275,11 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_INSTANCE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_INSTANCE_COUNT_NAME));
         getRawMetric(DB_INSTANCE_ACTIVE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_INSTANCE_ACTIVE_COUNT_NAME));
         getRawMetric(DATABASE_LOCK_TABLE_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_LOCK_TABLE_OVERFLOW_NAME));
-        getRawMetric(DB_SESSION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_COUNT_NAME));
+        getRawMetric(DATABASE_TRANSACTION_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_TRANSACTION_OVERFLOW_NAME));
+        getRawMetric(DATABASE_USER_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_USER_OVERFLOW_NAME));
+//        getRawMetric(DB_SESSION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_COUNT_NAME));
+        getRawMetric(DATABASE_SEQ_SCAN_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DATABASE_SEQ_SCAN_NAME));
+        getRawMetric(DATABASE_SEQ_SCAN_TABLE_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_SEQ_SCAN_TABLE_NAME));
         getRawMetric(DB_SESSION_ACTIVE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_ACTIVE_COUNT_NAME));
         getRawMetric(DB_IO_READ_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_READ_RATE_NAME));
         getRawMetric(DB_IO_WRITE_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_WRITE_RATE_NAME));
@@ -281,8 +294,7 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_USED_NAME));
         getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_UTILIZATION_NAME));
         getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_MAX_NAME));
-
-        getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME));
+         getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_BUFF_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_BUFF_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_ANSI_COMPLAINT_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_ANSI_COMPLAINT_NAME));
         getRawMetric(DB_DATABASE_NLS_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_NLS_ENABLED_NAME));

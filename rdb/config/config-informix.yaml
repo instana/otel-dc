@@ -2,11 +2,11 @@ db.system: informix
 db.driver: com.informix.jdbc.IfxDriver
 
 instances:
-  - db.address: xxx.xxx.xxx.xxx #IP Address
+  - db.address: 9.46.251.113 #IP Address
     db.port: 9088 #Port on which DB is running
     db.serverName: ol_informix1410
-    db.username: Informix_User_Name
-    db.password: BASE64_Encoded_Password
+    db.username: root
+    db.password: SGFwcHlAZnlyZUBuZWhhMjAyMQ==
     db.name: InformixDB
     db.path: /opt/IBM/Informix_Software_Bundle
 
@@ -16,10 +16,10 @@ instances:
     #Data collector properties:
     #Either use `poll.interval` or `custom.poll.interval`
     poll.interval: 30
-    custom.poll.interval:
-      high: 10 #polling_value_in_sec
-      medium: 120 #polling_value_in_sec
-      low: 300 #polling_value_in_sec
+#    custom.poll.interval:
+#      high: 10 #polling_value_in_sec
+#      medium: 120 #polling_value_in_sec
+#      low: 300 #polling_value_in_sec
     callback.interval: 20
     otel.backend.url: http://127.0.0.1:4317
     #Custom Input
