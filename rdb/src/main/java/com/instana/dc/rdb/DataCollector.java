@@ -33,8 +33,7 @@ public class DataCollector {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         String configFile = System.getenv(CONFIG_ENV);
         if (configFile == null) {
-            configFile = "config/config-informix.yaml";
-           // configFile = CONFIG_YAML;
+            configFile = CONFIG_YAML;
         }
         dcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
         int n = dcConfig.getInstances().size();
