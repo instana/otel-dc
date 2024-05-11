@@ -8,6 +8,6 @@ result=$(cd $1 &&
   export INFO RMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
-  ./onstat -g ses | awk 'BEGIN {RS=""; FS="\n"} NR==2 {linecount = NF -2; if (linecount>0) print linecount; else print 0}')
+  ./onstat -g ses active | awk 'BEGIN {RS=""; FS="\n"} NR==2 {linecount = NF -2; if (linecount>0) print linecount; else print 0}')
 
 echo $result
