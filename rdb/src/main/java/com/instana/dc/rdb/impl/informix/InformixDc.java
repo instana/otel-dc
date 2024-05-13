@@ -209,9 +209,7 @@ public class InformixDc extends AbstractDbDc {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
         String[] dbNames = ((String) customInput.get("db.names")).split(",");
         int sequentialScanCount = (Integer)customInput.get("db.sequential.scan.count");
-        LOGGER.info("The Sequential Scan count is  "+ sequentialScanCount);
         StringBuilder sb = new StringBuilder(Constants.SINGLE_QUOTES + dbNames[0] + Constants.SINGLE_QUOTES);
-        LOGGER.info("The database name is  "+ dbNames[0]);
         for (int i = 1; i < dbNames.length; i++) {
             sb.append(Constants.COMMA).append(Constants.SINGLE_QUOTES).append(dbNames[i].trim()).append(Constants.SINGLE_QUOTES);
         }
@@ -231,9 +229,7 @@ public class InformixDc extends AbstractDbDc {
                 getDbUserName(),
                 getDbPassword()
         );
-        LOGGER.info("The url formed is "+ url);
-        setDbConnUrl("jdbc:informix-sqli://9.37.231.15:9088/sysmaster:INFORMIXSERVER=ol_informix1410;user=informix;Password=password");
-        //jdbc:informix-sqli://9.37.231.15:9088/sysmaster:INFORMIXSERVER=ol_informix1410
+        setDbConnUrl(url);
     }
 
     private void getDbNameAndVersion() throws SQLException {
