@@ -188,26 +188,26 @@ public class DbDcUtil {
     public static final String DB_DATABASE_CASE_INCENSITIVE_KEY = DATABASE_NAME.getKey();
 
 
-    public static final String DATABASE_LOCK_TABLE_OVERFLOW_NAME = DATABASE_LOCK_TABLE_OVERFLOW.getKey();
-    public static final String DATABASE_LOCK_TABLE_OVERFLOW_DESC = "Number of times a thread attempted to acquire a lock when no locks were available";
-    public static final String DATABASE_LOCK_TABLE_OVERFLOW_UNIT = "{overflowLock}";
+    public static final String DB_LOCK_TABLE_OVERFLOW_NAME = DB_LOCK_TABLE_OVERFLOW_COUNT.getKey();
+    public static final String DB_LOCK_TABLE_OVERFLOW_DESC = "Number of times a thread attempted to acquire a lock when no locks were available";
+    public static final String DB_LOCK_TABLE_OVERFLOW_UNIT = "{overflowLock}";
 
-    public static final String DATABASE_TRANSACTION_OVERFLOW_NAME = DATABASE_TRANSACTION_OVERFLOW.getKey();
-    public static final String DATABASE_TRANSACTION_OVERFLOW_DESC = "Number of times a thread attempted to allocate an entry in the transaction table when no entries in the shared-memory table were available";
-    public static final String DATABASE_TRANSACTION_OVERFLOW_UNIT = "{overflowTransaction}";
+    public static final String DB_TRANSACTION_OVERFLOW_NAME = DB_TRANSACTION_OVERFLOW_COUNT.getKey();
+    public static final String DB_TRANSACTION_OVERFLOW_DESC = "Number of times a thread attempted to allocate an entry in the transaction table when no entries in the shared-memory table were available";
+    public static final String DB_TRANSACTION_OVERFLOW_UNIT = "{overflowTransaction}";
 
-    public static final String DATABASE_USER_OVERFLOW_NAME = DATABASE_USER_OVERFLOW.getKey();
-    public static final String DATABASE_USER_OVERFLOW_DESC = "Number of times a User thread attempted to acquire a lock when no locks were available";
-    public static final String DATABASE_USER_OVERFLOW_UNIT = "{overflowUser}";
+    public static final String DB_USER_OVERFLOW_NAME = DB_USER_OVERFLOW_COUNT.getKey();
+    public static final String DB_USER_OVERFLOW_DESC = "Number of times a User thread attempted to acquire a lock when no locks were available";
+    public static final String DB_USER_OVERFLOW_UNIT = "{overflowUser}";
 
-    public static final String DATABASE_SEQ_SCAN_NAME = DATABASE_SEQ_SCAN.getKey();
-    public static final String DATABASE_SEQ_SCAN_DESC = "Count of Sequential Scans for a table";
-    public static final String DATABASE_SEQ_SCAN_UNIT = "{scan}";
-    public static final String DATABASE_SEQ_SCAN_KEY = TABLE_NAME.getKey();
+    public static final String DB_SEQ_SCAN_NAME = DB_SEQ_SCAN_COUNT.getKey();
+    public static final String DB_SEQ_SCAN_DESC = "Count of Sequential Scans for a table";
+    public static final String DB_SEQ_SCAN_UNIT = "{scan}";
+    public static final String DB_SEQ_SCAN_KEY = TABLE_NAME.getKey();
 
-    public static final String DATABASE_SEQ_SCAN_TABLE_NAME = DATABASE_SEQ_SCAN_TABLE.getKey();
-    public static final String DATABASE_SEQ_SCAN_TABLE_DESC = "Number of tables which is having sequential scan.";
-    public static final String DATABASE_SEQ_SCAN_TABLE_UNIT = "{tableScan}";
+    public static final String DB_SEQ_SCAN_TABLE_NAME = DB_SEQ_SCAN_TABLE_COUNT.getKey();
+    public static final String DB_SEQ_SCAN_TABLE_DESC = "Number of tables which is having sequential scan.";
+    public static final String DB_SEQ_SCAN_TABLE_UNIT = "{tableScan}";
 
 
 

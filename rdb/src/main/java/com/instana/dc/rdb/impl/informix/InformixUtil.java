@@ -45,11 +45,11 @@ public class InformixUtil {
     public static final String DB_DATABASE_NLS_ENABLED_SQL = "SELECT is_nls, name as database_name FROM sysdatabases";
     public static final String DB_DATABASE_CASE_INCENSITIVE_SQL = "SELECT is_case_insens, name as database_name FROM sysdatabases";
 
-    public static final String LOCK_OVF_SQL = "select cast(value as int) as value from sysprofile where name = 'ovlock'";
-    public static final String TRANSACTION_OVF_SQL = "select cast(value as int) as value from sysprofile where name = 'ovtrans'";
-    public static final String USER_OVF_SQL = "select cast(value as int) as value from sysprofile where name = 'ovuser'";
-    public static final String DB_SEQ_SCAN_SQL = "select cast(seqscans as int),tabname as table_name from sysmaster:sysptprof where dbsname = 'instana' and seqscans >= 0 and tabname not like 'sys%'";
-    public static final String DB_SEQ_SCAN_TABLE_SQL = "SELECT count(tabname)  as number_of_tables_having_sequential_scans FROM SYSPTPROF WHERE dbsname = 'instana' and seqscans >= 0 and tabname not like 'sys%';";
+    public static final String LOCK_OVF_SQL = "select coalesce(cast(value as int)) as value from sysprofile where name = 'ovlock'";
+    public static final String TRANSACTION_OVF_SQL = "select coalesce(cast(value as int)) as value from sysprofile where name = 'ovtrans'";
+    public static final String USER_OVF_SQL = "select coalesce(cast(value as int)) as value from sysprofile where name = 'ovuser'";
+    public static final String DB_SEQ_SCAN_SQL = "select coalesce(cast(seqscans as int))DATABASE_LOCK_TABLE_OVERFLOW,tabname as table_name from sysmaster:sysptprof where dbsname = %s and seqscans >= %d and tabname not like 'sys%%'";
+    public static final String DB_SEQ_SCAN_TABLE_SQL = "SELECT count(tabname)  as number_of_tables_having_sequential_scans FROM SYSPTPROF WHERE dbsname = %s and seqscans >= %d and tabname not like 'sys%%';";
 
     public static String decodePassword(String encodedPwd) {
         return new String(Base64.getDecoder().decode(encodedPwd));

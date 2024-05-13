@@ -45,6 +45,8 @@ public class InformixDc extends AbstractDbDc {
     private String tableSpaceUsedQuery;
     private String tableSpaceUtilizationQuery;
     private String tableSpaceMaxQuery;
+    private String sequentialScanQuery;
+    private String sequentialScanTableQuery;
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
     private final BasicDataSource dataSource;
@@ -111,17 +113,17 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(InformixUtil.DB_DATABASE_NLS_ENABLED_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_NLS_ENABLED_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_CASE_INCENSITIVE_NAME,
                 new MetricDataConfig(InformixUtil.DB_DATABASE_CASE_INCENSITIVE_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_CASE_INCENSITIVE_KEY));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_LOCK_TABLE_OVERFLOW_NAME,
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,
                 new MetricDataConfig(InformixUtil.LOCK_OVF_SQL, MetricCollectionMode.SQL, Number.class));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_TRANSACTION_OVERFLOW_NAME,
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,
                 new MetricDataConfig(InformixUtil.TRANSACTION_OVF_SQL, MetricCollectionMode.SQL, Number.class));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_USER_OVERFLOW_NAME,
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_USER_OVERFLOW_NAME,
                 new MetricDataConfig(InformixUtil.USER_OVF_SQL, MetricCollectionMode.SQL, Number.class));
 
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_SEQ_SCAN_NAME,
-                new MetricDataConfig(InformixUtil.DB_SEQ_SCAN_SQL, MetricCollectionMode.SQL, List.class, DATABASE_SEQ_SCAN_KEY));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DATABASE_SEQ_SCAN_TABLE_NAME,
-                new MetricDataConfig(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_NAME,
+                new MetricDataConfig(sequentialScanQuery, MetricCollectionMode.SQL, List.class, DB_SEQ_SCAN_KEY));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_TABLE_NAME,
+                new MetricDataConfig(sequentialScanTableQuery, MetricCollectionMode.SQL, Number.class));
 
         //Metrics via onstat command
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
@@ -206,11 +208,16 @@ public class InformixDc extends AbstractDbDc {
     private void parseCustomAttributes(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
         String[] dbNames = ((String) customInput.get("db.names")).split(",");
+        int sequentialScanCount = (Integer)customInput.get("db.sequential.scan.count");
+        LOGGER.info("The Sequential Scan count is  "+ sequentialScanCount);
         StringBuilder sb = new StringBuilder(Constants.SINGLE_QUOTES + dbNames[0] + Constants.SINGLE_QUOTES);
+        LOGGER.info("The database name is  "+ dbNames[0]);
         for (int i = 1; i < dbNames.length; i++) {
             sb.append(Constants.COMMA).append(Constants.SINGLE_QUOTES).append(dbNames[i].trim()).append(Constants.SINGLE_QUOTES);
         }
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, sb);
+        sequentialScanQuery =  String.format(InformixUtil.DB_SEQ_SCAN_SQL,sb,sequentialScanCount);
+        sequentialScanTableQuery =  String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL,sb,sequentialScanCount);
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, sb);
         tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, sb);
         tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, sb);
@@ -224,7 +231,9 @@ public class InformixDc extends AbstractDbDc {
                 getDbUserName(),
                 getDbPassword()
         );
-        setDbConnUrl(url);
+        LOGGER.info("The url formed is "+ url);
+        setDbConnUrl("jdbc:informix-sqli://9.37.231.15:9088/sysmaster:INFORMIXSERVER=ol_informix1410;user=informix;Password=password");
+        //jdbc:informix-sqli://9.37.231.15:9088/sysmaster:INFORMIXSERVER=ol_informix1410
     }
 
     private void getDbNameAndVersion() throws SQLException {
@@ -274,12 +283,12 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DbDcUtil.DB_STATUS_NAME).setValue(1);
         getRawMetric(DB_INSTANCE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_INSTANCE_COUNT_NAME));
         getRawMetric(DB_INSTANCE_ACTIVE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_INSTANCE_ACTIVE_COUNT_NAME));
-        getRawMetric(DATABASE_LOCK_TABLE_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_LOCK_TABLE_OVERFLOW_NAME));
-        getRawMetric(DATABASE_TRANSACTION_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_TRANSACTION_OVERFLOW_NAME));
-        getRawMetric(DATABASE_USER_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_USER_OVERFLOW_NAME));
-//        getRawMetric(DB_SESSION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_COUNT_NAME));
-        getRawMetric(DATABASE_SEQ_SCAN_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DATABASE_SEQ_SCAN_NAME));
-        getRawMetric(DATABASE_SEQ_SCAN_TABLE_NAME).setValue((Number) metricCollector.collectMetrics(DATABASE_SEQ_SCAN_TABLE_NAME));
+        getRawMetric(DB_LOCK_TABLE_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DB_LOCK_TABLE_OVERFLOW_NAME));
+        getRawMetric(DB_TRANSACTION_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_OVERFLOW_NAME));
+        getRawMetric(DB_USER_OVERFLOW_NAME).setValue((Number) metricCollector.collectMetrics(DB_USER_OVERFLOW_NAME));
+        getRawMetric(DB_SESSION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_COUNT_NAME));
+        getRawMetric(DB_SEQ_SCAN_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SEQ_SCAN_NAME));
+        getRawMetric(DB_SEQ_SCAN_TABLE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SEQ_SCAN_TABLE_NAME));
         getRawMetric(DB_SESSION_ACTIVE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SESSION_ACTIVE_COUNT_NAME));
         getRawMetric(DB_IO_READ_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_READ_RATE_NAME));
         getRawMetric(DB_IO_WRITE_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_WRITE_RATE_NAME));
@@ -294,7 +303,7 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_USED_NAME));
         getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_UTILIZATION_NAME));
         getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_MAX_NAME));
-         getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME));
+        getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_BUFF_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_BUFF_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_ANSI_COMPLAINT_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_ANSI_COMPLAINT_NAME));
         getRawMetric(DB_DATABASE_NLS_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_NLS_ENABLED_NAME));

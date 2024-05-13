@@ -232,5 +232,6 @@ public class DcUtil {
 
     public static String base64Decode(String encodedStr) {
         return new String(Base64.getDecoder().decode(encodedStr));
+
     }
 }
