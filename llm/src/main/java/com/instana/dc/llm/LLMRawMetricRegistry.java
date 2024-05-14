@@ -2,7 +2,7 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai;
+package com.instana.dc.llm;
 
 import com.instana.dc.RawMetric;
 
@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.instana.dc.InstrumentType.GAUGE;
 import static com.instana.dc.InstrumentType.UPDOWN_COUNTER;
-import static com.instana.dc.ai.LLMDcUtil.*;
+import static com.instana.dc.llm.LLMDcUtil.*;
 
 public class LLMRawMetricRegistry {
     private final Map<String, RawMetric> map = new ConcurrentHashMap<String, RawMetric>() {{

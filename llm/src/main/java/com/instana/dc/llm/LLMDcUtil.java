@@ -2,7 +2,7 @@
  * (c) Copyright IBM Corp. 2023
  * (c) Copyright Instana Inc.
  */
-package com.instana.dc.ai;
+package com.instana.dc.llm;
 
 //import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
 
@@ -11,14 +11,12 @@ public class LLMDcUtil {
 
     /* Configurations for the Data Collector:
      */
-    public static final String LLM_SERVER_ADDR = "server.address";
-    public static final String LLM_SERVER_PORT = "server.port";
-    public static final String LLM_SERVER_SCHEME = "server.scheme";
-    public static final String LLM_PLATFORM_NAME = "llm.platform";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE = "instana.sensor-sdk.dc.llm";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE_VER = "1.0.0";
     public static final String SERVICE_NAME = "service.name";
     public static final String SERVICE_INSTANCE_ID = "service.instance.id";
+    public final static String PRICE_PROMPT_TOKES_PER_KILO = "price.prompt.tokens.per.kilo";
+    public final static String PRICE_COMPLETE_TOKES_PER_KILO = "price.complete.tokens.per.kilo";
 
     /* Configurations for Metrics:
      */

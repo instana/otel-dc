@@ -18,6 +18,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -27,10 +28,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.instana.dc.rdb.DbDcUtil.*;
+import static com.instana.dc.rdb.impl.Constants.ACTIVE_SESSION_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.DISK_READ_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.DISK_WRITE_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.IO_READ_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.IO_WRITE_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.MEMORY_UTILIZATION_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.SQL_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.TASK_WAIT_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.TOTAL_SESSION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.TRANSACTION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_READ_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_WRITE_SCRIPT;
@@ -40,24 +46,24 @@ import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_
 
 public class InformixDc extends AbstractDbDc {
     private static final Logger LOGGER = Logger.getLogger(InformixDc.class.getName());
-    public static final String SESSION_COUNT_SCRIPT = "session_count.sh";
+    private static final int DEFAULT_ELAPSED_TIME = 900;
     private String tableSpaceSizeQuery;
     private String tableSpaceUsedQuery;
     private String tableSpaceUtilizationQuery;
     private String tableSpaceMaxQuery;
     private String sequentialScanQuery;
     private String sequentialScanTableQuery;
+    private String sqlElapsedTimeQuery;
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
     private final BasicDataSource dataSource;
-    private final OnstatCommandExecutor onstatCommandExecutor;
 
     private final MetricsCollector metricCollector;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
         parseCustomAttributes(properties);
-        onstatCommandExecutor = new OnstatCommandExecutor(getDbPath(), getServerName());
+        OnstatCommandExecutor onstatCommandExecutor = new OnstatCommandExecutor(getDbPath(), getServerName());
         setDbPassword(InformixUtil.decodePassword(getDbPassword()));
         setDbConnUrl();
 
@@ -72,15 +78,15 @@ public class InformixDc extends AbstractDbDc {
     }
 
     private BasicDataSource getDataSource() {
-        final BasicDataSource dataSource;
-        dataSource = new BasicDataSource();
-        dataSource.setDriverClassName(getDbDriver());
-        dataSource.setUsername(getDbUserName());
-        dataSource.setPassword(getDbPassword());
-        dataSource.setUrl(getDbConnUrl());
-        dataSource.setInitialSize(3);
-        dataSource.setMaxIdle(1);
-        return dataSource;
+        final BasicDataSource basicDataSource;
+        basicDataSource = new BasicDataSource();
+        basicDataSource.setDriverClassName(getDbDriver());
+        basicDataSource.setUsername(getDbUserName());
+        basicDataSource.setPassword(getDbPassword());
+        basicDataSource.setUrl(getDbConnUrl());
+        basicDataSource.setInitialSize(3);
+        basicDataSource.setMaxIdle(1);
+        return basicDataSource;
     }
 
     /**
@@ -97,12 +103,11 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_MAX_NAME,
                 new MetricDataConfig(tableSpaceMaxQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_ELAPSED_TIME_NAME,
-                new MetricDataConfig(InformixUtil.SQL_ELAPSED_TIME_SQL, MetricCollectionMode.SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
+                new MetricDataConfig(sqlElapsedTimeQuery, MetricCollectionMode.SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_COUNT_NAME,
                 new MetricDataConfig(InformixUtil.INSTANCE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_ACTIVE_COUNT_NAME,
                 new MetricDataConfig(InformixUtil.INSTANCE_ACTIVE_COUNT_SQL, MetricCollectionMode.SQL, Number.class));
-
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_LOG_ENABLED_NAME,
                 new MetricDataConfig(InformixUtil.DB_DATABASE_LOG_ENABLED_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_LOG_ENABLED_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_BUFF_LOG_ENABLED_NAME,
@@ -135,9 +140,9 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_RATE_NAME,
                 new MetricDataConfig(DB_TRANSACTION_RATE_NAME, TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_COUNT_NAME,
-                new MetricDataConfig(DB_SESSION_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_SESSION_COUNT_NAME, TOTAL_SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME,
-                new MetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_SESSION_ACTIVE_COUNT_NAME, ACTIVE_SESSION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_READ_RATE_NAME,
                 new MetricDataConfig(DB_IO_READ_RATE_NAME, IO_READ_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_IO_WRITE_RATE_NAME,
@@ -150,6 +155,8 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(DB_DISK_WRITE_COUNT_NAME, DISK_WRITE_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_COUNT_NAME,
                 new MetricDataConfig(DB_LOCK_COUNT_NAME, LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TASK_WAIT_COUNT_NAME,
+                new MetricDataConfig(DB_TASK_WAIT_COUNT_NAME, TASK_WAIT_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
     }
 
     /**
@@ -157,6 +164,7 @@ public class InformixDc extends AbstractDbDc {
      *
      * @param properties : user inputs
      */
+    @SuppressWarnings("unchecked")
     private void parseCustomPollRate(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.poll.interval");
         if (null == customInput || customInput.isEmpty()) {
@@ -205,6 +213,7 @@ public class InformixDc extends AbstractDbDc {
      *
      * @param properties : Config data
      */
+    @SuppressWarnings("unchecked")
     private void parseCustomAttributes(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
         String[] dbNames = ((String) customInput.get("db.names")).split(",");
@@ -214,11 +223,19 @@ public class InformixDc extends AbstractDbDc {
             sb.append(Constants.COMMA).append(Constants.SINGLE_QUOTES).append(dbNames[i].trim()).append(Constants.SINGLE_QUOTES);
         }
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, sb);
-        sequentialScanQuery =  String.format(InformixUtil.DB_SEQ_SCAN_SQL,sb,sequentialScanCount);
-        sequentialScanTableQuery =  String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL,sb,sequentialScanCount);
+        sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL,sb,sequentialScanCount);
+        sequentialScanTableQuery = String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL,sb,sequentialScanCount);
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, sb);
         tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, sb);
         tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, sb);
+        Map<String, Object> customInput = (Map<String, Object>) properties.getOrDefault("custom.input", Collections.emptyMap());
+        long elapsedTimeFrame = Long.parseLong((customInput.getOrDefault("db.sql.elapsed.timeframe", DEFAULT_ELAPSED_TIME)).toString());
+        StringBuilder databaseName = new StringBuilder(Constants.SINGLE_QUOTES + getDbName() + Constants.SINGLE_QUOTES);
+        tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, databaseName);
+        tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, databaseName);
+        tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, databaseName);
+        tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, databaseName);
+        sqlElapsedTimeQuery = String.format(InformixUtil.SQL_ELAPSED_TIME_SQL, elapsedTimeFrame, databaseName);
     }
 
     private void setDbConnUrl() {
@@ -266,6 +283,7 @@ public class InformixDc extends AbstractDbDc {
         shortPollingInterval();
     }
 
+    @SuppressWarnings("unchecked")
     private void mediumPollingInterval() {
         getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
         getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME));
@@ -294,6 +312,7 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_DISK_READ_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_READ_COUNT_NAME));
     }
 
+    @SuppressWarnings("unchecked")
     private void longPollingInterval() {
         getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_SIZE_NAME));
         getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_USED_NAME));
