@@ -35,6 +35,10 @@ public class MetricsCollector {
     public <T> T collectMetrics(String metricName) {
         try {
             MetricDataConfig metricDataConfig = MetricsDataConfigRegister.getMetricDataConfig(metricName);
+            if (null == metricDataConfig) {
+                LOGGER.log(Level.INFO, "No Metrics Data for metric: {}", metricName);
+                return null;
+            }
             MetricCollectionMode mode = metricDataConfig.getSelectedMode();
             if (mode == MetricCollectionMode.SQL) {
                 T response = sqlExecutorStrategy.collectMetrics(metricDataConfig);
@@ -46,8 +50,8 @@ public class MetricsCollector {
                 return response;
             }
             throw new IllegalStateException("For Metric: " + metricName + " Invalid Mode selected: " + mode);
-        }catch (Exception e){
-            LOGGER.log(Level.SEVERE, "Failed to update metric {0} due to exception: {1}", new Object[]{metricName,e});
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to update metric {0} due to exception: {1}", new Object[]{metricName, e});
         }
         return null;
     }

@@ -16,13 +16,15 @@ instances:
     #Data collector properties:
     #Either use `poll.interval` or `custom.poll.interval`
     poll.interval: 30
+    #All three category value is Mandatory if leveraging Custom Poll Rate
     custom.poll.interval:
-      high: 10 #polling_value_in_sec
-      medium: 120 #polling_value_in_sec
-      low: 300 #polling_value_in_sec
+      high: 300 #polling_value_in_sec
+      medium: 45 #polling_value_in_sec
+      low: 20 #polling_value_in_sec
     callback.interval: 20
     otel.backend.url: http://127.0.0.1:4317
+
     #Custom Input
     custom.input:
-      db.names: 'testDb1, testDb2, testDb3' # Provide the DB Names in Comma separated way
-
+      #Time Frame for which you want to get the expensive query. Default value 900 Sec
+      db.sql.elapsed.timeframe: 900   # Values should be in Seconds
