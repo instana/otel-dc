@@ -223,8 +223,8 @@ public class InformixDc extends AbstractDbDc {
             sb.append(Constants.COMMA).append(Constants.SINGLE_QUOTES).append(dbNames[i].trim()).append(Constants.SINGLE_QUOTES);
         }
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, sb);
-        sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL,sb,sequentialScanCount);
-        sequentialScanTableQuery = String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL,sb,sequentialScanCount);
+        sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL, sb, sequentialScanCount);
+        sequentialScanTableQuery = String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, sb, sequentialScanCount);
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, sb);
         tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, sb);
         tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, sb);
@@ -322,7 +322,7 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_DATABASE_ANSI_COMPLAINT_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_ANSI_COMPLAINT_NAME));
         getRawMetric(DB_DATABASE_NLS_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_NLS_ENABLED_NAME));
         getRawMetric(DB_DATABASE_CASE_INCENSITIVE_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_CASE_INCENSITIVE_NAME));
-           }
+    }
 
     @Override
     public void start() {
