@@ -228,7 +228,6 @@ public class InformixDc extends AbstractDbDc {
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, sb);
         tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, sb);
         tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, sb);
-        Map<String, Object> customInput = (Map<String, Object>) properties.getOrDefault("custom.input", Collections.emptyMap());
         long elapsedTimeFrame = Long.parseLong((customInput.getOrDefault("db.sql.elapsed.timeframe", DEFAULT_ELAPSED_TIME)).toString());
         StringBuilder databaseName = new StringBuilder(Constants.SINGLE_QUOTES + getDbName() + Constants.SINGLE_QUOTES);
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, databaseName);

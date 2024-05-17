@@ -38,7 +38,7 @@ public class InformixUtil {
     public static final String TABLESPACE_UTILIZATION_SQL = "SELECT CASE WHEN (PT.NPTOTAL > 0) THEN ((PT.NPUSED) / PT.NPTOTAL) * 100 ELSE 0 END AS TABLE_UTILIZATION, TABNAME FROM SYSMASTER:SYSPTNHDR PT INNER JOIN SYSMASTER:SYSTABNAMES TN ON TN.PARTNUM = PT.PARTNUM WHERE TN.DBSNAME = %s ORDER BY TABNAME DESC LIMIT 20;";
     public static final String TABLESPACE_MAX_SQL = "SELECT (PT.NPTOTAL * PT.PAGESIZE) * 1024 AS TOTAL_KB, TABNAME FROM SYSMASTER:SYSPTNHDR PT INNER JOIN SYSMASTER:SYSTABNAMES TN ON TN.PARTNUM = PT.PARTNUM WHERE TN.DBSNAME = %s ORDER BY TABNAME DESC LIMIT 20;";
     //Database Queries
-<<<<<<< HEAD
+
     public static final String DB_DATABASE_LOG_ENABLED_SQL = "SELECT is_logging, name as database_name FROM sysdatabases";
     public static final String DB_DATABASE_BUFF_LOG_ENABLED_SQL = "SELECT is_buff_log, name as database_name FROM sysdatabases";
     public static final String DB_DATABASE_ANSI_COMPLAINT_SQL = "SELECT is_ansi, name as database_name FROM sysdatabases";
@@ -50,17 +50,10 @@ public class InformixUtil {
     public static final String USER_OVF_SQL = "select coalesce(cast(value as int)) as value from sysprofile where name = 'ovuser'";
     public static final String DB_SEQ_SCAN_SQL = "select coalesce(cast(seqscans as int))DATABASE_LOCK_TABLE_OVERFLOW,tabname as table_name from sysmaster:sysptprof where dbsname = %s and seqscans >= %d and tabname not like 'sys%%'";
     public static final String DB_SEQ_SCAN_TABLE_SQL = "SELECT count(tabname)  as number_of_tables_having_sequential_scans FROM SYSPTPROF WHERE dbsname = %s and seqscans >= %d and tabname not like 'sys%%';";
-=======
-    public static final String DB_DATABASE_LOG_ENABLED_SQL = "SELECT IS_LOGGING, NAME AS DATABASE_NAME FROM SYSDATABASES";
-    public static final String DB_DATABASE_BUFF_LOG_ENABLED_SQL = "SELECT IS_BUFF_LOG, NAME AS DATABASE_NAME FROM SYSDATABASES";
-    public static final String DB_DATABASE_ANSI_COMPLAINT_SQL = "SELECT IS_ANSI, NAME AS DATABASE_NAME FROM SYSDATABASES";
-    public static final String DB_DATABASE_NLS_ENABLED_SQL = "SELECT IS_NLS, NAME AS DATABASE_NAME FROM SYSDATABASES";
-    public static final String DB_DATABASE_CASE_INCENSITIVE_SQL = "SELECT IS_CASE_INSENS, NAME AS DATABASE_NAME FROM SYSDATABASES";
 
     //Disk Read & Write
     public static final String DB_DISK_WRITE_COUNT_SQL = "SELECT VALUE FROM SYSPROFILE WHERE NAME = 'dskwrites';";
     public static final String DB_DISK_READ_COUNT_SQL = "SELECT VALUE FROM SYSPROFILE WHERE NAME = 'dskreads';";
->>>>>>> ab6c126af0988e786ae986bd3692850ab47f07b8
 
     public static String decodePassword(String encodedPwd) {
         return new String(Base64.getDecoder().decode(encodedPwd));
