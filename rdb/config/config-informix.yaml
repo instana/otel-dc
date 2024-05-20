@@ -28,3 +28,4 @@ instances:
     custom.input:
       #Time Frame for which you want to get the expensive query. Default value 900 Sec
       db.sql.elapsed.timeframe: 900   # Values should be in Seconds
+      db.sequential.scan.count: 0

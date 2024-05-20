@@ -69,4 +69,12 @@ public class SemanticAttributes {
   public static final AttributeKey<String> LOCKED_OBJ_NAME = AttributeKey.stringKey("locked_obj_name");
   public static final AttributeKey<String> TABLESPACE_NAME = AttributeKey.stringKey("tablespace_name");
   public static final AttributeKey<String> DATABASE_NAME = AttributeKey.stringKey("database_name");
+
+  public static final AttributeKey<Long> DB_LOCK_TABLE_OVERFLOW_COUNT = AttributeKey.longKey("db.overflow.lock.count");
+  public static final AttributeKey<Long> DB_TRANSACTION_OVERFLOW_COUNT = AttributeKey.longKey("db.overflow.transaction.count");
+  public static final AttributeKey<Long> DB_USER_OVERFLOW_COUNT = AttributeKey.longKey("db.overflow.user.count");
+  public static final AttributeKey<String> DB_SEQ_SCAN_COUNT = AttributeKey.stringKey("db.seq.scan.count");
+  public static final AttributeKey<Long> DB_SEQ_SCAN_TABLE_COUNT = AttributeKey.longKey("db.seq.scan.table.count");
+  public static final AttributeKey<String> TABLE_NAME = AttributeKey.stringKey("table_name");
+
 }
