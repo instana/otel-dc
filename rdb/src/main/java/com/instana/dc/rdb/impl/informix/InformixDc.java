@@ -216,20 +216,11 @@ public class InformixDc extends AbstractDbDc {
     @SuppressWarnings("unchecked")
     private void parseCustomAttributes(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
-        String[] dbNames = ((String) customInput.get("db.names")).split(",");
         int sequentialScanCount = (Integer)customInput.get("db.sequential.scan.count");
-        StringBuilder sb = new StringBuilder(Constants.SINGLE_QUOTES + dbNames[0] + Constants.SINGLE_QUOTES);
-        for (int i = 1; i < dbNames.length; i++) {
-            sb.append(Constants.COMMA).append(Constants.SINGLE_QUOTES).append(dbNames[i].trim()).append(Constants.SINGLE_QUOTES);
-        }
-        tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, sb);
-        sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL, sb, sequentialScanCount);
-        sequentialScanTableQuery = String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, sb, sequentialScanCount);
-        tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, sb);
-        tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, sb);
-        tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, sb);
         long elapsedTimeFrame = Long.parseLong((customInput.getOrDefault("db.sql.elapsed.timeframe", DEFAULT_ELAPSED_TIME)).toString());
         StringBuilder databaseName = new StringBuilder(Constants.SINGLE_QUOTES + getDbName() + Constants.SINGLE_QUOTES);
+        sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL,databaseName,sequentialScanCount);
+        sequentialScanTableQuery = String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, databaseName, sequentialScanCount);
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, databaseName);
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, databaseName);
         tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, databaseName);
