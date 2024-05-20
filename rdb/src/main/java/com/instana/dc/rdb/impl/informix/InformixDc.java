@@ -219,7 +219,7 @@ public class InformixDc extends AbstractDbDc {
         int sequentialScanCount = (Integer)customInput.get("db.sequential.scan.count");
         long elapsedTimeFrame = Long.parseLong((customInput.getOrDefault("db.sql.elapsed.timeframe", DEFAULT_ELAPSED_TIME)).toString());
         StringBuilder databaseName = new StringBuilder(Constants.SINGLE_QUOTES + getDbName() + Constants.SINGLE_QUOTES);
-        sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL,databaseName,sequentialScanCount);
+        sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL, databaseName, sequentialScanCount);
         sequentialScanTableQuery = String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, databaseName, sequentialScanCount);
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, databaseName);
         tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, databaseName);
