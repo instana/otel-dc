@@ -58,7 +58,6 @@ public class InformixDcTest {
             Field metricCollector = informixDc.getClass().getDeclaredField("metricCollector");
             metricCollector.setAccessible(true);
             metricCollector.set(informixDc, metricsCollector);
-            System.out.println();
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
