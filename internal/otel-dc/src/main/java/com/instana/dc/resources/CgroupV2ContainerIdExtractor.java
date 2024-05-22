@@ -18,9 +18,7 @@ import java.util.stream.Stream;
 
 import static java.util.Optional.empty;
 
-/**
- * Utility for extracting the container ID from runtimes inside cgroup v2 containers.
- */
+/** Utility for extracting the container ID from runtimes inside cgroup v2 containers. */
 class CgroupV2ContainerIdExtractor {
 
     private static final Logger logger =
@@ -28,7 +26,9 @@ class CgroupV2ContainerIdExtractor {
 
     static final Path V2_CGROUP_PATH = Paths.get("/proc/self/mountinfo");
     private static final Pattern CONTAINER_ID_RE = Pattern.compile("^[0-9a-f]{64}$");
-    private static final Pattern CRI_CONTAINER_ID_RE = Pattern.compile("cri-containerd:[0-9a-f]{64}");
+    private static final Pattern CONTAINERD_CONTAINER_ID_RE =
+            Pattern.compile("cri-containerd:[0-9a-f]{64}");
+    private static final Pattern CRIO_CONTAINER_ID_RE = Pattern.compile("\\/crio-[0-9a-f]{64}");
 
     private final ContainerResource.Filesystem filesystem;
 
@@ -56,20 +56,32 @@ class CgroupV2ContainerIdExtractor {
 
         Optional<String> optCid =
                 fileAsList.stream()
-                        .filter(line -> line.contains("/containers/"))
-                        .flatMap(line -> Stream.of(line.split("/")))
-                        .map(CONTAINER_ID_RE::matcher)
-                        .filter(Matcher::matches)
-                        .reduce((first, second) -> second)
-                        .map(matcher -> matcher.group(0));
+                        .filter(line -> line.contains("/crio-"))
+                        .map(CRIO_CONTAINER_ID_RE::matcher)
+                        .filter(Matcher::find)
+                        .findFirst()
+                        .map(matcher -> matcher.group(0).substring(6));
         if (optCid.isPresent()) {
             return optCid;
         }
+
+        optCid =
+                fileAsList.stream()
+                        .filter(line -> line.contains("cri-containerd:"))
+                        .map(CONTAINERD_CONTAINER_ID_RE::matcher)
+                        .filter(Matcher::find)
+                        .findFirst()
+                        .map(matcher -> matcher.group(0).substring(15));
+        if (optCid.isPresent()) {
+            return optCid;
+        }
+
         return fileAsList.stream()
-                .filter(line -> line.contains("cri-containerd:"))
-                .map(CRI_CONTAINER_ID_RE::matcher)
-                .filter(Matcher::find)
-                .findFirst()
-                .map(matcher -> matcher.group(0).substring(15));
+                .filter(line -> line.contains("/containers/"))
+                .flatMap(line -> Stream.of(line.split("/")))
+                .map(CONTAINER_ID_RE::matcher)
+                .filter(Matcher::matches)
+                .reduce((first, second) -> second)
+                .map(matcher -> matcher.group(0));
     }
 }
