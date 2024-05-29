@@ -117,7 +117,9 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                         switch (metric.getDataCase()) {
                             case SUM:
                                 if (metric.getName().compareTo("llm.watsonx.completions.tokens") == 0 ||
-                                        metric.getName().compareTo("llm.openai.chat_completions.tokens") == 0) {
+                                        metric.getName().compareTo("llm.openai.chat_completions.tokens") == 0 ||
+                                        metric.getName().compareTo("llm.anthropic.completion.tokens") == 0 ||
+                                        metric.getName().compareTo("gen_ai.client.token.usage") == 0) {
 
                                     List<NumberDataPoint> sumDataPoints = metric.getSum().getDataPointsList();
                                     for (NumberDataPoint dataPoint : sumDataPoints) {
@@ -159,7 +161,9 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                                 break;
                             case HISTOGRAM:
                                 if (metric.getName().compareTo("llm.watsonx.completions.duration") == 0 ||
-                                        metric.getName().compareTo("llm.openai.chat_completions.duration") == 0) {
+                                        metric.getName().compareTo("llm.openai.chat_completions.duration") == 0 ||
+                                        metric.getName().compareTo("llm.anthropic.completion.duration") == 0 ||
+                                        metric.getName().compareTo("gen_ai.client.operation.duration") == 0) {
 
                                     List<HistogramDataPoint> histDataPoints = metric.getHistogram().getDataPointsList();
                                     for (HistogramDataPoint dataPoint : histDataPoints) {
