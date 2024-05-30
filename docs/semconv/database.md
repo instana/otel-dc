@@ -40,6 +40,14 @@ This page tries to describe a semantic convention for the attributes and metrics
   - [Metric `db.overflow.lock.count`](#metric-dboverflowlockcount)
   - [Metric `db.overflow.transaction.count`](#metric-dboverflowtransactioncount)
   - [Metric `db.overflow.user.count`](#metric-dboverflowusercount)
+  - [Metric `db.chunk.reads`](#metric-dbchunkreads)
+  - [Metric `db.chunk.writes`](#metric-dbchunkwrites)
+  - [Metric `db.chunk.pages.read`](#metric-dbchunkpagesread)
+  - [Metric `db.chunk.pages.read`](#metric-dbchunkpageswrite)
+  - [Metric `db.memory.segment.size`](#metric-dbmemorysegmentsize)
+  - [Metric `db.memory.segment.bulk.used`](#metric-dbmemorysegmentbulkused)
+  - [Metric `db.memory.segment.bulk.free`](#metric-dbmemorysegmentbulkfree)
+  - [Metric `db.lock.waits`](#metric-dblockwaits)
 - [Resource Usage Metrics](#resource-usage-metrics)
   - [Metric `db.disk.usage`](#metric-dbdiskusage)
   - [Metric `db.disk.utilization`](#metric-dbdiskutilization)
@@ -260,6 +268,91 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 | Name                     | Instrument Type | Units (UCUM)     | Description                                                                                  |
 |--------------------------|-----------------|------------------|----------------------------------------------------------------------------------------------|
 | `db.overflow.user.count` | UpDownCounter   | `{overflowUser}` | Number of times a User thread attempted to acquire a lock when no locks were available.      |
+
+### Metric: `db.chunk.reads`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name             | Instrument Type | Units (UCUM)   | Description                                            |
+|------------------|-----------------|----------------|--------------------------------------------------------|
+| `db.chunk.reads` | UpDownCounter   | `{chunkReads}` | Information about the number of disk reads  per chunk. |
+
+| Attribute         | Type   | Description   | Example   | Requirement Level |
+|-------------------|--------|---------------|-----------|-------------------|
+| `db.chunk.number` | string | Chunk Number. | `1` ; `2` | Required          |
+
+### Metric: `db.chunk.writes`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name              | Instrument Type | Units (UCUM)    | Description                                            |
+|-------------------|-----------------|-----------------|--------------------------------------------------------|
+| `db.chunk.writes` | UpDownCounter   | `{chunkWrites}` | Information about the number of disk writes per chunk. |
+
+| Attribute         | Type   | Description   | Example   | Requirement Level |
+|-------------------|--------|---------------|-----------|-------------------|
+| `db.chunk.number` | string | Chunk Number. | `1` ; `2` | Required          |
+
+### Metric: `db.chunk.pages.read`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                  | Instrument Type | Units (UCUM)       | Description                                           |
+|-----------------------|-----------------|--------------------|-------------------------------------------------------|
+| `db.chunk.pages.read` | UpDownCounter   | `{chunkPagesRead}` | Information about the number of page reads per chunk. |
+
+| Attribute         | Type   | Description   | Example   | Requirement Level |
+|-------------------|--------|---------------|-----------|-------------------|
+| `db.chunk.number` | string | Chunk Number. | `1` ; `2` | Required          |
+
+### Metric: `db.chunk.pages.write`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                   | Instrument Type | Units (UCUM)        | Description                                            |
+|------------------------|-----------------|---------------------|--------------------------------------------------------|
+| `db.chunk.pages.write` | UpDownCounter   | `{chunkPagesWrite}` | Information about the number of page writes per chunk. |
+
+| Attribute         | Type   | Description   | Example   | Requirement Level |
+|-------------------|--------|---------------|-----------|-------------------|
+| `db.chunk.number` | string | Chunk Number. | `1` ; `2` | Required          |
+
+### Metric: `db.memory.segment.size`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                     | Instrument Type | Units (UCUM)          | Description                 |
+|--------------------------|-----------------|-----------------------|-----------------------------|
+| `db.memory.segment.size` | UpDownCounter   | `{memorySegmentSize}` | Size of the Memory Segment. |
+
+| Attribute          | Type   | Description    | Example   | Requirement Level |
+|--------------------|--------|----------------|-----------|-------------------|
+| `db.segment.class` | string | Segment Class. | `1` ; `2` | Required          |
+
+### Metric: `db.memory.segment.bulk.used`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                           | Instrument Type  | Units (UCUM)                    | Description                    |
+|--------------------------------|------------------|---------------------------------|--------------------------------|
+| `db.memory.segment.bulk.used`  | UpDownCounter    | `{memorySegmentBulkUsed}`       | Size of the Segment Bulk used. |
+
+| Attribute          | Type   | Description    | Example   | Requirement Level |
+|--------------------|--------|----------------|-----------|-------------------|
+| `db.segment.class` | string | Segment Class. | `1` ; `2` | Required          |
+
+### Metric: `db.memory.segment.bulk.free`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                           | Instrument Type  | Units (UCUM)              | Description                         |
+|--------------------------------|------------------|---------------------------|-------------------------------------|
+| `db.memory.segment.bulk.free`  | UpDownCounter    | `{memorySegmentBulkFree}` | Size of the Segment Bulk available. |
+
+| Attribute          | Type   | Description    | Example   | Requirement Level |
+|--------------------|--------|----------------|-----------|-------------------|
+| `db.segment.class` | string | Segment Class. | `1` ; `2` | Required          |
+
+### Metric: `db.lock.waits`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name              | Instrument Type | Units (UCUM)  | Description                         |
+|-------------------|-----------------|---------------|-------------------------------------|
+| `db.lock.waits`   | UpDownCounter   | `{lockWaits}` | Number of threads waiting for lock. |
+
 
 ## Resource Usage Metrics
 ### Metric: `db.disk.usage`
