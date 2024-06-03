@@ -17,6 +17,7 @@ public class LLMDcUtil {
     public static final String SERVICE_INSTANCE_ID = "service.instance.id";
     public final static String PRICE_PROMPT_TOKES_PER_KILO = "price.prompt.tokens.per.kilo";
     public final static String PRICE_COMPLETE_TOKES_PER_KILO = "price.complete.tokens.per.kilo";
+    public final static String SERVICE_LISTEN_PORT = "otel.service.port";
 
     /* Configurations for Metrics:
      */

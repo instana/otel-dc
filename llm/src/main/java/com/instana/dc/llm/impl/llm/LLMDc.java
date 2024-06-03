@@ -31,6 +31,7 @@ public class LLMDc extends AbstractLLMDc {
     private MetricsCollectorService metricsCollector = new MetricsCollectorService();
     private Double pricePromptTokens = 0.0;
     private Double priceCompleteTokens = 0.0;
+    private int listenPort = 0;
 
     /**
      * The poll rate in the configuration, in seconds. In other words, the number of
@@ -135,14 +136,15 @@ public class LLMDc extends AbstractLLMDc {
 
     public LLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) throws Exception {
         super(properties, cdcConfig);
-        pricePromptTokens = (Double) properties.getOrDefault(PRICE_PROMPT_TOKES_PER_KILO, 0.03);
-        priceCompleteTokens = (Double) properties.getOrDefault(PRICE_COMPLETE_TOKES_PER_KILO, 0.03);
+        pricePromptTokens = (Double) properties.getOrDefault(PRICE_PROMPT_TOKES_PER_KILO, 0.0);
+        priceCompleteTokens = (Double) properties.getOrDefault(PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
+        listenPort = (int) properties.getOrDefault(SERVICE_LISTEN_PORT, 8000);
     }
 
     @Override
     public void initOnce() throws ClassNotFoundException {
         var server = Server.builder()
-                .http(8000)
+                .http(listenPort)
                 .service(
                         GrpcService.builder()
                                 .addService(metricsCollector)
