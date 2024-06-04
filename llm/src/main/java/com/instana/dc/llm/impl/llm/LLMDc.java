@@ -29,8 +29,12 @@ public class LLMDc extends AbstractLLMDc {
     public static final String SENSOR_NAME = "com.instana.plugin.watsonx";
     private HashMap<String, ModelAggregation> modelAggrMap = new HashMap<>();
     private MetricsCollectorService metricsCollector = new MetricsCollectorService();
-    private Double pricePromptTokens = 0.0;
-    private Double priceCompleteTokens = 0.0;
+    private Double watsonxPricePromptTokens = 0.0;
+    private Double watsonxPriceCompleteTokens = 0.0;
+    private Double openaiPricePromptTokens = 0.0;
+    private Double openaiPriceCompleteTokens = 0.0;
+    private Double anthropicPricePromptTokens = 0.0;
+    private Double anthropicPriceCompleteTokens = 0.0;
     private int listenPort = 0;
 
     /**
@@ -40,7 +44,7 @@ public class LLMDc extends AbstractLLMDc {
 
     private class ModelAggregation { 
         private final String modelId;
-        private final String userId;
+        private final String aiSystem;
         private int deltaPromptTokens;
         private int deltaCompleteTokens;
         private int deltaDuration;
@@ -51,15 +55,15 @@ public class LLMDc extends AbstractLLMDc {
         private int lastTotalDuration;
         private int lastTotalReqCount;
         
-        public ModelAggregation(String modelId, String userId) {
+        public ModelAggregation(String modelId, String aiSystem) {
             this.modelId = modelId;
-            this.userId = userId;
+            this.aiSystem = aiSystem;
         }
         public String getModelId() {
             return modelId;
         }
-        public String getUserId() {
-            return userId;
+        public String getAiSystem() {
+            return aiSystem;
         }
         public void addDeltaPromptTokens(int currTokens) {
             if(currTokens == 0) {
@@ -136,8 +140,12 @@ public class LLMDc extends AbstractLLMDc {
 
     public LLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) throws Exception {
         super(properties, cdcConfig);
-        pricePromptTokens = (Double) properties.getOrDefault(PRICE_PROMPT_TOKES_PER_KILO, 0.0);
-        priceCompleteTokens = (Double) properties.getOrDefault(PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
+        watsonxPricePromptTokens = (Double) properties.getOrDefault(WATSONX_PRICE_PROMPT_TOKES_PER_KILO, 0.0);
+        watsonxPriceCompleteTokens = (Double) properties.getOrDefault(WATSONX_PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
+        openaiPricePromptTokens = (Double) properties.getOrDefault(OPENAI_PRICE_PROMPT_TOKES_PER_KILO, 0.0);
+        openaiPriceCompleteTokens = (Double) properties.getOrDefault(OPENAI_PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
+        anthropicPricePromptTokens = (Double) properties.getOrDefault(ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO, 0.0);
+        anthropicPriceCompleteTokens = (Double) properties.getOrDefault(ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
         listenPort = (int) properties.getOrDefault(SERVICE_LISTEN_PORT, 8000);
     }
 
@@ -192,10 +200,11 @@ public class LLMDc extends AbstractLLMDc {
                 long completeTokens = metric.getCompleteTokens();
                 double duration = metric.getDuration();
                 long requestCount = metric.getReqCount();
+                String aiSystem = metric.getAiSystem();
 
                 ModelAggregation modelAggr = modelAggrMap.get(modelId);
                 if (modelAggr == null) {
-                    modelAggr = new ModelAggregation(modelId, "llmUser");
+                    modelAggr = new ModelAggregation(modelId, aiSystem);
                     modelAggrMap.put(modelId, modelAggr);
                 }
 
@@ -208,11 +217,11 @@ public class LLMDc extends AbstractLLMDc {
             }
         }
 
-        System.out.println("-----------------------------------------");
+        logger.info("-----------------------------------------");
         for(Map.Entry<String,ModelAggregation> entry : modelAggrMap.entrySet()){
             ModelAggregation aggr = entry.getValue();
             String modelId = aggr.getModelId();
-            String userId = aggr.getUserId();
+            String aiSystem = aggr.getAiSystem();
             int deltaRequestCount = aggr.getDeltaReqCount();
             int deltaDuration = aggr.getDeltaDuration();
             int deltaPromptTokens = aggr.getDeltaPromptTokens();
@@ -220,26 +229,45 @@ public class LLMDc extends AbstractLLMDc {
             int maxDuration = aggr.getMaxDuration();
 
             int avgDuration = deltaDuration/(deltaRequestCount==0?1:deltaRequestCount);
-            double intervalReqCount = (double)deltaRequestCount/LLM_POLL_INTERVAL;
-            double intervalPromptTokens = (double)deltaPromptTokens/LLM_POLL_INTERVAL;
-            double intervalCompleteTokens = (double)deltaCompleteTokens/LLM_POLL_INTERVAL;
+
+            int intervalSeconds = LLM_POLL_INTERVAL;
+            String agentLess = System.getenv("AGENTLESS_MODE_ENABLED");
+            if (agentLess != null) {
+                intervalSeconds = 1;
+            }
+
+            double pricePromptTokens = 0.0;
+            double priceCompleteTokens = 0.0;
+            if (aiSystem.compareTo("watsonx") == 0) {
+                pricePromptTokens = watsonxPricePromptTokens;
+                priceCompleteTokens = watsonxPriceCompleteTokens;
+            } else if (aiSystem.compareTo("openai") == 0) {
+                pricePromptTokens = openaiPricePromptTokens;
+                priceCompleteTokens = openaiPriceCompleteTokens;
+            } else if (aiSystem.compareTo("anthropic") == 0) {
+                pricePromptTokens = anthropicPricePromptTokens;
+                priceCompleteTokens = anthropicPriceCompleteTokens;
+            }
+            double intervalReqCount = (double)deltaRequestCount/intervalSeconds;
+            double intervalPromptTokens = (double)deltaPromptTokens/intervalSeconds;
+            double intervalCompleteTokens = (double)deltaCompleteTokens/intervalSeconds;
             double intervalTotalTokens = intervalPromptTokens + intervalCompleteTokens;
             double intervalPromptCost = (intervalPromptTokens/1000) * pricePromptTokens;
             double intervalCompleteCost = (intervalCompleteTokens/1000) * priceCompleteTokens;
             double intervalTotalCost = intervalPromptCost + intervalCompleteCost;
             aggr.resetMetrics();
 
-            System.out.println("ModelId         : " + modelId);
-            System.out.println("UserId          : " + userId);
-            System.out.println("AvgDuration     : " + avgDuration);
-            System.out.println("MaxDuration     : " + maxDuration);
-            System.out.println("IntervalTokens  : " + intervalTotalTokens);
-            System.out.println("IntervalCost    : " + intervalTotalCost);
-            System.out.println("IntervalRequest : " + intervalReqCount);
+            logger.info("ModelId         : " + modelId);
+            logger.info("AiSystem        : " + aiSystem);
+            logger.info("AvgDuration     : " + avgDuration);
+            logger.info("MaxDuration     : " + maxDuration);
+            logger.info("IntervalTokens  : " + intervalTotalTokens);
+            logger.info("IntervalCost    : " + intervalTotalCost);
+            logger.info("IntervalRequest : " + intervalReqCount);
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("model_id", modelId);
-            attributes.put("user_id", userId);
+            attributes.put("ai_system", aiSystem);
             getRawMetric(LLM_STATUS_NAME).setValue(1);
             getRawMetric(LLM_DURATION_NAME).getDataPoint(modelId).setValue(avgDuration, attributes);
             getRawMetric(LLM_DURATION_MAX_NAME).getDataPoint(modelId).setValue(maxDuration, attributes);
@@ -247,6 +275,6 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_TOKEN_NAME).getDataPoint(modelId).setValue(intervalTotalTokens, attributes);
             getRawMetric(LLM_REQ_COUNT_NAME).getDataPoint(modelId).setValue(intervalReqCount, attributes);
         }
-        System.out.println("-----------------------------------------");
+        logger.info("-----------------------------------------");
     }
 }
