@@ -45,15 +45,15 @@ public class LLMDc extends AbstractLLMDc {
     private class ModelAggregation { 
         private final String modelId;
         private final String aiSystem;
-        private int deltaPromptTokens;
-        private int deltaCompleteTokens;
-        private int deltaDuration;
-        private int deltaReqCount;
-        private int maxDuration;
-        private int lastTotalPromptTokens;
-        private int lastTotalCompleteTokens;
-        private int lastTotalDuration;
-        private int lastTotalReqCount;
+        private long deltaPromptTokens;
+        private long deltaCompleteTokens;
+        private long deltaDuration;
+        private long deltaReqCount;
+        private long maxDuration;
+        private long lastTotalPromptTokens;
+        private long lastTotalCompleteTokens;
+        private long lastTotalDuration;
+        private long lastTotalReqCount;
         
         public ModelAggregation(String modelId, String aiSystem) {
             this.modelId = modelId;
@@ -65,75 +65,84 @@ public class LLMDc extends AbstractLLMDc {
         public String getAiSystem() {
             return aiSystem;
         }
-        public void addDeltaPromptTokens(int currTokens) {
+        public void addDeltaPromptTokens(long currTokens, long reqCount) {
             if(currTokens == 0) {
                 return;
             }
-            int diffPromptTokens = 0;
-            if(currTokens > lastTotalPromptTokens && lastTotalPromptTokens != 0) {
+            long diffPromptTokens = 0;
+            if(reqCount == 1) {
+                diffPromptTokens = currTokens;
+            } else if(currTokens > lastTotalPromptTokens && lastTotalPromptTokens != 0) {
                 diffPromptTokens = currTokens - lastTotalPromptTokens;
             }
             lastTotalPromptTokens = currTokens;
             deltaPromptTokens += diffPromptTokens;
         }
 
-        public int getDeltaPromptTokens() {
+        public long getDeltaPromptTokens() {
             return deltaPromptTokens;
         }
-        public void addDeltaCompleteTokens(int currTokens) {
+        public void addDeltaCompleteTokens(long currTokens, long reqCount) {
             if(currTokens == 0) {
                 return;
             }
-            int diffCompleteTokens = 0;
-            if(currTokens > lastTotalCompleteTokens && lastTotalCompleteTokens != 0) {
+            long diffCompleteTokens = 0;
+            if(reqCount == 1) {
+                diffCompleteTokens = currTokens;
+            } else if(currTokens > lastTotalCompleteTokens && lastTotalCompleteTokens != 0) {
                 diffCompleteTokens = currTokens - lastTotalCompleteTokens;
             }
             lastTotalCompleteTokens = currTokens;
             deltaCompleteTokens += diffCompleteTokens;
         }
-        public int getDeltaCompleteTokens() {
+        public long getDeltaCompleteTokens() {
             return deltaCompleteTokens;
         }
-        public void addDeltaDuration(int currDuration) {
+        public void addDeltaDuration(long currDuration, long reqCount) {
             if(currDuration == 0) {
                 return;
             }
-            int diffDuration = 0;
-            if(currDuration > lastTotalDuration && lastTotalDuration != 0) {
+            long diffDuration = 0;
+            if(reqCount == 1) {
+                diffDuration = currDuration;
+            } else if(currDuration > lastTotalDuration && lastTotalDuration != 0) {
                 diffDuration = currDuration - lastTotalDuration;
             }
             lastTotalDuration = currDuration;
             deltaDuration += diffDuration;
-
-            if(deltaDuration > maxDuration) {
-               maxDuration = deltaDuration;
-            }
         }
-        public int getDeltaDuration() {
+        public long getDeltaDuration() {
             return deltaDuration;
         }
-        public int getMaxDuration() {
+        public void setMaxDuration(long maxDuration) {
+            this.maxDuration = maxDuration;
+        }
+        public long getMaxDuration() {
             return maxDuration;
         }
-        public void addDeltaReqCount(int currCount) {
+        public void addDeltaReqCount(long currCount) {
             if(currCount == 0) {
                 return;
             }
-            int diffReqCount = 0;
-            if(currCount > lastTotalReqCount && lastTotalReqCount != 0) {
+            long diffReqCount = 0;
+            if(currCount == 1) {
+                diffReqCount = currCount;
+            } else if(currCount > lastTotalReqCount && lastTotalReqCount != 0) {
                 diffReqCount = currCount - lastTotalReqCount;
             }
             lastTotalReqCount = currCount;
             deltaReqCount += diffReqCount;
         }
-        public int getDeltaReqCount() {
+        public long getDeltaReqCount() {
             return deltaReqCount;
+        }
+        public long getCurrentReqCount() {
+            return lastTotalReqCount;
         }
         public void resetMetrics() {
             deltaPromptTokens = 0;
             deltaCompleteTokens = 0;
             deltaDuration = 0;
-            maxDuration = 0;
             deltaReqCount = 0;
         }
     }
@@ -195,23 +204,46 @@ public class LLMDc extends AbstractLLMDc {
         metricsCollector.clearMetrics();
         for (OtelMetric metric : otelMetrics) {
             try {
-                String modelId = metric.getModelId();
-                long promptTokens = metric.getPromtTokens();
-                long completeTokens = metric.getCompleteTokens();
                 double duration = metric.getDuration();
-                long requestCount = metric.getReqCount();
+                if(duration == 0.0) {
+                    continue;
+                }
+                String modelId = metric.getModelId();
                 String aiSystem = metric.getAiSystem();
+                long requestCount = metric.getReqCount();
 
                 ModelAggregation modelAggr = modelAggrMap.get(modelId);
                 if (modelAggr == null) {
                     modelAggr = new ModelAggregation(modelId, aiSystem);
                     modelAggrMap.put(modelId, modelAggr);
                 }
-
-                modelAggr.addDeltaPromptTokens((int)(promptTokens));
-                modelAggr.addDeltaCompleteTokens((int)(completeTokens));
-                modelAggr.addDeltaDuration((int)(duration*1000));
-                modelAggr.addDeltaReqCount((int)(requestCount));
+                modelAggr.addDeltaDuration((long)(duration*1000), requestCount);
+                modelAggr.addDeltaReqCount(requestCount);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        for (OtelMetric metric : otelMetrics) {
+            try {
+                String modelId = metric.getModelId();
+                String aiSystem = metric.getAiSystem();
+                long promptTokens = metric.getPromtTokens();
+                long completeTokens = metric.getCompleteTokens();
+                if(promptTokens == 0 && completeTokens == 0) {
+                    continue;
+                }
+                ModelAggregation modelAggr = modelAggrMap.get(modelId);
+                if (modelAggr == null) {
+                    modelAggr = new ModelAggregation(modelId, aiSystem);
+                    modelAggrMap.put(modelId, modelAggr);
+                }
+                long currentReqCount = modelAggr.getCurrentReqCount();
+                if(promptTokens > 0) {
+                    modelAggr.addDeltaPromptTokens(promptTokens, currentReqCount);
+                }
+                if(completeTokens > 0) {
+                    modelAggr.addDeltaCompleteTokens(completeTokens, currentReqCount);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -222,13 +254,17 @@ public class LLMDc extends AbstractLLMDc {
             ModelAggregation aggr = entry.getValue();
             String modelId = aggr.getModelId();
             String aiSystem = aggr.getAiSystem();
-            int deltaRequestCount = aggr.getDeltaReqCount();
-            int deltaDuration = aggr.getDeltaDuration();
-            int deltaPromptTokens = aggr.getDeltaPromptTokens();
-            int deltaCompleteTokens = aggr.getDeltaCompleteTokens();
-            int maxDuration = aggr.getMaxDuration();
+            long deltaRequestCount = aggr.getDeltaReqCount();
+            long deltaDuration = aggr.getDeltaDuration();
+            long deltaPromptTokens = aggr.getDeltaPromptTokens();
+            long deltaCompleteTokens = aggr.getDeltaCompleteTokens();
+            long maxDuration = aggr.getMaxDuration();
 
-            int avgDuration = deltaDuration/(deltaRequestCount==0?1:deltaRequestCount);
+            long avgDuration = deltaDuration/(deltaRequestCount==0?1:deltaRequestCount);
+            if(avgDuration > maxDuration) {
+                maxDuration = avgDuration;
+                aggr.setMaxDuration(maxDuration);
+            }
 
             int intervalSeconds = LLM_POLL_INTERVAL;
             String agentLess = System.getenv("AGENTLESS_MODE_ENABLED");

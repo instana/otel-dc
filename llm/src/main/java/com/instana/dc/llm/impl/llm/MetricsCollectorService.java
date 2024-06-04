@@ -173,8 +173,12 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                                             OtelMetric otelMetric = new OtelMetric();
                                             otelMetric.setModelId(modelId);
                                             otelMetric.setAiSystem(aiSystem);
-                                            otelMetric.setPromptTokens(promptTokens);
-                                            otelMetric.setCompleteTokens(completeTokens);
+                                            if(promptTokens > 0) {
+                                                otelMetric.setPromptTokens(promptTokens);
+                                            }
+                                            if(completeTokens > 0) {
+                                                otelMetric.setCompleteTokens(completeTokens);
+                                            }
                                             exportMetrics.add(otelMetric);
                                         }
                                     }
