@@ -265,21 +265,6 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 |--------------------------|-----------------|------------------|----------------------------------------------------------------------------------------------|
 | `db.overflow.user.count` | UpDownCounter   | `{overflowUser}` | Number of times a User thread attempted to acquire a lock when no locks were available.      |
 
-### Metric: `db.cache.read.ratio`
-This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
-
-| Name                  | Instrument Type   | Units (UCUM)       | Description                                                                              |
-|-----------------------|-------------------|--------------------|------------------------------------------------------------------------------------------|
-| `db.cache.read.ratio` | UpDownCounter     | `{cacheReadRatio}` | Percentage of page reads for this buffer pool that were satisfied by a cached page image |
-
-
-## Metric: `db.cache.write.ratio`
-This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
-
-| Name                   | Instrument Type   | Units (UCUM)        | Description                                                                               |
-|------------------------|-------------------|---------------------|-------------------------------------------------------------------------------------------|
-| `db.cache.write.ratio` | UpDownCounter     | `{cacheWriteRatio}` | Percentage of page Writes for this buffer pool that were satisfied by a cached page image |
-
 ### Metric: `db.lock.waits`
 This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
 
@@ -287,13 +272,31 @@ This metric is [optional](https://github.com/open-telemetry/semantic-conventions
 |-------------------|-----------------|---------------|-------------------------------------|
 | `db.lock.waits`   | UpDownCounter   | `{lockWaits}` | Number of threads waiting for lock. |
 
+### Metric: `db.cache.read.ratio`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                  | Instrument Type | Units (UCUM) | Description                                                                              |
+|-----------------------|-----------------|--------------|------------------------------------------------------------------------------------------|
+| `db.cache.read.ratio` | Gauge           | `1`          | Percentage of page reads for this buffer pool that were satisfied by a cached page image |
+
+
+### Metric: `db.cache.write.ratio`
+This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
+
+| Name                   | Instrument Type | Units (UCUM) | Description                                                                               |
+|------------------------|-----------------|--------------|-------------------------------------------------------------------------------------------|
+| `db.cache.write.ratio` | Gauge           | `1`          | Percentage of page Writes for this buffer pool that were satisfied by a cached page image |
 
 ### Metric: `db.lru.writes`
 This metric is [optional](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/metric-requirement-level.md#opt-in).
 
-| Name            | Instrument Type | Units (UCUM)  | Description           |
-|-----------------|-----------------|---------------|-----------------------|
-| `db.lru.writes` | UpDownCounter   | `{lruWrites}` | Number of LRU Writes. |
+| Name            | Instrument Type | Units (UCUM)  | Description                            |
+|-----------------|-----------------|---------------|----------------------------------------|
+| `db.lru.writes` | UpDownCounter   | `{lruWrites}` | Number of Least Recently Used  Writes. |
+
+### Notes:
+
+- The database server performs LRU (Least Recently Used) writes as background writes that typically occur when the percentage of dirty buffers (pages that are not accessed) exceeds the percent that is specified for lru_max_dirty in the BUFFERPOOL configuration parameter.
 
 ## Resource Usage Metrics
 ### Metric: `db.disk.usage`
