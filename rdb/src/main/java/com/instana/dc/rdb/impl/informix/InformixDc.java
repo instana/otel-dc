@@ -130,6 +130,16 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_TABLE_NAME,
                 new MetricDataConfig(sequentialScanTableQuery, MetricCollectionMode.SQL, Number.class));
 
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_WAITS_NAME,
+                new MetricDataConfig(InformixUtil.DB_LOCK_WAITS_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_READ_RATIO_NAME,
+                new MetricDataConfig(InformixUtil.DB_CACHE_READ_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,
+                new MetricDataConfig(InformixUtil.DB_CACHE_WRITE_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LRU_WRITES_NAME,
+                new MetricDataConfig(InformixUtil.DB_LRU_WRITES_SQL, MetricCollectionMode.SQL, Number.class));
+
+
         //Metrics via onstat command
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
                 new MetricDataConfig(DB_SQL_COUNT_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
@@ -300,6 +310,11 @@ public class InformixDc extends AbstractDbDc {
 
         getRawMetric(DB_DISK_WRITE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_WRITE_COUNT_NAME));
         getRawMetric(DB_DISK_READ_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_READ_COUNT_NAME));
+
+        getRawMetric(DB_LOCK_WAITS_NAME).setValue((Number) metricCollector.collectMetrics(DB_LOCK_WAITS_NAME));
+        getRawMetric(DB_CACHE_READ_RATIO_NAME).setValue((Number) metricCollector.collectMetrics(DB_CACHE_READ_RATIO_NAME));
+        getRawMetric(DB_CACHE_WRITE_RATIO_NAME).setValue((Number) metricCollector.collectMetrics(DB_CACHE_WRITE_RATIO_NAME));
+        getRawMetric(DB_LRU_WRITES_NAME).setValue((Number) metricCollector.collectMetrics(DB_LRU_WRITES_NAME));
     }
 
     @SuppressWarnings("unchecked")

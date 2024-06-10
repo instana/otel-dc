@@ -76,5 +76,8 @@ public class SemanticAttributes {
   public static final AttributeKey<String> DB_SEQ_SCAN_COUNT = AttributeKey.stringKey("db.seq.scan.count");
   public static final AttributeKey<Long> DB_SEQ_SCAN_TABLE_COUNT = AttributeKey.longKey("db.seq.scan.table.count");
   public static final AttributeKey<String> TABLE_NAME = AttributeKey.stringKey("table_name");
-
+  public static final AttributeKey<Long> DB_LOCK_WAITS = AttributeKey.longKey("db.lock.waits");
+  public static final AttributeKey<Long> DB_CACHE_READ_RATIO = AttributeKey.longKey("db.cache.read.ratio");
+  public static final AttributeKey<Long> DB_CACHE_WRITE_RATIO = AttributeKey.longKey("db.cache.write.ratio");
+  public static final AttributeKey<Long> DB_LRU_WRITES = AttributeKey.longKey("db.lru.writes");
 }
