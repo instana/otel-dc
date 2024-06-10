@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.instana'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.bettercloud:vault-java-driver:5.1.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+    implementation(files("libs/otel-dc-0.9.5.jar"))
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
