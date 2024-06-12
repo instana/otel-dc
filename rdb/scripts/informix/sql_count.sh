@@ -8,6 +8,6 @@ result=$(cd $1 &&
   export INFO RMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
-  ./onstat -g his 1 | head -n 11 | awk '{a[NR]=$0} END{print a[NR-1]}' | awk '{print $4}')
+  ./onstat -g his 1 | head -n 10 | awk '{a[NR]=$0} END{print a[NR-1]}' | awk '{print $4}')
 
 echo $result
