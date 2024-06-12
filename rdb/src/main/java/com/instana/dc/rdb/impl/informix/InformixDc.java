@@ -41,6 +41,15 @@ import static com.instana.dc.rdb.impl.Constants.TRANSACTION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_READ_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_WRITE_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LOCK_COUNT_SCRIPT;
+
+import static com.instana.dc.rdb.impl.Constants.OVERFLOW_LOCK_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.OVERFLOW_USER_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.OVERFLOW_TRANSACTION_COUNT_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.CACHE_READ_RATIO_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.CACHE_WRITE_RATIO_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.LOCK_WAITS_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.LRU_WRITES_SCRIPT;
+
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
@@ -118,26 +127,26 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(InformixUtil.DB_DATABASE_NLS_ENABLED_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_NLS_ENABLED_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_CASE_INCENSITIVE_NAME,
                 new MetricDataConfig(InformixUtil.DB_DATABASE_CASE_INCENSITIVE_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_CASE_INCENSITIVE_KEY));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,
-                new MetricDataConfig(InformixUtil.LOCK_OVF_SQL, MetricCollectionMode.SQL, Number.class));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,
-                new MetricDataConfig(InformixUtil.TRANSACTION_OVF_SQL, MetricCollectionMode.SQL, Number.class));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_USER_OVERFLOW_NAME,
-                new MetricDataConfig(InformixUtil.USER_OVF_SQL, MetricCollectionMode.SQL, Number.class));
+//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,
+//                new MetricDataConfig(InformixUtil.LOCK_OVF_SQL, MetricCollectionMode.SQL, Number.class));
+//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,
+//                new MetricDataConfig(InformixUtil.TRANSACTION_OVF_SQL, MetricCollectionMode.SQL, Number.class));
+//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_USER_OVERFLOW_NAME,
+//                new MetricDataConfig(InformixUtil.USER_OVF_SQL, MetricCollectionMode.SQL, Number.class));
 
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_NAME,
                 new MetricDataConfig(sequentialScanQuery, MetricCollectionMode.SQL, List.class, DB_SEQ_SCAN_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_TABLE_NAME,
                 new MetricDataConfig(sequentialScanTableQuery, MetricCollectionMode.SQL, Number.class));
 
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_WAITS_NAME,
-                new MetricDataConfig(InformixUtil.DB_LOCK_WAITS_SQL, MetricCollectionMode.SQL, Number.class));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_READ_RATIO_NAME,
-                new MetricDataConfig(InformixUtil.DB_CACHE_READ_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,
-                new MetricDataConfig(InformixUtil.DB_CACHE_WRITE_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
-        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LRU_WRITES_NAME,
-                new MetricDataConfig(InformixUtil.DB_LRU_WRITES_SQL, MetricCollectionMode.SQL, Number.class));
+//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_WAITS_NAME,
+//                new MetricDataConfig(InformixUtil.DB_LOCK_WAITS_SQL, MetricCollectionMode.SQL, Number.class));
+//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_READ_RATIO_NAME,
+//                new MetricDataConfig(InformixUtil.DB_CACHE_READ_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
+//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,
+//                new MetricDataConfig(InformixUtil.DB_CACHE_WRITE_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
+//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LRU_WRITES_NAME,
+//                new MetricDataConfig(InformixUtil.DB_LRU_WRITES_SQL, MetricCollectionMode.SQL, Number.class));
 
 
         //Metrics via onstat command
@@ -167,6 +176,23 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(DB_LOCK_COUNT_NAME, LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TASK_WAIT_COUNT_NAME,
                 new MetricDataConfig(DB_TASK_WAIT_COUNT_NAME, TASK_WAIT_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_WAITS_NAME,
+                new MetricDataConfig(DB_LOCK_WAITS_NAME,LOCK_WAITS_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_READ_RATIO_NAME,
+                new MetricDataConfig(DB_CACHE_READ_RATIO_NAME,CACHE_READ_RATIO_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,
+                new MetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,CACHE_WRITE_RATIO_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LRU_WRITES_NAME,
+                new MetricDataConfig(DB_LRU_WRITES_NAME,LRU_WRITES_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,
+                new MetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,OVERFLOW_LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,
+                new MetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,OVERFLOW_TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_USER_OVERFLOW_NAME,
+                new MetricDataConfig(DB_USER_OVERFLOW_NAME,OVERFLOW_USER_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+
+
     }
 
     /**
@@ -285,7 +311,7 @@ public class InformixDc extends AbstractDbDc {
 
     @SuppressWarnings("unchecked")
     private void mediumPollingInterval() {
-        getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
+            getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
         getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME));
         getRawMetric(DB_TRANSACTION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
         getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));

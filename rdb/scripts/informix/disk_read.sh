@@ -1,13 +1,16 @@
-!/bin/bash
+# !/bin/bash
 #  (c) Copyright IBM Corp. 2024
 #  (c) Copyright Instana Inc.
 
 result=$(cd $1 &&
   export INFORMIXDIR=$2 &&
   export ONCONFIG=$3 &&
-  export INFO RMIXSERVER=$4 &&
+  export INFORMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
   ./onstat -p | awk 'NR==7 {print $1}')
+
+
+  # For solaris 10 ./onstat -p | awk 'NR==6 {print $1}'
 
 echo $result
