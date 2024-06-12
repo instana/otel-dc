@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 #  (c) Copyright IBM Corp. 2024
 #  (c) Copyright Instana Inc.
 
