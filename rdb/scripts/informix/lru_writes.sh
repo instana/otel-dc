@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 #  (c) Copyright IBM Corp. 2024
 #  (c) Copyright Instana Inc.
 
@@ -8,6 +8,6 @@ result=$(cd $1 &&
   export INFORMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
-  ./onstat -p | awk 'NR==7 {print $1}')
+  ./onstat -F| head -n 8| awk '{a[NR]=$0} END{print a[NR-1]}'| awk '{print $2}')
 
 echo $result
