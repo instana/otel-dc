@@ -222,7 +222,7 @@ public class DbDcUtil {
     public static final String DB_CACHE_WRITE_RATIO_UNIT = "1";
 
     public static final String DB_LRU_WRITES_NAME = DB_LRU_WRITES.getKey();
-    public static final String DB_LRU_WRITES_DESC = " Number of Least Recently Used  Writes.";
+    public static final String DB_LRU_WRITES_DESC = "Number of LRU (Least Recently Used)  Writes.";
     public static final String DB_LRU_WRITES_UNIT = "{lruWrites}";
 
     /* Utilities:
