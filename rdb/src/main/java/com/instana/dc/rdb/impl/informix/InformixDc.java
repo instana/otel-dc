@@ -13,7 +13,6 @@ import com.instana.dc.rdb.impl.Constants;
 import com.instana.dc.rdb.impl.informix.metric.collection.*;
 import com.instana.dc.rdb.impl.informix.metric.collection.strategy.MetricsCollector;
 import org.apache.commons.dbcp2.BasicDataSource;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -26,7 +25,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import static com.instana.dc.rdb.DbDcUtil.*;
 import static com.instana.dc.rdb.impl.Constants.ACTIVE_SESSION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_READ_SCRIPT;
@@ -41,7 +39,6 @@ import static com.instana.dc.rdb.impl.Constants.TRANSACTION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_READ_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_WRITE_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LOCK_COUNT_SCRIPT;
-
 import static com.instana.dc.rdb.impl.Constants.OVERFLOW_LOCK_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.OVERFLOW_USER_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.OVERFLOW_TRANSACTION_COUNT_SCRIPT;
@@ -49,7 +46,6 @@ import static com.instana.dc.rdb.impl.Constants.CACHE_READ_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.CACHE_WRITE_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LOCK_WAITS_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LRU_WRITES_SCRIPT;
-
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
@@ -127,27 +123,10 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(InformixUtil.DB_DATABASE_NLS_ENABLED_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_NLS_ENABLED_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_DATABASE_CASE_INCENSITIVE_NAME,
                 new MetricDataConfig(InformixUtil.DB_DATABASE_CASE_INCENSITIVE_SQL, MetricCollectionMode.SQL, List.class, DB_DATABASE_CASE_INCENSITIVE_KEY));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,
-//                new MetricDataConfig(InformixUtil.LOCK_OVF_SQL, MetricCollectionMode.SQL, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,
-//                new MetricDataConfig(InformixUtil.TRANSACTION_OVF_SQL, MetricCollectionMode.SQL, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_USER_OVERFLOW_NAME,
-//                new MetricDataConfig(InformixUtil.USER_OVF_SQL, MetricCollectionMode.SQL, Number.class));
-
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_NAME,
                 new MetricDataConfig(sequentialScanQuery, MetricCollectionMode.SQL, List.class, DB_SEQ_SCAN_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_TABLE_NAME,
                 new MetricDataConfig(sequentialScanTableQuery, MetricCollectionMode.SQL, Number.class));
-
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_WAITS_NAME,
-//                new MetricDataConfig(InformixUtil.DB_LOCK_WAITS_SQL, MetricCollectionMode.SQL, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_READ_RATIO_NAME,
-//                new MetricDataConfig(InformixUtil.DB_CACHE_READ_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,
-//                new MetricDataConfig(InformixUtil.DB_CACHE_WRITE_RATIO_SQL, MetricCollectionMode.SQL, Number.class));
-//        MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LRU_WRITES_NAME,
-//                new MetricDataConfig(InformixUtil.DB_LRU_WRITES_SQL, MetricCollectionMode.SQL, Number.class));
-
 
         //Metrics via onstat command
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
@@ -176,7 +155,6 @@ public class InformixDc extends AbstractDbDc {
                 new MetricDataConfig(DB_LOCK_COUNT_NAME, LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TASK_WAIT_COUNT_NAME,
                 new MetricDataConfig(DB_TASK_WAIT_COUNT_NAME, TASK_WAIT_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
-
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_WAITS_NAME,
                 new MetricDataConfig(DB_LOCK_WAITS_NAME,LOCK_WAITS_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_READ_RATIO_NAME,
@@ -311,12 +289,11 @@ public class InformixDc extends AbstractDbDc {
 
     @SuppressWarnings("unchecked")
     private void mediumPollingInterval() {
-            getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
+        getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
         getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME));
         getRawMetric(DB_TRANSACTION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
         getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
         getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME));
-
     }
 
     private void shortPollingInterval() {
@@ -333,10 +310,8 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_IO_READ_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_READ_RATE_NAME));
         getRawMetric(DB_IO_WRITE_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_IO_WRITE_RATE_NAME));
         getRawMetric(DB_MEM_UTILIZATION_NAME).setValue((Number) metricCollector.collectMetrics(DB_MEM_UTILIZATION_NAME));
-
         getRawMetric(DB_DISK_WRITE_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_WRITE_COUNT_NAME));
         getRawMetric(DB_DISK_READ_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_DISK_READ_COUNT_NAME));
-
         getRawMetric(DB_LOCK_WAITS_NAME).setValue((Number) metricCollector.collectMetrics(DB_LOCK_WAITS_NAME));
         getRawMetric(DB_CACHE_READ_RATIO_NAME).setValue((Number) metricCollector.collectMetrics(DB_CACHE_READ_RATIO_NAME));
         getRawMetric(DB_CACHE_WRITE_RATIO_NAME).setValue((Number) metricCollector.collectMetrics(DB_CACHE_WRITE_RATIO_NAME));
