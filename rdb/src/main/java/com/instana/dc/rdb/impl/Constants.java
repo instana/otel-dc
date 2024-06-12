@@ -24,7 +24,6 @@ public class Constants {
     public static final String TASK_WAIT_COUNT_SCRIPT = "task_wait_count.sh";
     public static final String TOTAL_SESSION_COUNT_SCRIPT = "session_count.sh";
     public static final String ACTIVE_SESSION_COUNT_SCRIPT = "active_session_count.sh";
-
     public static final String OVERFLOW_LOCK_COUNT_SCRIPT = "overflow_lock_count.sh";
     public static final String OVERFLOW_USER_COUNT_SCRIPT = "overflow_user_count.sh";
     public static final String OVERFLOW_TRANSACTION_COUNT_SCRIPT = "overflow_transaction_count.sh";
