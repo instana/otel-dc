@@ -156,19 +156,19 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TASK_WAIT_COUNT_NAME,
                 new MetricDataConfig(DB_TASK_WAIT_COUNT_NAME, TASK_WAIT_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_WAITS_NAME,
-                new MetricDataConfig(DB_LOCK_WAITS_NAME,LOCK_WAITS_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_LOCK_WAITS_NAME, LOCK_WAITS_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_READ_RATIO_NAME,
-                new MetricDataConfig(DB_CACHE_READ_RATIO_NAME,CACHE_READ_RATIO_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_CACHE_READ_RATIO_NAME, CACHE_READ_RATIO_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,
-                new MetricDataConfig(DB_CACHE_WRITE_RATIO_NAME,CACHE_WRITE_RATIO_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_CACHE_WRITE_RATIO_NAME, CACHE_WRITE_RATIO_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LRU_WRITES_NAME,
-                new MetricDataConfig(DB_LRU_WRITES_NAME,LRU_WRITES_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_LRU_WRITES_NAME, LRU_WRITES_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,
-                new MetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME,OVERFLOW_LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_LOCK_TABLE_OVERFLOW_NAME, OVERFLOW_LOCK_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,
-                new MetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME,OVERFLOW_TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_TRANSACTION_OVERFLOW_NAME, OVERFLOW_TRANSACTION_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_USER_OVERFLOW_NAME,
-                new MetricDataConfig(DB_USER_OVERFLOW_NAME,OVERFLOW_USER_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
+                new MetricDataConfig(DB_USER_OVERFLOW_NAME, OVERFLOW_USER_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
 
 
     }
