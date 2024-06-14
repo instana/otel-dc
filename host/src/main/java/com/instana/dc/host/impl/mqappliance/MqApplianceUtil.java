@@ -13,22 +13,19 @@ import java.util.logging.Logger;
 public class MqApplianceUtil {
     private static final Logger logger = Logger.getLogger(MqApplianceUtil.class.getName());
 
-    public static List<SimpleQueryResult> getApplianceCpuUsageResults(Long cpuUsage) {
+    public static List<SimpleQueryResult> getApplianceCpuUsageResults(long cpuTime, long cpuTimeIdle) {
         List<SimpleQueryResult> results = new ArrayList<SimpleQueryResult>(2);
-        if (cpuUsage != null) {
-            SimpleQueryResult resultUser = new SimpleQueryResult(cpuUsage);
-            resultUser.setKey("user");
-            resultUser.setAttribute("cpu", "cpu");
-            resultUser.setAttribute("state", "user");
-            results.add(resultUser);
-            SimpleQueryResult resultIdle = new SimpleQueryResult(100 - cpuUsage);
-            resultIdle.setKey("idle");
-            resultIdle.setAttribute("cpu", "cpu");
-            resultIdle.setAttribute("state", "idle");
-            results.add(resultIdle);
-            return results;
-        }
-        return null;
+        SimpleQueryResult resultUser = new SimpleQueryResult(cpuTime);
+        resultUser.setKey("user");
+        resultUser.setAttribute("cpu", "cpu");
+        resultUser.setAttribute("state", "user");
+        results.add(resultUser);
+        SimpleQueryResult resultIdle = new SimpleQueryResult(cpuTimeIdle);
+        resultIdle.setKey("idle");
+        resultIdle.setAttribute("cpu", "cpu");
+        resultIdle.setAttribute("state", "idle");
+        results.add(resultIdle);
+        return results;
     }
 
     public static List<SimpleQueryResult> getApplianceMemUsageResults(Long usedMem, Long freeMem) {
