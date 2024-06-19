@@ -56,8 +56,8 @@ public class InformixUtil {
     public static final String DB_DISK_READ_COUNT_SQL = "SELECT VALUE FROM SYSPROFILE WHERE NAME = 'dskreads';";
 
     public  static  final String DB_LOCK_WAITS_SQL = "select value from sysprofile where name = 'lockwts'";
-    public static final String DB_CACHE_READ_RATIO_SQL = "select (1-(sp0.value/sp1.value))*100 as res from sysprofile sp0 left join sysprofile sp1 on sp1.name = 'bufreads' where sp0.name= 'dskreads'";
-    public static final String DB_CACHE_WRITE_RATIO_SQL = "select (1-(sp0.value/sp1.value))*100 as res from sysprofile sp0 left join sysprofile sp1 on sp1.name = 'bufwrites' where sp0.name= 'dskwrites'";
+    public static final String DB_CACHE_READ_RATIO_SQL = "select (1-(dskReadsVal / bufReadsVal)) * 100 as res  from (select  sp0.value as dskReadsVal, (select sp1.value from sysprofile sp1 where sp1.name = 'bufreads') as bufReadsVal from sysprofile sp0  where sp0.name= 'dskreads' )";
+    public static final String DB_CACHE_WRITE_RATIO_SQL = "select (1-(dskWritesVal / bufWritesVal)) * 100 as res  from (select  sp0.value as dskWritesVal, (select sp1.value from sysprofile sp1 where sp1.name = 'bufwrites') as bufWritesVal from sysprofile sp0  where sp0.name= 'dskwrites' )";
     public static final String DB_LRU_WRITES_SQL = "select value from sysprofile where name = 'lruwrites'";
 
     public static String decodePassword(String encodedPwd) {
