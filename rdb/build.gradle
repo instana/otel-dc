@@ -31,6 +31,7 @@ dependencies {
     implementation("com.ibm.informix:jdbc:4.50.10")
     implementation("mysql:mysql-connector-java:5.1.46")
     implementation(files("libs/DmJdbcDriver18.jar"))
+    implementation(files("libs/vault-0.0.1.jar"))
 }
 
 application {

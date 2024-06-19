@@ -1,0 +1,63 @@
+//buildscript {
+//    repositories {
+//        mavenCentral()
+//        gradlePluginPortal()
+//    }
+//    dependencies {
+//        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
+//    }
+//}
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = "com.instana.dc"
+version = "0.0.1"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.bettercloud:vault-java-driver:5.1.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+}
+
+//shadowJar {
+//    mergeServiceFiles()
+//
+//    exclude 'org/**'
+//    exclude 'com/fasterxml/**'
+//}
+
+//task testJar(type: ShadowJar) {
+//    archiveClassifier.set("tests")
+//    from sourceSets.test.output
+//    configurations = [project.configurations.testImplementation]
+//}
+
+//tasks.named('jar') {
+//    manifest {
+//        attributes('Implementation-Title': project.name,
+//                'Implementation-Version': project.version)
+//    }
+//}
+
+
+
+//
+//publishing {
+//    publications {
+//        maven(MavenPublication) {
+//            from components.java
+//        }
+//    }
+//}
+
+
+
+
