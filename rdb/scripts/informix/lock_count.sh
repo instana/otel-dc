@@ -5,9 +5,9 @@
 result=$(cd $1 &&
   export INFORMIXDIR=$2 &&
   export ONCONFIG=$3 &&
-  export INFO RMIXSERVER=$4 &&
+  export INFORMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
-  ./onstat -k  |  head -n 14| tail -n 1|awk '{print $1}')
+  ./onstat -k  | awk '{a[NR]=$0} END{print a[NR-1]}' |awk '{print $1}')
 
 echo $result

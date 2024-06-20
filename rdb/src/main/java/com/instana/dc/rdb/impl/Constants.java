@@ -24,6 +24,13 @@ public class Constants {
     public static final String TASK_WAIT_COUNT_SCRIPT = "task_wait_count.sh";
     public static final String TOTAL_SESSION_COUNT_SCRIPT = "session_count.sh";
     public static final String ACTIVE_SESSION_COUNT_SCRIPT = "active_session_count.sh";
+    public static final String OVERFLOW_LOCK_COUNT_SCRIPT = "overflow_lock_count.sh";
+    public static final String OVERFLOW_USER_COUNT_SCRIPT = "overflow_user_count.sh";
+    public static final String OVERFLOW_TRANSACTION_COUNT_SCRIPT = "overflow_transaction_count.sh";
+    public static final String CACHE_READ_RATIO_SCRIPT = "cache_read_ratio.sh";
+    public static final String CACHE_WRITE_RATIO_SCRIPT = "cache_write_ratio.sh";
+    public static final String LOCK_WAITS_SCRIPT = "lock_waits.sh";
+    public static final String LRU_WRITES_SCRIPT = "lru_writes.sh";
 
     private Constants() {
         //Private constructor

@@ -209,7 +209,21 @@ public class DbDcUtil {
     public static final String DB_SEQ_SCAN_TABLE_DESC = "Number of tables which is having sequential scan.";
     public static final String DB_SEQ_SCAN_TABLE_UNIT = "{tableScan}";
 
+    public static final String DB_LOCK_WAITS_NAME = DB_LOCK_WAITS.getKey();
+    public static final String DB_LOCK_WAITS_DESC = "Number of threads waiting for lock.";
+    public static final String DB_LOCK_WAITS_UNIT = "{lockWaits}";
 
+    public static final String DB_CACHE_READ_RATIO_NAME = DB_CACHE_READ_RATIO.getKey();
+    public static final String DB_CACHE_READ_RATIO_DESC = "Percentage of page reads for this buffer pool that were satisfied by a cached page image";
+    public static final String DB_CACHE_READ_RATIO_UNIT = "1";
+
+    public static final String DB_CACHE_WRITE_RATIO_NAME = DB_CACHE_WRITE_RATIO.getKey();
+    public static final String DB_CACHE_WRITE_RATIO_DESC = "Percentage of page Writes for this buffer pool that were satisfied by a cached page image";
+    public static final String DB_CACHE_WRITE_RATIO_UNIT = "1";
+
+    public static final String DB_LRU_WRITES_NAME = DB_LRU_WRITES.getKey();
+    public static final String DB_LRU_WRITES_DESC = "Number of LRU (Least Recently Used) Writes.";
+    public static final String DB_LRU_WRITES_UNIT = "{lruWrites}";
 
     /* Utilities:
      **/
