@@ -26,7 +26,7 @@ public class VaultServiceConfig {
     private Integer kvVersion;
 
     @JsonProperty(value = "path_to_pem_file", required = false)
-    private Optional<String> pathToPemFile;
+    private String pathToPemFile;
 
     public String getConnectionURL() {
         return connectionURL;
@@ -44,11 +44,11 @@ public class VaultServiceConfig {
         return secretRefreshRate;
     }
 
-    public String getPathToPEMFile() {
-        return pathToPemFile.orElse("");
+    public Optional<String> getPathToPEMFile() {
+        return Optional.ofNullable(pathToPemFile);
     }
 
     public boolean isPathToPEMFilePresent() {
-        return pathToPemFile.isPresent();
+        return pathToPemFile != null && !pathToPemFile.isEmpty();
     }
 }

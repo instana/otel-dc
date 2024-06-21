@@ -34,7 +34,7 @@ public class VaultClient {
             final VaultConfig vaultConfig = new VaultConfig().address(vaultServiceConfig.getConnectionURL());
 
             if (vaultServiceConfig.getConnectionURL().startsWith(Constant.HTTPS) && vaultServiceConfig.isPathToPEMFilePresent()) {
-                SslConfig sslConfig = new SslConfig().pemFile(new File(vaultServiceConfig.getPathToPEMFile())).build();
+                SslConfig sslConfig = new SslConfig().pemFile(new File(vaultServiceConfig.getPathToPEMFile().get())).build();
                 vaultConfig.sslConfig(sslConfig);
                 LOGGER.info("SSL for Vault is set");
             }

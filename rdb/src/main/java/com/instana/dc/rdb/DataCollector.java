@@ -25,7 +25,7 @@ public class DataCollector {
 
     private static final Logger logger = Logger.getLogger(DataCollector.class.getName());
 
-    private final DcConfig dcConfig;
+    private DcConfig dcConfig;
 
     private final List<IDc> dcs;
 
@@ -77,62 +77,5 @@ public class DataCollector {
             i++;
         }
     }
-
-    //TODO: Test and Validate and remove
-//    static class DcConfig {
-//        @JsonProperty("db.system")
-//        private String dbSystem;
-//        @JsonProperty("db.driver")
-//        private String dbDriver;
-//        private final List<Map<String, Object>> instances = new ArrayList<>();
-//
-//        public String getDbSystem() {
-//            return dbSystem;
-//        }
-//
-//        public String getDbDriver() {
-//            return dbDriver;
-//        }
-//
-//        public List<Map<String, Object>> getInstances() {
-//            return instances;
-//        }
-//
-//        public void setDbSystem(String dbSystem) {
-//            this.dbSystem = dbSystem;
-//        }
-//
-//        public void setDbDriver(String dbDriver) {
-//            this.dbDriver = dbDriver;
-//        }
-//    }
-//
-//    static class CustomDcConfig {
-//        @JsonProperty("db.system")
-//        private String dbSystem;
-//        @JsonProperty("db.driver")
-//        private String dbDriver;
-//        private final List<Map<String, Object>> instances = new ArrayList<>();
-//
-//        public String getDbSystem() {
-//            return dbSystem;
-//        }
-//
-//        public String getDbDriver() {
-//            return dbDriver;
-//        }
-//
-//        public List<Map<String, Object>> getInstances() {
-//            return instances;
-//        }
-//
-//        public void setDbSystem(String dbSystem) {
-//            this.dbSystem = dbSystem;
-//        }
-//
-//        public void setDbDriver(String dbDriver) {
-//            this.dbDriver = dbDriver;
-//        }
-//    }
 
 }

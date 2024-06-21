@@ -1,12 +1,3 @@
-//buildscript {
-//    repositories {
-//        mavenCentral()
-//        gradlePluginPortal()
-//    }
-//    dependencies {
-//        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
-//    }
-//}
 
 plugins {
     id 'java-library'
@@ -24,39 +15,14 @@ repositories {
 dependencies {
     implementation("com.bettercloud:vault-java-driver:5.1.0")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
 }
 
-//shadowJar {
-//    mergeServiceFiles()
-//
-//    exclude 'org/**'
-//    exclude 'com/fasterxml/**'
-//}
+shadowJar {
+    archiveBaseName.set('fat=jar')
+    archiveVersion.set('1.0.0')
+    archiveClassifier.set('')
+}
 
-//task testJar(type: ShadowJar) {
-//    archiveClassifier.set("tests")
-//    from sourceSets.test.output
-//    configurations = [project.configurations.testImplementation]
-//}
-
-//tasks.named('jar') {
-//    manifest {
-//        attributes('Implementation-Title': project.name,
-//                'Implementation-Version': project.version)
-//    }
-//}
-
-
-
-//
-//publishing {
-//    publications {
-//        maven(MavenPublication) {
-//            from components.java
-//        }
-//    }
-//}
 
 
 

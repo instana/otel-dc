@@ -34,12 +34,11 @@ public class VaultConfig {
     private static String fetchSecret(Map<String, Object> vaultSecrets, VaultServiceConfig config) throws VaultException {
         String key = (String) vaultSecrets.get(Constant.VAULT_SECRET_KEY);
         String path = (String) vaultSecrets.get(Constant.VAULT_SECRET_PATH);
-        vaultClient = VaultClient.createVaultClient(config);
         String secret = read(path, key);
         if (null == secret || secret.isEmpty()) {
             throw new VaultSecretException("Retrieved secret was empty");
         }
-        LOGGER.log(Level.INFO, "Fetched secret from vault successfully path: {}", path);
+        LOGGER.log(Level.INFO, "Fetched secret from vault successfully path: " + path);
         return secret;
     }
 
