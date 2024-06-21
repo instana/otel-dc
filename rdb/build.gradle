@@ -30,6 +30,7 @@ dependencies {
     implementation("com.ibm.informix:jdbc:4.50.10")
     implementation("mysql:mysql-connector-java:5.1.46")
     implementation(files("libs/DmJdbcDriver18.jar"))
+    implementation(files("libs/fat=jar-1.0.0.jar"))
 }
 
 application {
