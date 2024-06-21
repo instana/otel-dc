@@ -18,7 +18,7 @@ dependencies {
 }
 
 shadowJar {
-    archiveBaseName.set('fat=jar')
+    archiveBaseName.set('vault')
     archiveVersion.set('1.0.0')
     archiveClassifier.set('')
 }

@@ -1,6 +1,6 @@
-## Using Vault(Initial documentaion, will refine and add more detail...)
+## Integrate Vault for the data collector(s)
 
-To use vault in any module, define the config class as per the yaml, keeping some basic structure intact:
+To use vault in any data collector module, define the config class as per the yaml, keeping some basic structure intact:
 	
   - Have all the instance credentials under the key "instances" and ensure that the key where the secret is to be added come before any other nested key.
   - Add the vault configuration in the yaml with the key "vault" and authType as shown in the example:
@@ -45,8 +45,10 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;  
   
 public class TestConfig implements VaultImplementation {  
+
     @JsonProperty("db.system")  
     private String dbSystem;  
+    
     @JsonProperty("db.driver")  
     private String dbDriver;  
     
@@ -98,9 +100,15 @@ public class TestConfig implements VaultImplementation {
         dcConfig = VaultExecute.executeVault(dcConfig);
 ```
 
-### Building the module.(using fat jar)
-To build the project and have a fat jar instead of a regular jar so the dependencies can come along in a single jar file, use the below command:
+### Building the module
+Building the project will generate a shadow jar with the required dependencies, which can be used as the dependency in the respective Data Collector module.
+
+To Build use the below command:
 
 ```
 ./gradlew shadowJar
 ```
+
+### Add dependency
+Once you have the jar handy, you can place it under the lib folder (sample path: `otel-dc/rdb/libs/vault-1.0.0.jar`) 
+and add the dependency in your `build.gradle` file like this `implementation(files("libs/vault-1.0.0.jar"))`
