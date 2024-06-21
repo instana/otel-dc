@@ -98,3 +98,9 @@ public class TestConfig implements VaultImplementation {
         dcConfig = VaultExecute.executeVault(dcConfig);
 ```
 
+### Building the module.(using fat jar)
+To build the project and have a fat jar instead of a regular jar so the dependencies can come along in a single jar file, use the below command:
+
+```
+./gradlew shadowJar
+```
