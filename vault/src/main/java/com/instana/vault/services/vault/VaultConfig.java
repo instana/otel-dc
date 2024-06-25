@@ -15,6 +15,7 @@ import com.instana.vault.services.vault.util.Constant;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Base64;
 
 public class VaultConfig {
 
