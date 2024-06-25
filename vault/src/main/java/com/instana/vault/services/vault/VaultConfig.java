@@ -39,7 +39,7 @@ public class VaultConfig {
             throw new VaultSecretException("Retrieved secret was empty");
         }
         LOGGER.log(Level.INFO, "Fetched secret from vault successfully path: " + path);
-        return secret;
+        return Base64.getEncoder().encodeToString(secret.getBytes());
     }
 
     @SuppressWarnings("unchecked")
@@ -50,6 +50,7 @@ public class VaultConfig {
                     Map<String, Object> vaultSecrets = (Map<String, Object>) prop.getValue();
                     for (Map.Entry<String, Object> secret : vaultSecrets.entrySet()) {
                         if (secret.getKey().contains(Constant.VAULT_SECRET)) {
+                            LOGGER.log(Level.INFO, "Updating the secret for instance with address: " + instance.get("db.address"));
                             instance.put(prop.getKey(), fetchSecret(vaultSecrets, config.getVaultServiceConfig()));
                             break;
                         }
