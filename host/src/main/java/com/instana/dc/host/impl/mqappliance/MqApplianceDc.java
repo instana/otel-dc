@@ -5,8 +5,6 @@
 package com.instana.dc.host.impl.mqappliance;
 
 import com.instana.dc.host.AbstractHostDc;
-import com.instana.dc.host.HostDcUtil;
-import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
@@ -21,6 +19,7 @@ import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.mergeResourceAttributesFromEnv;
 import static com.instana.dc.host.HostDcUtil.*;
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 public class MqApplianceDc extends AbstractHostDc {
     private static final Logger logger = Logger.getLogger(MqApplianceDc.class.getName());
@@ -31,6 +30,9 @@ public class MqApplianceDc extends AbstractHostDc {
 
     private Process process;
     protected BufferedReader bufferedReader;
+
+    private long cpuTime = 0;
+    private long cpuTimeIdle = 0;
 
     public MqApplianceDc(Map<String, Object> properties, String applianceSystem) {
         super(properties, applianceSystem);
@@ -59,6 +61,7 @@ public class MqApplianceDc extends AbstractHostDc {
             exec.shutdownNow();
         }
     }
+
     @Override
     public void start() {
         try {
@@ -77,21 +80,14 @@ public class MqApplianceDc extends AbstractHostDc {
         return applianceHost;
     }
 
-    public String getApplianceId() {
-        try {
-            return HostDcUtil.readFileText("/etc/machine-id");
-        } catch (IOException e) {
-            return "UnknownID";
-        }
-    }
-
     @Override
     public Resource getResourceAttributes() {
         String applianceName = getHostName();
 
         Resource resource = Resource.getDefault().merge(Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, getServiceName(), ResourceAttributes.SERVICE_INSTANCE_ID, applianceName)));
 
-        resource = resource.merge(Resource.create(Attributes.of(ResourceAttributes.HOST_NAME, applianceName, ResourceAttributes.OS_TYPE, "MQ Appliance", ResourceAttributes.HOST_ID, getApplianceId())));
+        resource = resource.merge(Resource.create(Attributes.of(ResourceAttributes.HOST_NAME, applianceName, ResourceAttributes.OS_TYPE, "MQ Appliance", ResourceAttributes.HOST_ID, applianceName)))
+                .merge(Resource.create(Attributes.of(stringKey("INSTANA_PLUGIN"), "host")));
 
         return mergeResourceAttributesFromEnv(resource);
     }
@@ -107,7 +103,19 @@ public class MqApplianceDc extends AbstractHostDc {
                 if (tokens.length >= 7) {
                     String[] systemMetricsTokens = tokens[0].split(":");
                     if (systemMetricsTokens.length == 6) {
-                        getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getApplianceCpuUsageResults(Double.parseDouble(systemMetricsTokens[0])));
+                        long cpuUsage = Long.parseLong(systemMetricsTokens[0]);
+                        if (cpuUsage >= 0) {
+                            long cpuTime1 = cpuTime + cpuUsage;
+                            long cpuTimeIdle1 = cpuTimeIdle + (100 - cpuUsage);
+                            if (cpuTime1 >= 0 && cpuTimeIdle1 >= 0) {
+                                cpuTime = cpuTime1;
+                                cpuTimeIdle = cpuTimeIdle1;
+                            } else { //Reset
+                                cpuTime = 0;
+                                cpuTimeIdle = 0;
+                            }
+                            getRawMetric(SYSTEM_CPU_TIME_NAME).setValue(MqApplianceUtil.getApplianceCpuUsageResults(cpuTime, cpuTimeIdle));
+                        }
                         getRawMetric(SYSTEM_CPU_LOAD1_NAME).setValue(Double.parseDouble(systemMetricsTokens[1]));
                         getRawMetric(SYSTEM_CPU_LOAD5_NAME).setValue(Double.parseDouble(systemMetricsTokens[2]));
                         getRawMetric(SYSTEM_CPU_LOAD15_NAME).setValue(Double.parseDouble(systemMetricsTokens[3]));
