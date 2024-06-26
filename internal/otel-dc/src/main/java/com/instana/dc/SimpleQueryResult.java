@@ -24,8 +24,9 @@ public class SimpleQueryResult {
         return key;
     }
 
-    public void setKey(String key) {
+    public SimpleQueryResult setKey(String key) {
         this.key = key;
+        return this;
     }
 
     public Map<String, Object> getAttributes() {

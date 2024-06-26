@@ -92,10 +92,11 @@ public class SimpHostUtil {
         }
     }
 
+    private static Pattern cpuPattern = Pattern.compile("\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)");
+
     public static CpuTime getCpuTime() throws IOException {
         String line = HostDcUtil.readFileTextLine("/proc/stat");
-        Pattern pattern = Pattern.compile("\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)");
-        Matcher m = pattern.matcher(line);
+         Matcher m = cpuPattern.matcher(line);
 
         CpuTime cpuTime = new CpuTime();
         if (m.find()) {
@@ -135,13 +136,13 @@ public class SimpHostUtil {
         interrupt.setKey("interrupt");
         softirq.setKey("softirq");
 
-        user.setAttribute("cpu", "cpu");
-        nice.setAttribute("cpu", "cpu");
-        system.setAttribute("cpu", "cpu");
-        idle.setAttribute("cpu", "cpu");
-        wait.setAttribute("cpu", "cpu");
-        interrupt.setAttribute("cpu", "cpu");
-        softirq.setAttribute("cpu", "cpu");
+        user.setAttribute("cpu", "cpu0");
+        nice.setAttribute("cpu", "cpu0");
+        system.setAttribute("cpu", "cpu0");
+        idle.setAttribute("cpu", "cpu0");
+        wait.setAttribute("cpu", "cpu0");
+        interrupt.setAttribute("cpu", "cpu0");
+        softirq.setAttribute("cpu", "cpu0");
 
         user.setAttribute("state", "user");
         nice.setAttribute("state", "nice");
