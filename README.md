@@ -15,7 +15,7 @@ ODCD (OpenTelemetry based Data Collector for Telemetry Data) is a collection of 
 
 ## 
 ### Requirements
-- Data Collectors for Host **Java 8+**
+- Data Collectors for Host **Java 11+**
 - Data Collectors for Databases **Java 8+**
 - Data Collectors for LLM **Java 11+**
 

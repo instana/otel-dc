@@ -4,10 +4,10 @@
  */
 package com.instana.dc.host;
 
-import com.instana.dc.host.AbstractHostDc;
 import com.instana.dc.DcException;
 import com.instana.dc.host.impl.simphost.SimpHostDc;
 import com.instana.dc.host.impl.mqappliance.MqApplianceDc;
+import com.instana.dc.host.impl.snmphost.SnmpHostDc;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +18,7 @@ public class HostDcRegistry {
     private final Map<String, Class<? extends AbstractHostDc>> map = new HashMap<String, Class<? extends AbstractHostDc>>() {{
         put("SIMP_HOST", SimpHostDc.class);
         put("MQ_APPLIANCE", MqApplianceDc.class);
+        put("SNMP_HOST", SnmpHostDc.class);
     }};
 
     public Class<? extends AbstractHostDc> findHostDc(String hostSystem) throws DcException {

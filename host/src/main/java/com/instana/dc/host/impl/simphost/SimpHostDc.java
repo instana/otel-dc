@@ -4,6 +4,7 @@
  */
 package com.instana.dc.host.impl.simphost;
 
+import com.instana.dc.DcUtil;
 import com.instana.dc.host.AbstractHostDc;
 import com.instana.dc.host.HostDcUtil;
 import io.opentelemetry.api.common.Attributes;
@@ -15,10 +16,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.mergeResourceAttributesFromEnv;
 import static com.instana.dc.host.HostDcUtil.*;
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 public class SimpHostDc extends AbstractHostDc {
     private static final Logger logger = Logger.getLogger(SimpHostDc.class.getName());
@@ -56,7 +59,8 @@ public class SimpHostDc extends AbstractHostDc {
         resource = resource.merge(
                 Resource.create(Attributes.of(ResourceAttributes.HOST_NAME, hostName,
                         ResourceAttributes.OS_TYPE, "linux",
-                        ResourceAttributes.HOST_ID, getHostId()
+                        ResourceAttributes.HOST_ID, getHostId(),
+                        stringKey(DcUtil.INSTANA_PLUGIN), "host"
                 ))
         );
 
@@ -76,7 +80,7 @@ public class SimpHostDc extends AbstractHostDc {
             getRawMetric(SYSTEM_CPU_LOAD5_NAME).setValue(loads.get(1));
             getRawMetric(SYSTEM_CPU_LOAD15_NAME).setValue(loads.get(2));
         } catch (Exception e) {
-            logger.severe("Cannot record loads: " + e.getMessage());
+            logger.log(Level.SEVERE, "Cannot record loads", e);
         }
     }
 }

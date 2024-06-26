@@ -1,8 +1,11 @@
-host.system: simp_host
+host.system: snmp_host
 
 instances:
-  - poll.interval: 30
-    callback.interval: 20
+  - snmp.host: udp:9.112.252.102/161
+    poll.interval: 25
+    callback.interval: 30
     otel.backend.url: http://127.0.0.1:4317
     #otel.backend.using.http: true
-    #otel.backend.url: http://127.0.0.1:4318/v1/metrics
+    #otel.backend.url: http://9.112.252.66:4318/v1/metrics
+    host.name: stantest0.fyre.ibm.com
+    #os.type: linux

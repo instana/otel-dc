@@ -30,6 +30,8 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
     private final String serviceName;
     public final static String INSTRUMENTATION_SCOPE_PREFIX = "otelcol/hostmetricsreceiver/";
 
+    public final static String DEFAULT_SERVICE_NAME = "otel-host";
+
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
     public ScheduledExecutorService getExec() {
@@ -42,7 +44,7 @@ public abstract class AbstractHostDc extends AbstractDc implements IDc {
         callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
         otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
-        serviceName = (String) properties.get(OTEL_SERVICE_NAME);
+        serviceName = (String) properties.getOrDefault(OTEL_SERVICE_NAME, DEFAULT_SERVICE_NAME);
     }
 
     public String getServiceName() {
