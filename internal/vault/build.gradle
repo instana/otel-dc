@@ -1,0 +1,36 @@
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = "com.instana.dc"
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.bettercloud:vault-java-driver:5.1.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
+}
+
+shadowJar {
+    archiveBaseName.set('vault')
+    archiveVersion.set('1.0.0')
+    archiveClassifier.set('')
+}
+
+publishing {
+    publications {
+        maven(org.gradle.api.publish.maven.MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+
+
+
