@@ -4,12 +4,11 @@
  */
 package com.instana.simpsnmp;
 
-import org.snmp4j.CommunityTarget;
-import org.snmp4j.PDU;
-import org.snmp4j.Snmp;
-import org.snmp4j.TransportMapping;
+import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
+import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.DefaultPDUFactory;
@@ -26,61 +25,51 @@ import java.util.stream.Collectors;
  */
 public class SimpSnmp implements Closeable {
     private final String endpoint;
-    private final String community;
-    private final int retries;
-    private final int timeout;
-    private final int version;
 
-    private final CommunityTarget<Address> myTarget;
+    private final Target<Address> myTarget;
     private final TransportMapping<UdpAddress> transport;
     private final Snmp protocol;
 
-    public SimpSnmp(String endpoint, String community, Integer retries, Integer timeout, Integer version) throws IOException {
-        this.endpoint = endpoint;
-        this.community = community != null ? community : "public";
-        this.retries = retries != null ? retries : 3;
-        this.timeout = timeout != null ? timeout : 600;
-        this.version = version != null ? version : SnmpConstants.version2c;
+    private final SnmpOption option;
 
-        myTarget = new CommunityTarget<>();
+    public SimpSnmp(String endpoint, SnmpOption option) throws IOException {
+        this.endpoint = endpoint;
+        this.option = option;
+        if (option.getVersion() == SnmpConstants.version3) {
+            String securityName = "MD5DES";
+            if (option.getSecurityLevel() != SecurityLevel.NOAUTH_NOPRIV) {
+                USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
+                SecurityModels.getInstance().addSecurityModel(usm);
+                usm.addUser(new UsmUser(
+                        new OctetString(securityName), AuthMD5.ID,
+                        new OctetString(option.getAuthPassword()), PrivDES.ID,
+                        new OctetString(option.getPrivacyPassword())));
+            }
+            myTarget = new UserTarget<>();
+            ((UserTarget<?>) myTarget).setSecurityLevel(option.getSecurityLevel());
+            ((UserTarget<?>) myTarget).setSecurityName(new OctetString(securityName));
+        } else {
+            myTarget = new CommunityTarget<>();
+            ((CommunityTarget<?>) myTarget).setCommunity(new OctetString(option.getCommunity()));
+        }
+
         Address deviceAdd = GenericAddress.parse(this.endpoint);
         myTarget.setAddress(deviceAdd);
-        myTarget.setCommunity(new OctetString(this.community));
-        myTarget.setRetries(this.retries);
-        myTarget.setTimeout(this.timeout);
-        myTarget.setVersion(this.version);
+        myTarget.setRetries(option.getRetries());
+        myTarget.setTimeout(option.getTimeout());
+        myTarget.setVersion(option.getVersion());
 
         transport = new DefaultUdpTransportMapping();
         transport.listen();
         protocol = new Snmp(transport);
     }
 
-    public SimpSnmp(String endpoint, String community) throws IOException {
-        this(endpoint, community, null, null, null);
-    }
-
     public SimpSnmp(String endpoint) throws IOException {
-        this(endpoint, null, null, null, null);
+        this(endpoint, new SnmpOption());
     }
 
     public String getEndpoint() {
         return endpoint;
-    }
-
-    public String getCommunity() {
-        return community;
-    }
-
-    public int getRetries() {
-        return retries;
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public int getVersion() {
-        return version;
     }
 
     public TransportMapping<UdpAddress> getTransport() {
@@ -89,6 +78,10 @@ public class SimpSnmp implements Closeable {
 
     public Snmp getProtocol() {
         return protocol;
+    }
+
+    public SnmpOption getOption() {
+        return option;
     }
 
     public void close() throws IOException {
