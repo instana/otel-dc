@@ -8,6 +8,6 @@ result=$(cd $1 &&
   export INFORMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
-  ./onstat -p | awk 'NR==7 {print $1}')
+  ./onstat -p | awk 'NR==6 {print $1}')
 
 echo $result

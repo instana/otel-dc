@@ -8,6 +8,6 @@ result=$(cd $1 &&
   export INFO RMIXSERVER=$4 &&
   export PATH=$INFORMIXDIR/bin:$PATH &&
   export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/$5 &&
-  ./onstat -T | grep 'instana' |awk '{print $7}' | awk '{sum+=$0;}END{print sum;}')
+  ./onstat -T | grep 'sysmaster' |awk '{print $7}' | awk '{sum+=$0;}END{print sum;}')
 
 echo $result
