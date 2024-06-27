@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.instana.dc"
-version = "0.1.6"
+version = "0.2.0"
 
 repositories {
     mavenCentral()
@@ -22,7 +22,7 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
     implementation("org.snmp4j:snmp4j-agent:3.8.1")
     implementation(files("libs/otel-dc-0.9.9.jar"))
-    implementation(files("libs/simp-snmp-0.1.0.jar"))
+    implementation(files("libs/simp-snmp-0.1.1.jar"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")

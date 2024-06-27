@@ -8,10 +8,13 @@ import com.instana.dc.DcUtil;
 import com.instana.dc.SimpleQueryResult;
 import com.instana.dc.host.AbstractHostDc;
 import com.instana.simpsnmp.SimpSnmp;
+import com.instana.simpsnmp.SnmpOption;
 import com.instana.simpsnmp.SnmpValue;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
+import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.OID;
 
 import java.io.IOException;
@@ -35,7 +38,15 @@ public class SnmpHostDc extends AbstractHostDc {
     public SnmpHostDc(Map<String, Object> properties, String hostSystem) throws IOException {
         super(properties, hostSystem);
         String snmpHost = (String) properties.getOrDefault(SnmpHostUtil.SNMP_HOST, "udp:127.0.0.1/161");
-        simpSnmp = new SimpSnmp(snmpHost);
+        SnmpOption option = new SnmpOption();
+        option.setCommunity((String) properties.getOrDefault("community", "public"));
+        option.setRetries((Integer) properties.getOrDefault("retries", 3));
+        option.setTimeout((Integer) properties.getOrDefault("timeout", 450));
+        option.setVersion((Integer) properties.getOrDefault("version", SnmpConstants.version2c)); //1
+        option.setSecurityLevel((Integer) properties.getOrDefault("securityLevel", SecurityLevel.NOAUTH_NOPRIV)); //1
+        option.setAuthPassword((String) properties.get("authPassword"));
+        option.setPrivacyPassword((String) properties.get("privacyPassword"));
+        simpSnmp = new SimpSnmp(snmpHost, option);
 
         Map<OID, SnmpValue> result = simpSnmp.queryScalarOids(Oid.HOST_NAME, Oid.OS_TYPE);
         String hostName0 = SnmpValue.getString(result, Oid.HOST_NAME, null);
@@ -50,6 +61,7 @@ public class SnmpHostDc extends AbstractHostDc {
         }
         return osType0.split(" ")[0].toLowerCase();
     }
+
 
     @Override
     public Resource getResourceAttributes() {
