@@ -230,7 +230,7 @@ public class InformixDc extends AbstractDbDc {
     @SuppressWarnings("unchecked")
     private void parseCustomAttributes(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
-        int sequentialScanCount = (Integer)customInput.getOrDefault("db.sequential.scan.count", 3);
+        int sequentialScanCount = (Integer)customInput.getOrDefault("db.sequential.scan.count", 0);
         long elapsedTimeFrame = Long.parseLong((customInput.getOrDefault("db.sql.elapsed.timeframe", DEFAULT_ELAPSED_TIME)).toString());
         StringBuilder databaseName = new StringBuilder(Constants.SINGLE_QUOTES + getDbName() + Constants.SINGLE_QUOTES);
         sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL, databaseName, sequentialScanCount);
