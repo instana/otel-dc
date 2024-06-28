@@ -22,14 +22,14 @@ public class OnstatCommandExecutorTest {
 
     @Test
     public void shouldExecuteCommand() {
-        assertFalse(onstatCommandExecutor.executeCommand("script.sh").isEmpty());
+        assertTrue(onstatCommandExecutor.executeCommand("script.sh").isPresent());
     }
 
     @Test
     public void shouldExecuteCommandWithException() {
         try (MockedConstruction<ProcessBuilder> processBuilder = Mockito.mockConstruction(ProcessBuilder.class,
                 (mock, context) -> given(mock.start()).willThrow(new IOException()))) {
-            assertTrue(onstatCommandExecutor.executeCommand("script.sh").isEmpty());
+            assertFalse(onstatCommandExecutor.executeCommand("script.sh").isPresent());
         }
 
     }
