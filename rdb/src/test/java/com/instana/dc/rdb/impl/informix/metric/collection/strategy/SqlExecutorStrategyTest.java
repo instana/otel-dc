@@ -1,5 +1,6 @@
 package com.instana.dc.rdb.impl.informix.metric.collection.strategy;
 
+import com.instana.dc.SimpleQueryResult;
 import com.instana.dc.rdb.DbDcUtil;
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricCollectionMode;
 import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
@@ -10,6 +11,7 @@ import org.mockito.MockedStatic;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,10 +48,11 @@ public class SqlExecutorStrategyTest {
         Connection connection = mock(Connection.class);
         given(dataSource.getConnection()).willReturn(connection);
         MetricDataConfig metricDataConfig = new MetricDataConfig(QUERY, MetricCollectionMode.SQL, List.class);
+        SimpleQueryResult simpleQueryResult = new SimpleQueryResult(1);
         try (MockedStatic<DbDcUtil> utilities = mockStatic(DbDcUtil.class)) {
             utilities.when(() -> DbDcUtil.getMetricWithSql(connection, QUERY))
-                    .thenReturn(List.of(1));
-            assertEquals(List.of(1), sqlExecutorStrategy.collectMetrics(metricDataConfig));
+                    .thenReturn(Collections.singletonList(simpleQueryResult));
+            assertEquals(Collections.singletonList(simpleQueryResult), sqlExecutorStrategy.collectMetrics(metricDataConfig));
         }
     }
 }

@@ -9,3 +9,10 @@ instances:
     #otel.backend.url: http://9.112.252.66:4318/v1/metrics
     host.name: stantest0.fyre.ibm.com
     #os.type: linux
+    #community: public
+    #retries: 3
+    #timeout: 450
+    #version: 1
+    #securityLevel: 1
+    #authPassword: aaa
+    #privacyPassword: ppp

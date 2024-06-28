@@ -40,12 +40,6 @@ public class InformixDcTest {
 
     @BeforeAll
     public static void init() throws SQLException {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(DB_PASSWORD, "password");
-        Map<String, Object> customInput = new HashMap<>();
-        customInput.put("db.names", "instana, test");
-        properties.put("custom.input", customInput);
-        properties.put("custom.poll.interval", Map.of("HIGH", 10));
         try (MockedConstruction<BasicDataSource> mockedDataSource = Mockito.mockConstruction(BasicDataSource.class,
                 (mock, context) -> {
                     Connection connection = mock(Connection.class);
@@ -54,13 +48,26 @@ public class InformixDcTest {
                     given(connection.createStatement()).willReturn(statement);
                     given(mock.getConnection()).willReturn(connection);
                 })) {
-            informixDc = new InformixDc(properties, "informix", "com.informix.jdbc.IfxDriver");
+            informixDc = new InformixDc(buildProperties(), "informix", "com.informix.jdbc.IfxDriver");
             Field metricCollector = informixDc.getClass().getDeclaredField("metricCollector");
             metricCollector.setAccessible(true);
             metricCollector.set(informixDc, metricsCollector);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Map<String, Object> buildProperties() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(DB_PASSWORD, "password");
+        Map<String, Object> customInput = new HashMap<>();
+        customInput.put("db.names", "instana, test");
+        customInput.put("db.sequential.scan.count", 1);
+        properties.put("custom.input", customInput);
+        Map<String, Integer> customPollInterval = new HashMap<>();
+        customPollInterval.put("HIGH", 10);
+        properties.put("custom.poll.interval", customPollInterval);
+        return properties;
     }
 
     @Test
@@ -76,7 +83,7 @@ public class InformixDcTest {
     @Test
     public void shouldCollectData() {
         informixDc.collectData();
-        verify(metricsCollector, times(23)).collectMetrics(anyString());
+        verify(metricsCollector, times(32)).collectMetrics(anyString());
     }
 
     private static MeterBuilder buildMeterBuilder() {
