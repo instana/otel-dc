@@ -13,8 +13,7 @@ import java.nio.ByteOrder;
 import java.util.Map;
 
 /**
- *  SNMP value
- *
+ * SNMP value
  */
 public class SnmpValue {
     private final int type;
@@ -28,7 +27,11 @@ public class SnmpValue {
     public static final int TYPE_DOUBLE = 2;
     public static final int TYPE_STRING = 3;
 
+    public static final int STATUS_NORMAL = 0;
+    public static final int STATUS_NOT_FOUND = 1;
+
     private OID oid = null;
+    private int status = STATUS_NORMAL;
 
     public SnmpValue(long longValue) {
         this.type = TYPE_LONG;
@@ -111,12 +114,15 @@ public class SnmpValue {
         }
         String type = v.getSyntaxString();
         SnmpValue snmpValue;
-        if ("Opaque".equals(type)) {
-            snmpValue= new SnmpValue(opaqueHexToFloat(v.toString()));
+        if ("NoSuchObject".equals(type)) {
+            snmpValue = new SnmpValue(v.toString());
+            snmpValue.setStatus(SnmpValue.STATUS_NOT_FOUND);
+        } else if ("Opaque".equals(type)) {
+            snmpValue = new SnmpValue(opaqueHexToFloat(v.toString()));
         } else if ("OCTET STRING".equals(type)) {
-            snmpValue= new SnmpValue(v.toString());
+            snmpValue = new SnmpValue(v.toString());
         } else {
-            snmpValue= new SnmpValue(v.toLong());
+            snmpValue = new SnmpValue(v.toLong());
         }
         return snmpValue.setOid(new OID(vb.getOid()));
     }
@@ -143,6 +149,18 @@ public class SnmpValue {
             return result.toLong();
         }
         return defaultValue;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public boolean isNormal(){
+        return this.status == STATUS_NORMAL;
     }
 }
 

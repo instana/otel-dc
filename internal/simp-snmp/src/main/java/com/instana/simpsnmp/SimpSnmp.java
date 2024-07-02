@@ -103,7 +103,7 @@ public class SimpSnmp implements Closeable {
             for (int i = 0; i < response.size(); i++) {
                 VariableBinding vb = response.get(i);
                 SnmpValue snmpValue = SnmpValue.getValue(vb);
-                if (snmpValue != null) {
+                if (snmpValue != null && snmpValue.isNormal()) {
                     result.put(snmpValue.getOid(), snmpValue);
                 }
             }
@@ -139,7 +139,7 @@ public class SimpSnmp implements Closeable {
                     Map<OID, SnmpValue> result1 = new HashMap<>();
                     for (VariableBinding vb : vbs) {
                         SnmpValue snmpValue = SnmpValue.getValue(vb);
-                        if (snmpValue != null) {
+                        if (snmpValue != null && snmpValue.isNormal()) {
                             result1.put(findParentOid(oids, snmpValue.getOid()), snmpValue);
                         }
                     }
