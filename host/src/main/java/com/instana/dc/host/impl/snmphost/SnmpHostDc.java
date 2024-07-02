@@ -141,6 +141,7 @@ public class SnmpHostDc extends AbstractHostDc {
                 Oid.FILESYSTEM_USAGE__ALL, Oid.FILESYSTEM_USAGE__UNIT);
         List<SimpleQueryResult> output = new ArrayList<SimpleQueryResult>();
 
+        int no = 0;
         for (Map<OID, SnmpValue> result1 : result) {
             String device = SnmpValue.getString(result1, Oid.FILESYSTEMDEVICE, null);
             long unit = SnmpValue.getLong(result1, Oid.FILESYSTEM_USAGE__UNIT, 0L);
@@ -149,13 +150,14 @@ public class SnmpHostDc extends AbstractHostDc {
                 long all = SnmpValue.getLong(result1, Oid.FILESYSTEM_USAGE__ALL, 0L);
                 long free = all - used;
                 output.add(new SimpleQueryResult(used * unit).setKey(device + ":u")
-                        .setAttribute("device", device).setAttribute("mountpoint", device).setAttribute("state", "used")
-                        .setAttribute("mode", "-").setAttribute("type", "ext4")
+                        .setAttribute("device", "dev" + no).setAttribute("mountpoint", device).setAttribute("state", "used")
+                        .setAttribute("mode", "-").setAttribute("type", "xfs")
                 );
                 output.add(new SimpleQueryResult(free * unit).setKey(device + ":f")
-                        .setAttribute("device", device).setAttribute("mountpoint", device).setAttribute("state", "free")
-                        .setAttribute("mode", "-").setAttribute("type", "ext4")
+                        .setAttribute("device", "dev" + no).setAttribute("mountpoint", device).setAttribute("state", "free")
+                        .setAttribute("mode", "-").setAttribute("type", "xfs")
                 );
+                no++;
             }
         }
 
