@@ -49,7 +49,7 @@ public class SimpSnmpTest {
         }
         Map<OID, SnmpValue> result = simpSnmp.queryScalarOids(Oid.HOST_NAME, Oid.OS_TYPE,
                 Oid.CPU_TIME__USER, Oid.CPU_LOAD_1M, Oid.MEMORY_USAGE__TOTAL);
-        assertEquals(result.size(), 5);
+        assertEquals(5, result.size());
         System.out.println("=== testQueryScalarOids ===");
         result.forEach((key, value) -> System.out.println(key + ":" + value));
     }
@@ -61,7 +61,7 @@ public class SimpSnmpTest {
             return;
         }
         List<Map<OID, SnmpValue>> result = simpSnmp.queryColumnOids(Oid.DISKDEVICE, Oid.DISK_IO__READ, Oid.DISK_IO__WRITE);
-        assertNotEquals(result.size(), 0);
+        assertNotEquals(0, result.size());
         System.out.println("=== testQueryColumnOids1 ===");
         for (Map<OID, SnmpValue> result1 : result) {
             System.out.println("------>>");
@@ -77,7 +77,7 @@ public class SimpSnmpTest {
         }
         List<Map<OID, SnmpValue>> result = simpSnmp.queryColumnOids(
                 Oid.FILESYSTEMDEVICE, Oid.FILESYSTEM_USAGE__USED, Oid.FILESYSTEM_USAGE__ALL, Oid.FILESYSTEM_USAGE__UNIT);
-        assertNotEquals(result.size(), 0);
+        assertNotEquals(0, result.size());
         System.out.println("=== testQueryColumnOids2 ===");
         for (Map<OID, SnmpValue> result1 : result) {
             System.out.println("------>>");
@@ -94,7 +94,7 @@ public class SimpSnmpTest {
         List<Map<OID, SnmpValue>> result = simpSnmp.queryColumnOids(Oid.NETWORKDEVICE,
                 Oid.NETWORK_DROPPED_RECEIVE, Oid.NETWORK_DROPPED_TRANSMIT,
                 Oid.NETWORK_ERRORS_RECEIVE, Oid.NETWORK_ERRORS_TRANSMIT);
-        assertNotEquals(result.size(), 0);
+        assertNotEquals(0, result.size());
         System.out.println("=== testQueryColumnOids3 ===");
         for (Map<OID, SnmpValue> result1 : result) {
             System.out.println("------>>");
@@ -111,7 +111,7 @@ public class SimpSnmpTest {
         List<Map<OID, SnmpValue>> result = simpSnmp.queryColumnOids(Oid.NETWORKDEVICE,
                 Oid.NETWORK_IO_RECEIVE, Oid.NETWORK_IO_TRANSMIT,
                 Oid.NETWORK_PACKAGES_RECEIVE, Oid.NETWORK_PACKAGES_TRANSMIT);
-        assertNotEquals(result.size(), 0);
+        assertNotEquals(0, result.size());
         System.out.println("=== testQueryColumnOids4 ===");
         for (Map<OID, SnmpValue> result1 : result) {
             System.out.println("------>>");
