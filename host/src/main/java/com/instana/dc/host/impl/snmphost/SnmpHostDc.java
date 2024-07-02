@@ -141,10 +141,10 @@ public class SnmpHostDc extends AbstractHostDc {
                 Oid.FILESYSTEM_USAGE__ALL, Oid.FILESYSTEM_USAGE__UNIT);
         List<SimpleQueryResult> output = new ArrayList<SimpleQueryResult>();
 
+        int no = 0;
         for (Map<OID, SnmpValue> result1 : result) {
             String device = SnmpValue.getString(result1, Oid.FILESYSTEMDEVICE, null);
             long unit = SnmpValue.getLong(result1, Oid.FILESYSTEM_USAGE__UNIT, 0L);
-            int no = 0;
             if (device != null && unit != 0) {
                 long used = SnmpValue.getLong(result1, Oid.FILESYSTEM_USAGE__USED, 0L);
                 long all = SnmpValue.getLong(result1, Oid.FILESYSTEM_USAGE__ALL, 0L);
