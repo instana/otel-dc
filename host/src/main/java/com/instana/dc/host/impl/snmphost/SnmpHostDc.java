@@ -19,6 +19,7 @@ import org.snmp4j.smi.OID;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -116,7 +117,7 @@ public class SnmpHostDc extends AbstractHostDc {
     private void queryDiskIo() throws IOException {
         List<Map<OID, SnmpValue>> result = simpSnmp.queryColumnOids(
                 Oid.DISKDEVICE, Oid.DISK_IO__READ, Oid.DISK_IO__WRITE);
-        List<SimpleQueryResult> output = new ArrayList<SimpleQueryResult>();
+        List<SimpleQueryResult> output = new ArrayList<>();
 
         for (Map<OID, SnmpValue> result1 : result) {
             String device = SnmpValue.getString(result1, Oid.DISKDEVICE, null);
@@ -139,7 +140,7 @@ public class SnmpHostDc extends AbstractHostDc {
         List<Map<OID, SnmpValue>> result = simpSnmp.queryColumnOids(
                 Oid.FILESYSTEMDEVICE, Oid.FILESYSTEM_USAGE__USED,
                 Oid.FILESYSTEM_USAGE__ALL, Oid.FILESYSTEM_USAGE__UNIT);
-        List<SimpleQueryResult> output = new ArrayList<SimpleQueryResult>();
+        List<SimpleQueryResult> output = new ArrayList<>();
 
         int no = 0;
         for (Map<OID, SnmpValue> result1 : result) {
@@ -169,8 +170,8 @@ public class SnmpHostDc extends AbstractHostDc {
                 Oid.NETWORKDEVICE,
                 Oid.NETWORK_DROPPED_RECEIVE, Oid.NETWORK_DROPPED_TRANSMIT,
                 Oid.NETWORK_ERRORS_RECEIVE, Oid.NETWORK_ERRORS_TRANSMIT);
-        List<SimpleQueryResult> outputD = new ArrayList<SimpleQueryResult>();
-        List<SimpleQueryResult> outputE = new ArrayList<SimpleQueryResult>();
+        List<SimpleQueryResult> outputD = new ArrayList<>();
+        List<SimpleQueryResult> outputE = new ArrayList<>();
 
         for (Map<OID, SnmpValue> result1 : result) {
             String device = SnmpValue.getString(result1, Oid.NETWORKDEVICE, null);
@@ -203,8 +204,8 @@ public class SnmpHostDc extends AbstractHostDc {
                 Oid.NETWORKDEVICE,
                 Oid.NETWORK_IO_RECEIVE, Oid.NETWORK_IO_TRANSMIT,
                 Oid.NETWORK_PACKAGES_RECEIVE, Oid.NETWORK_PACKAGES_TRANSMIT);
-        List<SimpleQueryResult> outputI = new ArrayList<SimpleQueryResult>();
-        List<SimpleQueryResult> outputP = new ArrayList<SimpleQueryResult>();
+        List<SimpleQueryResult> outputI = new ArrayList<>();
+        List<SimpleQueryResult> outputP = new ArrayList<>();
 
         for (Map<OID, SnmpValue> result1 : result) {
             String device = SnmpValue.getString(result1, Oid.NETWORKDEVICE, null);
@@ -232,6 +233,41 @@ public class SnmpHostDc extends AbstractHostDc {
         getRawMetric(SYSTEM_NETWORK_PACKETS_NAME).setValue(outputP);
     }
 
+    private static void createTcpConnResult(List<SimpleQueryResult> output, Map<Long, Long> tcpConns, long key, String name) {
+        Long num = tcpConns.get(key);
+        if (num == null) {
+            num = 0L;
+        }
+        output.add(new SimpleQueryResult(num).setKey(name)
+                .setAttribute("protocol", "tcp").setAttribute("state", name));
+    }
+
+    private void queryTcpConnection() throws IOException {
+        List<Map<OID, SnmpValue>> result = simpSnmp.queryColumnOids(Oid.NETWORK_CONNECTION);
+        List<SimpleQueryResult> output = new ArrayList<>();
+        Map<Long, Long> tcpConns = new HashMap<>();
+        for (Map<OID, SnmpValue> result1 : result) {
+            result1.forEach((oid, snmpValue) -> {
+                tcpConns.merge(snmpValue.toLong(), 1L, Long::sum);
+            });
+        }
+
+        createTcpConnResult(output, tcpConns, 1, "CLOSE");
+        createTcpConnResult(output, tcpConns, 2, "LISTEN");
+        createTcpConnResult(output, tcpConns, 3, "SYN_SENT");
+        createTcpConnResult(output, tcpConns, 4, "SYN_RECV");
+        createTcpConnResult(output, tcpConns, 5, "ESTABLISHED");
+        createTcpConnResult(output, tcpConns, 6, "FIN_WAIT_1");
+        createTcpConnResult(output, tcpConns, 7, "FIN_WAIT_2");
+        createTcpConnResult(output, tcpConns, 8, "CLOSE_WAIT");
+        createTcpConnResult(output, tcpConns, 9, "LAST_ACK");
+        createTcpConnResult(output, tcpConns, 10, "CLOSING");
+        createTcpConnResult(output, tcpConns, 11, "TIME_WAIT");
+        createTcpConnResult(output, tcpConns, 12, "DELETE");
+
+        getRawMetric(SYSTEM_NETWORK_CONNECTIONS_NAME).setValue(output);
+    }
+
     @Override
     public void collectData() {
         logger.info("Start to collect metrics");
@@ -241,6 +277,7 @@ public class SnmpHostDc extends AbstractHostDc {
             queryFileSystemUsage();
             queryNetworkDropped_Error();
             queryNetworkIo_Packets();
+            queryTcpConnection();
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to collectData", e);
         }
