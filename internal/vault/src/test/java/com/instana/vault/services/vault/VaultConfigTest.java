@@ -41,7 +41,6 @@ public class VaultConfigTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        // Use reflection to set the static vaultClient field
         Field vaultClientField = VaultConfig.class.getDeclaredField("vaultClient");
         vaultClientField.setAccessible(true);
         vaultClientField.set(null, vault);
