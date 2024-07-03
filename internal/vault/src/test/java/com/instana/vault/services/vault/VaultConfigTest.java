@@ -9,12 +9,15 @@ import com.bettercloud.vault.api.Logical;
 import com.bettercloud.vault.response.LogicalResponse;
 import com.instana.vault.VaultService;
 import com.instana.vault.VaultServiceConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class VaultConfigTest {
 
@@ -28,13 +31,21 @@ public class VaultConfigTest {
     private Vault vault = mock(Vault.class);
 
     @Mock
-    private VaultClient vaultClient = mock(VaultClient.class);
-
-    @Mock
     private Logical logical = mock(Logical.class);
 
     @Mock
     private LogicalResponse logicalResponse = mock(LogicalResponse.class);
+
+    @Mock
+    private Logger logger;
+
+    @BeforeEach
+    public void setup() throws Exception {
+        // Use reflection to set the static vaultClient field
+        Field vaultClientField = VaultConfig.class.getDeclaredField("vaultClient");
+        vaultClientField.setAccessible(true);
+        vaultClientField.set(null, vault);
+    }
 
     @Test
     void testExecuteStep() throws VaultException {
@@ -74,5 +85,20 @@ public class VaultConfigTest {
         assertNotNull(result);
         assertEquals(secret, result);
     }
+
+    @Test
+    public void testRead_Failure() throws VaultException {
+        String path = "invalid/path";
+        String keyName = "invalidKey";
+        String result = "Not Null";
+
+        when(vault.logical()).thenReturn(logical);
+        when(logical.read(path)).thenThrow(new VaultException("Mocked VaultException"));
+
+        result = VaultConfig.read(path, keyName);
+
+        assertNull(result);
+    }
 }
+
 
