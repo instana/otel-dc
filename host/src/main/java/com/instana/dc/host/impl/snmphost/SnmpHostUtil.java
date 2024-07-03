@@ -58,6 +58,8 @@ public class SnmpHostUtil {
         public static final OID NETWORK_IO_TRANSMIT = new OID(".1.3.6.1.2.1.2.2.1.16");
         public static final OID NETWORK_PACKAGES_RECEIVE = new OID(".1.3.6.1.2.1.2.2.1.11");
         public static final OID NETWORK_PACKAGES_TRANSMIT = new OID(".1.3.6.1.2.1.2.2.1.17");
+
+        public static final OID NETWORK_CONNECTION = new OID(".1.3.6.1.2.1.6.19.1.7");
     }
 
     //Parameters:
