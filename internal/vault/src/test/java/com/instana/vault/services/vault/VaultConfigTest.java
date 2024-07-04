@@ -9,14 +9,16 @@ import com.bettercloud.vault.api.Logical;
 import com.bettercloud.vault.response.LogicalResponse;
 import com.instana.vault.VaultService;
 import com.instana.vault.VaultServiceConfig;
+import com.instana.vault.services.vault.util.Constant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class VaultConfigTest {
@@ -64,6 +66,64 @@ public class VaultConfigTest {
     }
 
     @Test
+    void testFetchSecret() throws Exception {
+        // Arrange
+        Map<String, Object> vaultSecrets = new HashMap<>();
+        vaultSecrets.put(Constant.VAULT_SECRET_KEY, "someKey");
+        vaultSecrets.put(Constant.VAULT_SECRET_PATH, "some/path");
+        String secret = "secret";
+
+        when(vault.logical()).thenReturn(logical);
+        when(logical.read("some/path")).thenReturn(logicalResponse);
+        Map<String, String> responseData = new HashMap<>();
+        responseData.put("someKey", secret);
+        when(logicalResponse.getData()).thenReturn(responseData);
+
+        Method fetchSecretMethod = VaultConfig.class.getDeclaredMethod("fetchSecret", Map.class, VaultServiceConfig.class);
+        fetchSecretMethod.setAccessible(true);
+
+        // Act
+        String result = (String) fetchSecretMethod.invoke(null, vaultSecrets, vaultServiceConfig);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(Base64.getEncoder().encodeToString(secret.getBytes()), result);
+    }
+
+    @Test
+    void testUpdateVaultSecretConfig() throws Exception {
+        // Arrange
+        Map<String, Object> vaultSecrets = new HashMap<>();
+        vaultSecrets.put(Constant.VAULT_SECRET_KEY, "someKey");
+        vaultSecrets.put(Constant.VAULT_SECRET_PATH, "some/path");
+
+        ConcurrentHashMap<String, Object> instance = new ConcurrentHashMap<>();
+        instance.put("someProperty", vaultSecrets);
+        instance.put("db.address", "testAddress");
+
+        List<ConcurrentHashMap<String, Object>> instances = Arrays.asList(instance);
+
+        when(vaultService.getInstances()).thenReturn(instances);
+        when(vaultService.getVaultServiceConfig()).thenReturn(vaultServiceConfig);
+
+        when(vault.logical()).thenReturn(logical);
+        when(logical.read("some/path")).thenReturn(logicalResponse);
+        Map<String, String> responseData = new HashMap<>();
+        responseData.put("someKey", "secret");
+        when(logicalResponse.getData()).thenReturn(responseData);
+
+        Method updateVaultSecretConfigMethod = VaultConfig.class.getDeclaredMethod("updateVaultSecretConfig", VaultService.class);
+        updateVaultSecretConfigMethod.setAccessible(true);
+
+        // Act
+        VaultService result = (VaultService) updateVaultSecretConfigMethod.invoke(null, vaultService);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(Base64.getEncoder().encodeToString("secret".getBytes()), instance.get("someProperty"));
+    }
+
+    @Test
     void testRead_Success() throws VaultException {
         // Arrange
         String path = "some/path";
@@ -78,7 +138,7 @@ public class VaultConfigTest {
         when(logicalResponse.getData()).thenReturn(data);
 
         // Act
-        String result = vault.logical().read(path).getData().get(keyName);
+        String result = VaultConfig.read(path, keyName);
 
         // Assert
         assertNotNull(result);
@@ -89,12 +149,11 @@ public class VaultConfigTest {
     public void testRead_Failure() throws VaultException {
         String path = "invalid/path";
         String keyName = "invalidKey";
-        String result = "Not Null";
 
         when(vault.logical()).thenReturn(logical);
         when(logical.read(path)).thenThrow(new VaultException("Mocked VaultException"));
 
-        result = VaultConfig.read(path, keyName);
+        String result = VaultConfig.read(path, keyName);
 
         assertNull(result);
     }
