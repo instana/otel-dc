@@ -1,22 +1,22 @@
 # ODCD (OpenTelemetry Data Collector for Telemetry Data)
 
-**[Semantic Convention](../docs/semconv)** |
-**[Support](../docs/support/README.md)** |
-**[Changelog](../CHANGELOG.md)** |
-**[Contributing](../CONTRIBUTING.md)** |
-**[License](../LICENSE)**
+**[Semantic Convention](docs/semconv)** |
+**[Support](docs/support/README.md)** |
+**[Changelog](CHANGELOG.md)** |
+**[Contributing](CONTRIBUTING.md)** |
+**[License](LICENSE)**
 
 ---
 ODCD (OpenTelemetry Data Collector for Telemetry Data) is a collection of stanalone OpenTelemetry receivers for databases, systems, and apps. All implementations are based on predefined OpenTelemetry Semantic Conventions. A standard OTLP exporter is provided to forward the data from this "Data Collector" to a Telemetry backend or an OpenTelemetry Collector.
 
 <br><br>
 
-# Data Collector for Hosts
+# Data Collector for Relational Database
 
 
 ## Requirements
 
-- Java 11+
+- Java 8+
 
 Ensure that Java SDK 11+ is installed.
 ```bash
@@ -30,27 +30,26 @@ Download the latest  [Release package](https://github.com/instana/otel-dc/releas
 
 1) Download the installation package:
 ```bash
-wget https://github.com/instana/otel-dc/releases/download/v1.0.1/otel-dc-host-0.2.2.tar
+wget https://github.com/instana/otel-dc/releases/download/v1.0.1/otel-dc-rdb-0.5.4.tar
 ```
 
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-host-0.2.2.tar
-cd otel-dc-host-0.2.2
+tar vxf otel-dc-rdb-0.5.4.tar
+cd otel-dc-rdb-0.5.4
 ```
 
 3) Make sure following configuration files are correct for your environment:
   - config/config.yaml
   - config/logging.properties
 
-Refine configuration file (config/config.yaml) according to your host. Right now we provide Data Collector for following hosts:
-  - SNMP Host
-  - IBM MQ appliance
-  - Simple Linux Host
-
-*Note:* The default configuration file config/config.yaml is for linux host. If you want to monitor an IBM MQ appliance, you can copy config/config-mqappliance.yaml to config/config.yaml, or you can also use environment variable "DC_CONFIG" to specify the configuration file, for example:
+Refine configuration file (config/config.yaml) according to your own database. Right now we provide Data Collector for following databases:
+  - DaMeng database
+  - Oceanbase
+  - Informix
+*Note:* The default configuration file config/config.yaml is for Dameng DB. If you want to monitor an Informix DB, you can copy config/config-informix.yaml to config/config.yaml, or you can also use environment variable "DC_CONFIG" to specify the configuration file, for example:
 ```bash
-export DC_CONFIG=config/config-mqappliance.yaml
+export DC_CONFIG=config/config-informix.yaml
 ```
 
 Notes for some parameters：
@@ -60,13 +59,13 @@ Notes for some parameters：
 4) Run Data Collector
 Run the Data Collector with the following command according to your current system:
 ```bash
-nohup ./bin/otel-dc-host
+nohup ./bin/otel-dc-rdb
 ```
 
 
 ## Build & Run (for develpers)
 
-1) Make sure Java SDK 11+ is installed.
+1) Make sure Java SDK is installed.
 ```bash
 java -version
 ```
@@ -74,7 +73,7 @@ java -version
 2) Get the source code from `github.com`.
 ```bash
 git clone https://github.com/instana/otel-dc.git
-cd otel-dc/host
+cd otel-dc/rdb
 ```
 
 3) Build with Gradle
@@ -87,14 +86,13 @@ cd otel-dc/host
   - config/config.yaml
   - config/logging.properties
 
-Refine configuration file (config/config.yaml) according to your host. Right now we provide Data Collector for following hosts:
-  - SNMP Host
-  - IBM MQ appliance
-  - Simple Linux Host
-
-*Note:* The default configuration file config/config.yaml is for linux host. If you want to monitor an IBM MQ appliance, you can copy config/config-mqappliance.yaml to config/config.yaml, or you can also use environment variable "DC_CONFIG" to specify the configuration file, for example:
+Refine configuration file (config/config.yaml) according to your own database. Right now we provide Data Collector for following databases:
+  - DaMeng database
+  - Oceanbase
+  - Informix
+*Note:* The default configuration file config/config.yaml is for Dameng DB. If you want to monitor an Informix DB, you can copy config/config-informix.yaml to config/config.yaml, or you can also use environment variable "DC_CONFIG" to specify the configuration file, for example:
 ```bash
-export DC_CONFIG=config/config-mqappliance.yaml
+export DC_CONFIG=config/config-informix.yaml
 ```
 
 5) Start up your OTLP backend which accept OTLP connections. Right now we support following protocols:
@@ -104,16 +102,14 @@ export DC_CONFIG=config/config-mqappliance.yaml
 ```bash
 ./gradlew run
 ```
-*Note:* If you want to monitor IBM MQ appliance, you need to install **expect** before starting the Data Collector. You can run the command `which expect` to check if **expect** is already installed.
-
 
 6) *Appendix:* Run binary in "build/distributions"
 Find the deployment package (e.g.:otel-dc-rdb-*.tar/otel-dc-host-*.tar/otel-dc-host-*.tar) generated by gradle in the "build/distributions/" directory, extract deployment files:
 ```bash
 cd build/distributions/
-tar vxf otel-dc-host-*.tar
+tar vxf otel-dc-rdb-*.tar
 rm -f *.tar *.zip
-cd otel-dc-host-*
+cd otel-dc-rdb-*
 ```
 
 Modify the configuration files.
@@ -132,5 +128,23 @@ Or run Data Collector in background
 ```bash
 export DC_CONFIG=config/config.yaml
 export JAVA_OPTS=-Dconfig/logging.properties
-nohup bin/otel-dc-host > /dev/null 2>&1 &
+nohup bin/otel-dc-rdb > /dev/null 2>&1 &
+```
+
+
+*Notes for useful commands:* 
+
+1) Query DataCollector
+```bash
+ps -ef | grep otel-dc | grep -v grep
+```
+
+2) Stop DataCollector
+```bash
+ps -ef | grep otel-dc | grep -v grep | awk '{printf " "$2" "}' | xargs kill -9
+```
+
+3) Check logging file
+```bash
+ls -l ~/*-dc*.log*
 ```
