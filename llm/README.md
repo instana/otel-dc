@@ -1,6 +1,6 @@
-# ODCL (OTel based Data Collector for LLM)
+# ODCL (OTel Data Collector for LLM)
 
-ODCL (OTel based Data Collector for LLM) is the tool or template to generate OpenTelemetry metrics for various LLM and LLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
+ODCL (OTel Data Collector for LLM) is the tool or template to generate OpenTelemetry metrics for various LLM and LLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ cd otel-dc-llm-1.0.0
 vi config/config.yaml
 ```
 The following options are required：
-- `otel.backend.url`：The OTel gRPC address of the agent, for example: http://localhost:4317
+- `otel.backend.url`：The OTel gRPC address of the OTel backends, for example Instana Agent (as OTel Backend): http://localhost:4317
 - `otel.service.name`：The Data Collector name, which can be any string you choose.
 - `*.price.prompt.tokens.per.kilo`：The unit price per thousand prompt tokens.
 - `*.price.complete.tokens.per.kilo`：The unit price per thousand complete tokens.

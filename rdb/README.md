@@ -118,7 +118,6 @@ Then, make sure following configuration files are correct for your environment.:
   - config/logging.properties
 
 Run the Data Collector with following command according to your current implentation:
-- **database**
 ```bash
 export DC_CONFIG=config/config.yaml
 export JAVA_OPTS=-Dconfig/logging.properties
