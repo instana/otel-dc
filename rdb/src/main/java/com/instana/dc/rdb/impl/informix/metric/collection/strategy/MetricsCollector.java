@@ -45,6 +45,8 @@ public class MetricsCollector {
                 LOGGER.info("SQL - For Metric: " + metricName + " response: " + response);
                 return response;
             } else if (mode == MetricCollectionMode.CMD) {
+                //print "Executing command for the metricName"
+                LOGGER.info("Executing command for the metricName " + metricName);
                 T response = commandExecutorStrategy.collectMetrics(metricDataConfig);
                 LOGGER.info("CMD - For Metric: " + metricName + " response: " + response);
                 return response;

@@ -22,6 +22,7 @@ public abstract class MetricsExecutionStrategy {
             }
         }
 
+
         public static boolean isDouble(Class<?> type) {
             return Double.class.isAssignableFrom(type);
         }

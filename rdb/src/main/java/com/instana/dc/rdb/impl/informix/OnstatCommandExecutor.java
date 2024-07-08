@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 
 public class OnstatCommandExecutor {
     private static final Logger LOGGER = Logger.getLogger(OnstatCommandExecutor.class.getName());
-    public static final String SHELL_SCRIPT = "sh";
+    public static final String SHELL_SCRIPT = "ksh";
     public static final String LINE_BREAK = "\n";
     private final String dbPath;
     private final String binPath;
