@@ -46,7 +46,7 @@ Run the Data Collector with the following command according to your current syst
 nohup ./bin/otel-dc-host
 ```
 
-## Common Parameters for Host Data Collectors
+## Specific Parameters for Host Data Collectors
 
 | Parameter          | Scope                 | Description                                                                 | Example                   |
 |--------------------|-----------------------|-----------------------------------------------------------------------------|---------------------------|
