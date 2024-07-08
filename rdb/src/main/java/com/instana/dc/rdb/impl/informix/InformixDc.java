@@ -46,7 +46,6 @@ import static com.instana.dc.rdb.impl.Constants.CACHE_READ_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.CACHE_WRITE_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LOCK_WAITS_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LRU_WRITES_SCRIPT;
-import static com.instana.dc.rdb.impl.informix.InformixUtil.*;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
