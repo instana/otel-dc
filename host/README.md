@@ -1,16 +1,3 @@
-# ODCD (OpenTelemetry Data Collector for Telemetry Data)
-
-**[Semantic Convention](../docs/semconv)** |
-**[Support](../docs/support/README.md)** |
-**[Changelog](../CHANGELOG.md)** |
-**[Contributing](../CONTRIBUTING.md)** |
-**[License](../LICENSE)**
-
----
-ODCD (OpenTelemetry Data Collector for Telemetry Data) is a collection of stanalone OpenTelemetry receivers for databases, systems, and apps. All implementations are based on predefined OpenTelemetry Semantic Conventions. A standard OTLP exporter is provided to forward the data from this "Data Collector" to a Telemetry backend or an OpenTelemetry Collector.
-
-<br><br>
-
 # Data Collector for Hosts
 
 
@@ -53,18 +40,33 @@ Refine configuration file (config/config.yaml) according to your host. Right now
 export DC_CONFIG=config/config-mqappliance.yaml
 ```
 
-Notes for some parameters：
-- `otel.backend.url`：The OTel gRPC address of the OTel backends, for example Instana Agent (as OTel Backend): http://localhost:4317
-- `otel.service.name`：The Data Collector name, which can be any string you choose.
-
 4) Run Data Collector
 Run the Data Collector with the following command according to your current system:
 ```bash
 nohup ./bin/otel-dc-host
 ```
 
+## Common Parameters for Host Data Collectors
 
-## Build & Run (for develpers)
+| Parameter          | Scope                 | Description                                                                 | Example                   |
+|--------------------|-----------------------|-----------------------------------------------------------------------------|---------------------------|
+| host.system        | global                | The engine of this host data collector                                      | snmp_host or mq_appliance |  
+| snmp.host          | instance/snmp_host    | The endpoint of SNMP host                                                   | udp:9.112.252.102/161     |  
+| host.name          | instance/snmp_host    | Optional: use this to overwrite the value got by SNMP                       | stantest0.fyre.ibm.com    |  
+| os.type            | instance/snmp_host    | Optional: use this to overwrite the value got by SNMP                       | linux                     |  
+| community          | instance/snmp_host    | Optional: The community string (default: public)                            | public                    |  
+| retries            | instance/snmp_host    | Optional: times to retry (default: 3)                                       | 3                         |  
+| timeout            | instance/snmp_host    | Optional: timesout in ms (default: 450)                                     | 450                       |  
+| version            | instance/snmp_host    | Optional: version of SNMP (0:version1, 1:version2c, 3:version3) (default:1) | 1                         |  
+| securityLevel      | instance/snmp_host    | Optional: Choose 1:NOAUTH_NOPRIV 2:AUTH_NOPRIV 3:AUTH_PRIV (default: 1)     | 3                         |  
+| authPassword       | instance/snmp_host    | Optional: Auth password (version 3) (default: "")                           | password                  |  
+| privacyPassword    | instance/snmp_host    | Optional: Privacy password (version 3) (default: "")                        | password                  |  
+| appliance.host     | instance/mq_appliance | host name for MQ appliance                                                  | testbox1.mqappliance.com  |  
+| appliance.user     | instance/mq_appliance | user name for MQ appliance                                                  | admin                     |  
+| appliance.password | instance/mq_appliance | password for MQ appliance                                                   | xxxx                      |  
+
+
+## Build & Run (for developers)
 
 1) Make sure Java SDK 11+ is installed.
 ```bash
