@@ -131,7 +131,7 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_TABLE_NAME,
                 new MetricDataConfig(sequentialScanTableQuery, MetricCollectionMode.SQL, Number.class));
 
-       // Metrics via onstat command
+        //Metrics via onstat command
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
                 new MetricDataConfig(DB_SQL_COUNT_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_RATE_NAME,
@@ -244,7 +244,6 @@ public class InformixDc extends AbstractDbDc {
         tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, databaseName);
         tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, databaseName);
         sqlElapsedTimeQuery = String.format(InformixUtil.SQL_ELAPSED_TIME_SQL, elapsedTimeFrame, databaseName);
-
     }
 
     private void setDbConnUrl() {
@@ -301,7 +300,6 @@ public class InformixDc extends AbstractDbDc {
         getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME));
         getRawMetric(DB_TRANSACTION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
         getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
-
     }
 
     private void shortPollingInterval() {
