@@ -31,7 +31,7 @@ public class Constants {
     public static final String CACHE_WRITE_RATIO_SCRIPT = "cache_write_ratio.sh";
     public static final String LOCK_WAITS_SCRIPT = "lock_waits.sh";
     public static final String LRU_WRITES_SCRIPT = "lru_writes.sh";
-
+    public static final String DB_SQL_TRACE_ENABLED = "db.sql.trace.enabled";
     private Constants() {
         //Private constructor
     }

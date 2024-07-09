@@ -46,6 +46,7 @@ import static com.instana.dc.rdb.impl.Constants.CACHE_READ_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.CACHE_WRITE_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LOCK_WAITS_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LRU_WRITES_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.DB_SQL_TRACE_ENABLED;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
@@ -65,7 +66,7 @@ public class InformixDc extends AbstractDbDc {
 
     private final MetricsCollector metricCollector;
 
-    int sqlTraceEnabled;
+    public boolean sqlTraceEnabled;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
@@ -130,7 +131,7 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SEQ_SCAN_TABLE_NAME,
                 new MetricDataConfig(sequentialScanTableQuery, MetricCollectionMode.SQL, Number.class));
 
-//        Metrics via onstat command
+       // Metrics via onstat command
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_COUNT_NAME,
                 new MetricDataConfig(DB_SQL_COUNT_NAME, SQL_COUNT_SCRIPT, MetricCollectionMode.CMD, Number.class));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_RATE_NAME,
@@ -232,7 +233,7 @@ public class InformixDc extends AbstractDbDc {
     @SuppressWarnings("unchecked")
     private void parseCustomAttributes(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
-        sqlTraceEnabled = (Integer)customInput.getOrDefault("db.sql.trace.enabled", 0);
+        sqlTraceEnabled = (Boolean)customInput.getOrDefault(DB_SQL_TRACE_ENABLED, false);
         int sequentialScanCount = (Integer)customInput.getOrDefault("db.sequential.scan.count", 0);
         long elapsedTimeFrame = Long.parseLong((customInput.getOrDefault("db.sql.elapsed.timeframe", DEFAULT_ELAPSED_TIME)).toString());
         StringBuilder databaseName = new StringBuilder(Constants.SINGLE_QUOTES + getDbName() + Constants.SINGLE_QUOTES);
@@ -293,7 +294,7 @@ public class InformixDc extends AbstractDbDc {
 
     @SuppressWarnings("unchecked")
     private void mediumPollingInterval() {
-        if(sqlTraceEnabled==1) {
+        if(sqlTraceEnabled==true) {
             getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
             getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME));
         }
