@@ -66,7 +66,7 @@ public class InformixDc extends AbstractDbDc {
 
     private final MetricsCollector metricCollector;
 
-    public boolean sqlTraceEnabled;
+    public Boolean sqlTraceEnabled;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
@@ -293,7 +293,7 @@ public class InformixDc extends AbstractDbDc {
 
     @SuppressWarnings("unchecked")
     private void mediumPollingInterval() {
-        if(sqlTraceEnabled==true) {
+        if(sqlTraceEnabled) {
             getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
             getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME));
         }
