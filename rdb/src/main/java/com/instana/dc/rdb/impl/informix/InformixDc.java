@@ -66,7 +66,7 @@ public class InformixDc extends AbstractDbDc {
 
     private final MetricsCollector metricCollector;
 
-    public Boolean sqlTraceEnabled;
+    private Boolean sqlTraceEnabled;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
