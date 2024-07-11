@@ -33,7 +33,7 @@ instances:
       #Time Frame for which you want to get the expensive query. Default value 900 Sec
       db.sql.elapsed.timeframe: 900   # Values should be in Seconds
       db.sequential.scan.count: 0
-
+      db.sql.trace.enabled: false #Default is false. Make it true only if `SqlTrace` is enabled for the DB.
 ### Uncomment the below section in case you are using Vault to retrieve the password.
 #vault:
 #  connection_url: #Vault Address URL

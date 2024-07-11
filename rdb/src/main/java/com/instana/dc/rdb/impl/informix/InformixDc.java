@@ -46,6 +46,7 @@ import static com.instana.dc.rdb.impl.Constants.CACHE_READ_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.CACHE_WRITE_RATIO_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LOCK_WAITS_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LRU_WRITES_SCRIPT;
+import static com.instana.dc.rdb.impl.Constants.DB_SQL_TRACE_ENABLED;
 import static com.instana.dc.rdb.impl.informix.InformixUtil.DB_HOST_AND_VERSION_SQL;
 
 
@@ -64,6 +65,8 @@ public class InformixDc extends AbstractDbDc {
     private final BasicDataSource dataSource;
 
     private final MetricsCollector metricCollector;
+
+    private Boolean sqlTraceEnabled;
 
     public InformixDc(Map<String, Object> properties, String dbSystem, String dbDriver) throws SQLException {
         super(properties, dbSystem, dbDriver);
@@ -230,6 +233,7 @@ public class InformixDc extends AbstractDbDc {
     @SuppressWarnings("unchecked")
     private void parseCustomAttributes(Map<String, Object> properties) {
         Map<String, Object> customInput = (Map<String, Object>) properties.get("custom.input");
+        sqlTraceEnabled = (Boolean)customInput.getOrDefault(DB_SQL_TRACE_ENABLED, false);
         int sequentialScanCount = (Integer)customInput.getOrDefault("db.sequential.scan.count", 0);
         long elapsedTimeFrame = Long.parseLong((customInput.getOrDefault("db.sql.elapsed.timeframe", DEFAULT_ELAPSED_TIME)).toString());
         StringBuilder databaseName = new StringBuilder(Constants.SINGLE_QUOTES + getDbName() + Constants.SINGLE_QUOTES);
@@ -289,11 +293,13 @@ public class InformixDc extends AbstractDbDc {
 
     @SuppressWarnings("unchecked")
     private void mediumPollingInterval() {
-        getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
+        if(sqlTraceEnabled) {
+            getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
+            getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME));
+        }
         getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME));
         getRawMetric(DB_TRANSACTION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
         getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
-        getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME));
     }
 
     private void shortPollingInterval() {
