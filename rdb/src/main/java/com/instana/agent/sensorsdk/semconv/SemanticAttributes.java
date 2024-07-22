@@ -80,4 +80,7 @@ public class SemanticAttributes {
   public static final AttributeKey<Long> DB_CACHE_READ_RATIO = AttributeKey.longKey("db.cache.read.ratio");
   public static final AttributeKey<Long> DB_CACHE_WRITE_RATIO = AttributeKey.longKey("db.cache.write.ratio");
   public static final AttributeKey<Long> DB_LRU_WRITES = AttributeKey.longKey("db.lru.writes");
+  public static final AttributeKey<String> TOTAL_KB = AttributeKey.stringKey("total_kb");
+  public static final AttributeKey<String> USED_KB = AttributeKey.stringKey("used_kb");
+  public static final AttributeKey<String> TABLE_UTILIZATION = AttributeKey.stringKey("table_utilization");
 }

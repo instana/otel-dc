@@ -63,6 +63,7 @@ public class InformixDc extends AbstractDbDc {
     private boolean customPollRateEnabled = true;
     private ScheduledExecutorService executorService;
     private final BasicDataSource dataSource;
+    private final  MetricsDataQueryConfig metricDataQueryConfig;
 
     private final MetricsCollector metricCollector;
 
@@ -76,6 +77,8 @@ public class InformixDc extends AbstractDbDc {
         setDbConnUrl();
 
         dataSource = getDataSource();
+        metricDataQueryConfig = new MetricsDataQueryConfig(tableSpaceSizeQuery,List.class,this.dataSource,SemanticAttributes.TOTAL_KB.getKey(),DB_TABLESPACE_SIZE_KEY,SemanticAttributes.USED_KB.getKey(),SemanticAttributes.TABLE_UTILIZATION.getKey());
+
         if (getServiceInstanceId() == null) {
             setServiceInstanceId(getDbAddress() + ":" + getDbPort() + "@" + getDbName());
         }
@@ -103,13 +106,13 @@ public class InformixDc extends AbstractDbDc {
     private void registerMetricsMetadata() {
         //Metrics via SQL
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_SIZE_NAME,
-                new MetricDataConfig(tableSpaceSizeQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_SIZE_KEY));
+                new MetricDataConfig(tableSpaceSizeQuery, MetricCollectionMode.SQL,List.class,DB_TABLESPACE_SIZE_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_USED_NAME,
                 new MetricDataConfig(tableSpaceUsedQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_USED_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_UTILIZATION_NAME,
-                new MetricDataConfig(tableSpaceUtilizationQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_UTILIZATION_KEY));
+                new MetricDataConfig(tableSpaceUsedQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_UTILIZATION_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_MAX_NAME,
-                new MetricDataConfig(tableSpaceMaxQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
+                new MetricDataConfig(tableSpaceUsedQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_ELAPSED_TIME_NAME,
                 new MetricDataConfig(sqlElapsedTimeQuery, MetricCollectionMode.SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_COUNT_NAME,
@@ -326,10 +329,15 @@ public class InformixDc extends AbstractDbDc {
 
     @SuppressWarnings("unchecked")
     private void longPollingInterval() {
-        getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_SIZE_NAME));
-        getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_USED_NAME));
-        getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_UTILIZATION_NAME));
-        getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_TABLESPACE_MAX_NAME));
+
+
+
+        //TODO: A method to execute the query, store it in object, call that object in subsequent lines
+        metricDataQueryConfig.fetchQueryResults();
+        getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(0));
+        getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(2));
+        getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(3));
+        getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(0));
         getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_BUFF_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_BUFF_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_ANSI_COMPLAINT_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_ANSI_COMPLAINT_NAME));
