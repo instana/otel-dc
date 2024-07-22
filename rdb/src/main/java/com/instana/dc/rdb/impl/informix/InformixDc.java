@@ -54,9 +54,6 @@ public class InformixDc extends AbstractDbDc {
     private static final Logger LOGGER = Logger.getLogger(InformixDc.class.getName());
     private static final int DEFAULT_ELAPSED_TIME = 900;
     private String tableSpaceSizeQuery;
-    private String tableSpaceUsedQuery;
-    private String tableSpaceUtilizationQuery;
-    private String tableSpaceMaxQuery;
     private String sequentialScanQuery;
     private String sequentialScanTableQuery;
     private String sqlElapsedTimeQuery;
@@ -108,11 +105,11 @@ public class InformixDc extends AbstractDbDc {
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_SIZE_NAME,
                 new MetricDataConfig(tableSpaceSizeQuery, MetricCollectionMode.SQL,List.class,DB_TABLESPACE_SIZE_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_USED_NAME,
-                new MetricDataConfig(tableSpaceUsedQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_USED_KEY));
+                new MetricDataConfig(tableSpaceSizeQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_USED_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_UTILIZATION_NAME,
-                new MetricDataConfig(tableSpaceUsedQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_UTILIZATION_KEY));
+                new MetricDataConfig(tableSpaceSizeQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_UTILIZATION_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_TABLESPACE_MAX_NAME,
-                new MetricDataConfig(tableSpaceUsedQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
+                new MetricDataConfig(tableSpaceSizeQuery, MetricCollectionMode.SQL, List.class, DB_TABLESPACE_MAX_KEY));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_SQL_ELAPSED_TIME_NAME,
                 new MetricDataConfig(sqlElapsedTimeQuery, MetricCollectionMode.SQL, List.class, DB_SQL_ELAPSED_TIME_KEY, SemanticAttributes.SQL_TEXT.getKey()));
         MetricsDataConfigRegister.subscribeMetricDataConfig(DB_INSTANCE_COUNT_NAME,
@@ -243,9 +240,6 @@ public class InformixDc extends AbstractDbDc {
         sequentialScanQuery = String.format(InformixUtil.DB_SEQ_SCAN_SQL, databaseName, sequentialScanCount);
         sequentialScanTableQuery = String.format(InformixUtil.DB_SEQ_SCAN_TABLE_SQL, databaseName, sequentialScanCount);
         tableSpaceSizeQuery = String.format(InformixUtil.TABLESPACE_SIZE_SQL, databaseName);
-        tableSpaceUsedQuery = String.format(InformixUtil.TABLESPACE_USED_SQL, databaseName);
-        tableSpaceUtilizationQuery = String.format(InformixUtil.TABLESPACE_UTILIZATION_SQL, databaseName);
-        tableSpaceMaxQuery = String.format(InformixUtil.TABLESPACE_MAX_SQL, databaseName);
         sqlElapsedTimeQuery = String.format(InformixUtil.SQL_ELAPSED_TIME_SQL, elapsedTimeFrame, databaseName);
     }
 
@@ -329,9 +323,6 @@ public class InformixDc extends AbstractDbDc {
 
     @SuppressWarnings("unchecked")
     private void longPollingInterval() {
-
-
-
         //TODO: A method to execute the query, store it in object, call that object in subsequent lines
         metricDataQueryConfig.fetchQueryResults();
         getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(0));
