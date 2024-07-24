@@ -325,10 +325,10 @@ public class InformixDc extends AbstractDbDc {
     private void longPollingInterval() {
         //TODO: A method to execute the query, store it in object, call that object in subsequent lines
         metricDataQueryConfig.fetchQueryResults();
-        getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(0));
-        getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(2));
-        getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(3));
-        getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(0));
+        getRawMetric(DB_TABLESPACE_SIZE_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(SemanticAttributes.TOTAL_KB.getKey()));
+        getRawMetric(DB_TABLESPACE_USED_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(SemanticAttributes.USED_KB.getKey()));
+        getRawMetric(DB_TABLESPACE_UTILIZATION_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(SemanticAttributes.TABLE_UTILIZATION.getKey()));
+        getRawMetric(DB_TABLESPACE_MAX_NAME).setValue((List<SimpleQueryResult>) metricDataQueryConfig.getResults(SemanticAttributes.TOTAL_KB.getKey()));
         getRawMetric(DB_DATABASE_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_BUFF_LOG_ENABLED_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_BUFF_LOG_ENABLED_NAME));
         getRawMetric(DB_DATABASE_ANSI_COMPLAINT_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_DATABASE_ANSI_COMPLAINT_NAME));

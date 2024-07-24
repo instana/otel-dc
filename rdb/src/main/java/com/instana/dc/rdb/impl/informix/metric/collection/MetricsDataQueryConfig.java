@@ -13,6 +13,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -32,17 +33,17 @@ public class MetricsDataQueryConfig {
     private  ResultSet rs;
     private String[] attr;
 
-    private List<List<SimpleQueryResult>> results;
+    private HashMap<String,List<SimpleQueryResult>> results;
 
 
-    public MetricsDataQueryConfig(String query, Class<?> returnType, BasicDataSource dataSource,String... attr) {
+    public MetricsDataQueryConfig(String query, Class<?> returnType, BasicDataSource dataSource, String... attr) {
         this.query = query;
         this.returnType = returnType;
         this.attr = attr;
         this.dataSource = dataSource;
-        this.results = new ArrayList<>();
+        this.results = new HashMap<String,List<SimpleQueryResult>>();
         for (int attrIndex = 0;attrIndex<attr.length;attrIndex++) {
-            this.results.add(new ArrayList<>());
+            this.results.put(this.attr[attrIndex],new ArrayList<>());
         }
     }
 
@@ -68,7 +69,9 @@ public class MetricsDataQueryConfig {
                 SimpleQueryResult result = new SimpleQueryResult((Number) rs.getObject(attrIndex+1));
                 result.setAttribute(this.attr[1], obj);
                 result.setKey(obj.toString());
-                this.results.get(attrIndex).add(result);
+                List<SimpleQueryResult> ls = this.results.get(this.attr[attrIndex]);
+                ls.add(result);
+                this.results.put(this.attr[attrIndex],ls);
             }
         }
         }
@@ -99,8 +102,7 @@ public class MetricsDataQueryConfig {
         return returnType;
     }
 
-
-    public List<SimpleQueryResult> getResults(int n) {
-        return this.results.get(n);
+    public List<SimpleQueryResult> getResults(String key) {
+        return this.results.get(key);
     }
 }
