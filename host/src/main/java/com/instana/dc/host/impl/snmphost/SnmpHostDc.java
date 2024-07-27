@@ -45,8 +45,11 @@ public class SnmpHostDc extends AbstractHostDc {
         option.setTimeout((Integer) properties.getOrDefault("timeout", 450));
         option.setVersion((Integer) properties.getOrDefault("version", SnmpConstants.version2c)); //1
         option.setSecurityLevel((Integer) properties.getOrDefault("securityLevel", SecurityLevel.NOAUTH_NOPRIV)); //1
+        option.setSecurityName((String) properties.get("securityName"));
         option.setAuthPassword((String) properties.get("authPassword"));
         option.setPrivacyPassword((String) properties.get("privacyPassword"));
+        option.setAuthType((String) properties.get("authType"));
+        option.setPrivacyType((String) properties.get("privacyType"));
         simpSnmp = new SimpSnmp(snmpHost, option);
 
         Map<OID, SnmpValue> result = simpSnmp.queryScalarOids(Oid.HOST_NAME, Oid.OS_TYPE);

@@ -33,37 +33,57 @@ public class SimpSnmp implements Closeable {
     private final SnmpOption option;
 
     public SimpSnmp(String endpoint, SnmpOption option) throws IOException {
-        String securityName = "MD5DES";
+        String securityName = option.getSecurityName();
         this.endpoint = endpoint;
         this.option = option;
-        if (option.getVersion() == SnmpConstants.version3) {
-            myTarget = new UserTarget<>();
-            myTarget.setSecurityLevel(option.getSecurityLevel());
-            myTarget.setSecurityName(new OctetString(securityName));
-        } else {
-            myTarget = new CommunityTarget<>();
-            ((CommunityTarget<?>) myTarget).setCommunity(new OctetString(option.getCommunity()));
-        }
-
-        Address deviceAdd = GenericAddress.parse(this.endpoint);
-        myTarget.setAddress(deviceAdd);
-        myTarget.setRetries(option.getRetries());
-        myTarget.setTimeout(option.getTimeout());
-        myTarget.setVersion(option.getVersion());
 
         transport = new DefaultUdpTransportMapping();
         protocol = new Snmp(transport);
         if (option.getVersion() == SnmpConstants.version3) {
             if (option.getSecurityLevel() != SecurityLevel.NOAUTH_NOPRIV) {
-                USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
+                SecurityProtocols sp= new SecurityProtocols(SecurityProtocols.SecurityProtocolSet.maxCompatibility);
+                /*sp.addDefaultProtocols();
+                sp.addAuthenticationProtocol(new AuthSHA());
+                sp.addAuthenticationProtocol(new AuthMD5());
+                sp.addAuthenticationProtocol(new AuthHMAC128SHA224());
+                sp.addAuthenticationProtocol(new AuthHMAC192SHA256());
+                sp.addAuthenticationProtocol(new AuthHMAC256SHA384());
+                sp.addAuthenticationProtocol(new AuthHMAC384SHA512());
+                sp.addPrivacyProtocol(new PrivDES());
+                sp.addPrivacyProtocol(new Priv3DES());
+                sp.addPrivacyProtocol(new PrivAES128());
+                sp.addPrivacyProtocol(new PrivAES192());
+                sp.addPrivacyProtocol(new PrivAES256());*/
+                USM usm = new USM(sp, new OctetString(MPv3.createLocalEngineID()), 0);
                 SecurityModels.getInstance().addSecurityModel(usm);
+                transport.listen();
                 protocol.getUSM().addUser(new UsmUser(
-                        new OctetString(securityName), AuthMD5.ID,
-                        new OctetString(option.getAuthPassword()), PrivDES.ID,
+                        new OctetString(securityName), new OID(option.getAuthType()),
+                        new OctetString(option.getAuthPassword()), new OID(option.getPrivacyType()),
                         new OctetString(option.getPrivacyPassword())));
             }
+        } else {
+            transport.listen();
         }
-        transport.listen();
+
+        if (option.getVersion() != SnmpConstants.version3) {
+            myTarget = new CommunityTarget<>();
+            ((CommunityTarget<?>) myTarget).setCommunity(new OctetString(option.getCommunity()));
+
+            myTarget.setAddress(GenericAddress.parse(this.endpoint));
+            myTarget.setRetries(option.getRetries());
+            myTarget.setTimeout(option.getTimeout());
+            myTarget.setVersion(option.getVersion());
+        } else {
+            myTarget = new UserTarget<>();
+            myTarget.setSecurityLevel(option.getSecurityLevel());
+            myTarget.setSecurityName(new OctetString(securityName));
+
+            myTarget.setAddress(GenericAddress.parse(this.endpoint));
+            myTarget.setRetries(option.getRetries());
+            myTarget.setTimeout(option.getTimeout());
+            myTarget.setVersion(option.getVersion());
+        }
     }
 
     public SimpSnmp(String endpoint) throws IOException {
@@ -91,7 +111,12 @@ public class SimpSnmp implements Closeable {
     }
 
     public Map<OID, SnmpValue> queryScalarOids(List<OID> oids) throws IOException {
-        PDU request = new PDU();
+        PDU request;
+        if (option.getVersion() < SnmpConstants.version3) {
+            request = new PDU();
+        } else {
+            request = new ScopedPDU();
+        }
         request.setType(PDU.GET);
         for (OID oid : oids) {
             request.add(new VariableBinding(oid));
