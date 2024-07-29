@@ -13,10 +13,11 @@ import java.io.InputStreamReader;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.SystemUtils;
 
 public class OnstatCommandExecutor {
     private static final Logger LOGGER = Logger.getLogger(OnstatCommandExecutor.class.getName());
-    public static final String SHELL_SCRIPT = "sh";
+    public static  String SHELL_SCRIPT;
     public static final String LINE_BREAK = "\n";
     private final String dbPath;
     private final String binPath;
@@ -39,7 +40,16 @@ public class OnstatCommandExecutor {
      * @return : Value as String[]
      */
     public Optional<String[]> executeCommand(String fileName) {
-        String path = "scripts/" + fileName;
+        String path;
+        if(SystemUtils.OS_NAME.equals("SunOS") && SystemUtils.OS_VERSION.equals("5.10")) {
+            path = "scripts_solaris10/" + fileName;
+            SHELL_SCRIPT = "ksh";
+        }
+        else {
+            path = "scripts/" + fileName;
+            SHELL_SCRIPT = "sh";
+        }
+
         String[] command = new String[]{
                 SHELL_SCRIPT,
                 path,
