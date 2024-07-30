@@ -32,6 +32,7 @@ dependencies {
     implementation("mysql:mysql-connector-java:5.1.46")
     implementation(files("libs/DmJdbcDriver18.jar"))
     implementation(files("libs/vault-1.0.0.jar"))
+    implementation 'org.apache.commons:commons-lang3:3.6'
 }
 
 application {
@@ -45,7 +46,9 @@ applicationDistribution.from("config") {
 applicationDistribution.from("scripts/informix") {
     into "scripts"
 }
-
+applicationDistribution.from("scripts/informix_solaris10") {
+    into "scripts_solaris10"
+}
 test {
     useJUnitPlatform()
 }
