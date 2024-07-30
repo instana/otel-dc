@@ -15,6 +15,9 @@ public class SnmpOption {
     private int securityLevel;
     private String authPassword;
     private String privacyPassword;
+    private String securityName;
+    private String authType;
+    private String privacyType;
 
     public SnmpOption() {
         this.community = "public";
@@ -53,7 +56,11 @@ public class SnmpOption {
     }
 
     public void setVersion(int version) {
-        this.version = version;
+        if (version == SnmpConstants.version3) {
+            this.version = SnmpConstants.version3;
+        } else {
+            this.version = SnmpConstants.version2c;
+        }
     }
 
     public int getSecurityLevel() {
@@ -61,7 +68,11 @@ public class SnmpOption {
     }
 
     public void setSecurityLevel(int securityLevel) {
-        this.securityLevel = securityLevel;
+        if (securityLevel < SecurityLevel.NOAUTH_NOPRIV || securityLevel > SecurityLevel.AUTH_PRIV) {
+            this.securityLevel = SecurityLevel.NOAUTH_NOPRIV;
+        } else {
+            this.securityLevel = securityLevel;
+        }
     }
 
     public String getAuthPassword() {
@@ -78,5 +89,29 @@ public class SnmpOption {
 
     public void setPrivacyPassword(String privacyPassword) {
         this.privacyPassword = privacyPassword;
+    }
+
+    public String getSecurityName() {
+        return securityName;
+    }
+
+    public void setSecurityName(String securityName) {
+        this.securityName = securityName;
+    }
+
+    public String getAuthType() {
+        return authType;
+    }
+
+    public void setAuthType(String authType) {
+        this.authType = authType;
+    }
+
+    public String getPrivacyType() {
+        return privacyType;
+    }
+
+    public void setPrivacyType(String privacyType) {
+        this.privacyType = privacyType;
     }
 }

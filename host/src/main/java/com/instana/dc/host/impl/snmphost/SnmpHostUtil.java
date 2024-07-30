@@ -5,11 +5,9 @@
 package com.instana.dc.host.impl.snmphost;
 
 import com.instana.dc.SimpleQueryResult;
-import com.instana.dc.host.HostDcUtil;
 import com.instana.simpsnmp.SnmpValue;
 import org.snmp4j.smi.OID;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
