@@ -41,7 +41,7 @@ public class SimpSnmp implements Closeable {
         protocol = new Snmp(transport);
         if (option.getVersion() == SnmpConstants.version3) {
             if (option.getSecurityLevel() != SecurityLevel.NOAUTH_NOPRIV) {
-                SecurityProtocols sp= new SecurityProtocols(SecurityProtocols.SecurityProtocolSet.maxCompatibility);
+                SecurityProtocols sp = new SecurityProtocols(SecurityProtocols.SecurityProtocolSet.maxCompatibility);
                 /*sp.addDefaultProtocols();
                 sp.addAuthenticationProtocol(new AuthSHA());
                 sp.addAuthenticationProtocol(new AuthMD5());
@@ -69,21 +69,16 @@ public class SimpSnmp implements Closeable {
         if (option.getVersion() != SnmpConstants.version3) {
             myTarget = new CommunityTarget<>();
             ((CommunityTarget<?>) myTarget).setCommunity(new OctetString(option.getCommunity()));
-
-            myTarget.setAddress(GenericAddress.parse(this.endpoint));
-            myTarget.setRetries(option.getRetries());
-            myTarget.setTimeout(option.getTimeout());
-            myTarget.setVersion(option.getVersion());
         } else {
             myTarget = new UserTarget<>();
             myTarget.setSecurityLevel(option.getSecurityLevel());
             myTarget.setSecurityName(new OctetString(securityName));
-
-            myTarget.setAddress(GenericAddress.parse(this.endpoint));
-            myTarget.setRetries(option.getRetries());
-            myTarget.setTimeout(option.getTimeout());
-            myTarget.setVersion(option.getVersion());
         }
+
+        myTarget.setAddress(GenericAddress.parse(this.endpoint));
+        myTarget.setRetries(option.getRetries());
+        myTarget.setTimeout(option.getTimeout());
+        myTarget.setVersion(option.getVersion());
     }
 
     public SimpSnmp(String endpoint) throws IOException {
