@@ -17,7 +17,7 @@ Download the latest  [Release package](https://github.com/instana/otel-dc/releas
 
 1) Download the installation package:
 ```bash
-wget https://github.com/instana/otel-dc/releases/download/v1.0.1/otel-dc-rdb-0.5.4.tar
+wget https://github.com/instana/otel-dc/releases/download/v1.0.3/otel-dc-rdb-0.5.4.tar
 ```
 
 2) Extract the package to the desired deployment location:

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.instana.dc"
-version = "0.2.2"
+version = "0.2.3"
 
 repositories {
     mavenCentral()
@@ -34,6 +34,10 @@ application {
 
 applicationDistribution.from("config") {
     into "config"
+}
+
+applicationDistribution.from("scripts") {
+    into "scripts"
 }
 
 test {
