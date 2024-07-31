@@ -17,13 +17,13 @@ Download the latest  [Release package](https://github.com/instana/otel-dc/releas
 
 1) Download the installation package:
 ```bash
-wget https://github.com/instana/otel-dc/releases/download/v1.0.1/otel-dc-host-0.2.2.tar
+wget https://github.com/instana/otel-dc/releases/download/v1.0.3/otel-dc-host-0.2.3.tar
 ```
 
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-host-0.2.2.tar
-cd otel-dc-host-0.2.2
+tar vxf otel-dc-host-0.2.3.tar
+cd otel-dc-host-0.2.3
 ```
 
 3) Make sure following configuration files are correct for your environment:
