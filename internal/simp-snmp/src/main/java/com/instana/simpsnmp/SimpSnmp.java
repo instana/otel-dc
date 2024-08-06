@@ -10,7 +10,11 @@ import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
+import org.snmp4j.transport.DTLSTM;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
+import org.snmp4j.transport.TLSTM;
+import org.snmp4j.transport.tls.DefaultTlsTmSecurityCallback;
+import org.snmp4j.transport.tls.SecurityNameMapping;
 import org.snmp4j.util.DefaultPDUFactory;
 import org.snmp4j.util.TableEvent;
 import org.snmp4j.util.TableUtils;
@@ -27,21 +31,39 @@ public class SimpSnmp implements Closeable {
     private final String endpoint;
 
     private final Target<Address> myTarget;
-    private final TransportMapping<UdpAddress> transport;
+    private final TransportMapping<? extends Address> transport;
     private final Snmp protocol;
 
     private final SnmpOption option;
 
     public SimpSnmp(String endpoint, SnmpOption option) throws IOException {
         String securityName = option.getSecurityName();
+        DefaultTlsTmSecurityCallback securityCallback = null;
+
         this.endpoint = endpoint;
         this.option = option;
 
-        transport = new DefaultUdpTransportMapping();
-        protocol = new Snmp(transport);
         if (option.getVersion() == SnmpConstants.version3) {
-            if (option.getSecurityLevel() != SecurityLevel.NOAUTH_NOPRIV) {
-                SecurityProtocols sp = new SecurityProtocols(SecurityProtocols.SecurityProtocolSet.maxCompatibility);
+            if (option.isTsmEnabled()) {
+                transport = new DTLSTM();
+
+                securityCallback = new DefaultTlsTmSecurityCallback();
+                ((DTLSTM) transport).setSecurityCallback(securityCallback);
+
+                MessageDispatcher md = new MessageDispatcherImpl();
+                MPv3 mpv3 = new MPv3();
+                md.addMessageProcessingModel(mpv3);
+                protocol = new Snmp(md, transport);
+
+                SecurityModels.getInstance().addSecurityModel(new TSM(new OctetString(mpv3.getLocalEngineID()), false));
+
+                transport.listen();
+
+            } else {
+                transport = new DefaultUdpTransportMapping();
+                protocol = new Snmp(transport);
+                if (option.getSecurityLevel() != SecurityLevel.NOAUTH_NOPRIV) {
+                    SecurityProtocols sp = new SecurityProtocols(SecurityProtocols.SecurityProtocolSet.maxCompatibility);
                 /*sp.addDefaultProtocols();
                 sp.addAuthenticationProtocol(new AuthSHA());
                 sp.addAuthenticationProtocol(new AuthMD5());
@@ -54,25 +76,44 @@ public class SimpSnmp implements Closeable {
                 sp.addPrivacyProtocol(new PrivAES128());
                 sp.addPrivacyProtocol(new PrivAES192());
                 sp.addPrivacyProtocol(new PrivAES256());*/
-                USM usm = new USM(sp, new OctetString(MPv3.createLocalEngineID()), 0);
-                SecurityModels.getInstance().addSecurityModel(usm);
-                transport.listen();
-                protocol.getUSM().addUser(new UsmUser(
-                        new OctetString(securityName), new OID(option.getAuthType()),
-                        new OctetString(option.getAuthPassword()), new OID(option.getPrivacyType()),
-                        new OctetString(option.getPrivacyPassword())));
+                    OctetString localEngineId = new OctetString(MPv3.createLocalEngineID());
+                    USM usm = new USM(sp, localEngineId, 0);
+                    SecurityModels.getInstance().addSecurityModel(usm);
+                    transport.listen();
+                    protocol.getUSM().addUser(new UsmUser(
+                            new OctetString(securityName), new OID(option.getAuthType()),
+                            new OctetString(option.getAuthPassword()), new OID(option.getPrivacyType()),
+                            new OctetString(option.getPrivacyPassword())));
+                }
             }
         } else {
+            transport = new DefaultUdpTransportMapping();
+            protocol = new Snmp(transport);
             transport.listen();
         }
 
-        if (option.getVersion() != SnmpConstants.version3) {
+        if (option.getVersion() == SnmpConstants.version3) {
+            if (option.isTsmEnabled()) {
+                myTarget = new CertifiedTarget<>(GenericAddress.parse(endpoint), new OctetString("dk-liurui1.fyre.ibm.com"),
+                        // server fingerprint (replace with the fingerprint of the server's certificate):
+                        OctetString.fromHexString("F8:1E:2A:8B:B5:DB:40:BD:DC:22:B8:55:CC:5B:F2:B4:B5:03:37:F6"),
+                        // Client fingerprint could be empty string (no check)
+                        OctetString.fromHexString("A8:91:EE:32:3D:DC:5A:3C:DC:F0:44:AD:21:14:B9:00:5C:80:38:FA"));
+                /*Objects.requireNonNull(securityCallback).addLocalCertMapping(myTarget.getAddress(), "snmpd");
+                securityCallback.addAcceptedSubjectDN("EMAILADDRESS=liurui@cn.ibm.com, CN=dk-liurui1.fyre.ibm.com, OU=Development, O=Net-SNMP, L=Davis, ST=CA, C=US");
+                securityCallback.addSecurityNameMapping(
+                        OctetString.fromHexString("F8:1E:2A:8B:B5:DB:40:BD:DC:22:B8:55:CC:5B:F2:B4:B5:03:37:F6"),
+                        SecurityNameMapping.CertMappingType.SANDNSName,
+                        new OctetString("dk-liurui1.fyre.ibm.com"), new OctetString("dk-liurui1.fyre.ibm.com"));*/
+                myTarget.setSecurityName(new OctetString(securityName));
+            } else {
+                myTarget = new UserTarget<>();
+                myTarget.setSecurityName(new OctetString(securityName));
+            }
+            myTarget.setSecurityLevel(option.getSecurityLevel());
+        } else {
             myTarget = new CommunityTarget<>();
             ((CommunityTarget<?>) myTarget).setCommunity(new OctetString(option.getCommunity()));
-        } else {
-            myTarget = new UserTarget<>();
-            myTarget.setSecurityLevel(option.getSecurityLevel());
-            myTarget.setSecurityName(new OctetString(securityName));
         }
 
         myTarget.setAddress(GenericAddress.parse(this.endpoint));
@@ -89,7 +130,7 @@ public class SimpSnmp implements Closeable {
         return endpoint;
     }
 
-    public TransportMapping<UdpAddress> getTransport() {
+    public TransportMapping<? extends Address> getTransport() {
         return transport;
     }
 

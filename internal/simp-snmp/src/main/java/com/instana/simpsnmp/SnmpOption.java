@@ -18,6 +18,7 @@ public class SnmpOption {
     private String securityName;
     private String authType;
     private String privacyType;
+    private boolean tsmEnabled;
 
     public SnmpOption() {
         this.community = "public";
@@ -25,6 +26,7 @@ public class SnmpOption {
         this.timeout = 450;
         this.version = SnmpConstants.version2c; //1
         this.securityLevel = SecurityLevel.NOAUTH_NOPRIV; //1
+        this.tsmEnabled = false;
     }
 
     public String getCommunity() {
@@ -113,5 +115,13 @@ public class SnmpOption {
 
     public void setPrivacyType(String privacyType) {
         this.privacyType = privacyType;
+    }
+
+    public boolean isTsmEnabled() {
+        return tsmEnabled;
+    }
+
+    public void setTsmEnabled(boolean tsmEnabled) {
+        this.tsmEnabled = tsmEnabled;
     }
 }

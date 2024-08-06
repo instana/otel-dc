@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class SimpSnmpTst {
-    public static void main(String[] args) throws IOException, ExecutionException {
+    public static void main(String[] args) throws IOException {
         SnmpBuilder snmpBuilder = new SnmpBuilder();
         Snmp snmp = snmpBuilder.udp().securityProtocols(
                 SecurityProtocols.SecurityProtocolSet.maxCompatibility).v3().usm().build();
 
-        Address targetAddress = GenericAddress.parse("udp:9.30.78.59/161");
+        Address targetAddress = GenericAddress.parse("udp:9.46.65.155/161");
         byte[] targetEngineID = snmp.discoverAuthoritativeEngineID(targetAddress, 1000);
 
         if (targetEngineID != null) {
