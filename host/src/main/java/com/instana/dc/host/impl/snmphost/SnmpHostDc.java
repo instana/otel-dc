@@ -36,6 +36,43 @@ public class SnmpHostDc extends AbstractHostDc {
     private final String hostName;
     private final String osType;
 
+    private static int parseVersion(Object version0) {
+        if (version0 == null) {
+            version0 = "2c";
+        }
+        String version1 = version0.toString().trim();
+        switch (version1) {
+            case "0":
+            case "1":
+                logger.info("SNMP version-1");
+                return SnmpConstants.version1;
+            case "3":
+                logger.info("SNMP version-3");
+                return SnmpConstants.version3;
+            default:
+                logger.info("SNMP version-2c");
+                return SnmpConstants.version2c;
+        }
+    }
+
+    private static int parseSecurityLevel(Object level0) {
+        if (level0 == null) {
+            level0 = "1";
+        }
+        String level1 = level0.toString().trim();
+        switch (level1) {
+            case "2":
+                logger.info("SNMP AUTH_NOPRIV");
+                return SecurityLevel.AUTH_NOPRIV;
+            case "3":
+                logger.info("SNMP AUTH_PRIV");
+                return SecurityLevel.AUTH_PRIV;
+            default:
+                logger.info("SNMP NOAUTH_NOPRIV");
+                return SecurityLevel.NOAUTH_NOPRIV;
+        }
+    }
+
     public SnmpHostDc(Map<String, Object> properties, String hostSystem) throws IOException {
         super(properties, hostSystem);
         String snmpHost = (String) properties.getOrDefault(SnmpHostUtil.SNMP_HOST, "udp:127.0.0.1/161");
@@ -43,8 +80,8 @@ public class SnmpHostDc extends AbstractHostDc {
         option.setCommunity((String) properties.getOrDefault("community", "public"));
         option.setRetries((Integer) properties.getOrDefault("retries", 3));
         option.setTimeout((Integer) properties.getOrDefault("timeout", 450));
-        option.setVersion((Integer) properties.getOrDefault("version", SnmpConstants.version2c)); //1
-        option.setSecurityLevel((Integer) properties.getOrDefault("securityLevel", SecurityLevel.NOAUTH_NOPRIV)); //1
+        option.setVersion(parseVersion(properties.get("version")));
+        option.setSecurityLevel(parseSecurityLevel(properties.get("securityLevel")));
         option.setSecurityName((String) properties.get("securityName"));
         option.setAuthPassword((String) properties.get("authPassword"));
         option.setPrivacyPassword((String) properties.get("privacyPassword"));
