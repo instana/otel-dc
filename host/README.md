@@ -48,22 +48,48 @@ nohup ./bin/otel-dc-host
 
 ## Specific Parameters for Host Data Collectors
 
-| Parameter          | Scope                 | Description                                                                 | Example                   |
-|--------------------|-----------------------|-----------------------------------------------------------------------------|---------------------------|
-| host.system        | global                | The engine of this host data collector                                      | snmp_host or mq_appliance |  
-| snmp.host          | instance/snmp_host    | The endpoint of SNMP host                                                   | udp:9.112.252.102/161     |  
-| host.name          | instance/snmp_host    | Optional: use this to overwrite the value got by SNMP                       | stantest0.fyre.ibm.com    |  
-| os.type            | instance/snmp_host    | Optional: use this to overwrite the value got by SNMP                       | linux                     |  
-| community          | instance/snmp_host    | Optional: The community string (default: public)                            | public                    |  
-| retries            | instance/snmp_host    | Optional: times to retry (default: 3)                                       | 3                         |  
-| timeout            | instance/snmp_host    | Optional: timesout in ms (default: 450)                                     | 450                       |  
-| version            | instance/snmp_host    | Optional: version of SNMP (0:version1, 1:version2c, 3:version3) (default:1) | 1                         |  
-| securityLevel      | instance/snmp_host    | Optional: Choose 1:NOAUTH_NOPRIV 2:AUTH_NOPRIV 3:AUTH_PRIV (default: 1)     | 3                         |  
-| authPassword       | instance/snmp_host    | Optional: Auth password (version 3) (default: "")                           | password                  |  
-| privacyPassword    | instance/snmp_host    | Optional: Privacy password (version 3) (default: "")                        | password                  |  
-| appliance.host     | instance/mq_appliance | host name for MQ appliance                                                  | testbox1.mqappliance.com  |  
-| appliance.user     | instance/mq_appliance | user name for MQ appliance                                                  | admin                     |  
-| appliance.password | instance/mq_appliance | password for MQ appliance                                                   | xxxx                      |  
+| Parameter          | Scope        | Description                                                                 | Example                   |
+|--------------------|--------------|-----------------------------------------------------------------------------|---------------------------|
+| host.system        | global       | The engine of this host data collector                                      | snmp_host or mq_appliance |  
+| snmp.host          | snmp_host    | The endpoint of SNMP host                                                   | udp:9.112.252.102/161     |  
+| host.name          | snmp_host    | Optional: use this to overwrite the value got by SNMP                       | stantest0.fyre.ibm.com    |  
+| os.type            | snmp_host    | Optional: use this to overwrite the value got by SNMP                       | linux                     |  
+| community          | snmp_host    | Optional: The community string (SNMP v1 or v2c) (default: public)           | public                    |  
+| retries            | snmp_host    | Optional: times to retry (default: 3)                                       | 3                         |  
+| timeout            | snmp_host    | Optional: timeout in ms (default: 450)                                      | 450                       |  
+| version            | snmp_host    | Optional: version of SNMP (0:version1, 1:version2c, 3:version3) (default:1) | 1                         |  
+| securityLevel      | snmp_host    | Optional: Choose 1:NOAUTH_NOPRIV 2:AUTH_NOPRIV 3:AUTH_PRIV (default: 1)     | 3                         |  
+| authPassword       | snmp_host    | Optional: Auth password (version 3)                                         | password1                 |  
+| privacyPassword    | snmp_host    | Optional: Privacy password (version 3)                                      | password1                 |  
+| securityName       | snmp_host    | Optional: Security name (user) (version 3)                                  | user1                     |  
+| authType           | snmp_host    | Optional: OID of the Protocol for Auth (version 3)                          | 1.3.6.1.6.3.10.1.1.3      |  
+| privacyType        | snmp_host    | Optional: OID of the Protocol for Privacy (version 3)                       | 1.3.6.1.6.3.10.1.2.2      |  
+| appliance.host     | mq_appliance | host name for MQ appliance                                                  | testbox1.mqappliance.com  |  
+| appliance.user     | mq_appliance | user name for MQ appliance                                                  | admin                     |  
+| appliance.password | mq_appliance | password for MQ appliance                                                   | password1                 |  
+
+#### OID of the Protocol for Authentication (SNMP version 3)
+
+| Protocol          | OID                  |
+|-------------------|----------------------|
+| Auth-NONE         | 1.3.6.1.6.3.10.1.1.1 |  
+| AuthMD5           | 1.3.6.1.6.3.10.1.1.2 |  
+| AuthSHA           | 1.3.6.1.6.3.10.1.1.3 |  
+| AuthHMAC128SHA224 | 1.3.6.1.6.3.10.1.1.4 |  
+| AuthHMAC192SHA256 | 1.3.6.1.6.3.10.1.1.5 |  
+| AuthHMAC256SHA384 | 1.3.6.1.6.3.10.1.1.6 |  
+| AuthHMAC384SHA512 | 1.3.6.1.6.3.10.1.1.7 |  
+
+#### OID of the Protocol for Privacy (SNMP version 3)
+
+| Protocol   | OID                        |
+|------------|----------------------------|
+| Priv-NONE  | 1.3.6.1.6.3.10.1.2.1       |  
+| PrivDES    | 1.3.6.1.6.3.10.1.2.2       |  
+| Priv3DES   | 1.3.6.1.6.3.10.1.2.3       |  
+| PrivAES128 | 1.3.6.1.6.3.10.1.2.4       |  
+| PrivAES192 | 1.3.6.1.4.1.4976.2.2.1.1.1 |  
+| PrivAES256 | 1.3.6.1.4.1.4976.2.2.1.1.2 |  
 
 
 ## Build & Run (for developers)
