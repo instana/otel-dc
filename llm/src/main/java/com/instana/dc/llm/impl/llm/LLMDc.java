@@ -4,13 +4,27 @@
  */
 package com.instana.dc.llm.impl.llm;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
 import com.instana.dc.llm.AbstractLLMDc;
 import com.instana.dc.llm.DataCollector.CustomDcConfig;
+import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.LLM_COST_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_MAX_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_REQ_COUNT_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_STATUS_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_TOKEN_NAME;
+import static com.instana.dc.llm.LLMDcUtil.OPENAI_PRICE_COMPLETE_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.OPENAI_PRICE_PROMPT_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.SERVICE_LISTEN_PORT;
+import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_COMPLETE_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_PROMPT_TOKES_PER_KILO;
 import com.instana.dc.llm.impl.llm.MetricsCollectorService.OtelMetric;
-
-import java.util.logging.Logger;
-import java.util.*;
-
 import com.linecorp.armeria.common.HttpData;
 import com.linecorp.armeria.common.HttpResponse;
 import com.linecorp.armeria.common.HttpStatus;
@@ -18,9 +32,6 @@ import com.linecorp.armeria.common.MediaType;
 import com.linecorp.armeria.server.Server;
 import com.linecorp.armeria.server.grpc.GrpcService;
 import com.linecorp.armeria.server.healthcheck.HealthCheckService;
-
-//import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
-import static com.instana.dc.llm.LLMDcUtil.*;
 
 @SuppressWarnings("null")
 public class LLMDc extends AbstractLLMDc {
@@ -293,13 +304,13 @@ public class LLMDc extends AbstractLLMDc {
             double intervalTotalCost = intervalPromptCost + intervalCompleteCost;
             aggr.resetMetrics();
 
-            logger.info("ModelId         : " + modelId);
-            logger.info("AiSystem        : " + aiSystem);
-            logger.info("AvgDuration     : " + avgDuration);
-            logger.info("MaxDuration     : " + maxDuration);
-            logger.info("IntervalTokens  : " + intervalTotalTokens);
-            logger.info("IntervalCost    : " + intervalTotalCost);
-            logger.info("IntervalRequest : " + intervalReqCount);
+            System.out.println("ModelId         : " + modelId);
+            System.out.println("AiSystem        : " + aiSystem);
+            System.out.println("AvgDuration     : " + avgDuration);
+            System.out.println("MaxDuration     : " + maxDuration);
+            System.out.println("IntervalTokens  : " + intervalTotalTokens);
+            System.out.println("IntervalCost    : " + intervalTotalCost);
+            System.out.println("IntervalRequest : " + intervalReqCount);
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("model_id", modelId);
