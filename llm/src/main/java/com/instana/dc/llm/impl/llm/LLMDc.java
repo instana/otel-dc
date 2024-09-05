@@ -4,13 +4,27 @@
  */
 package com.instana.dc.llm.impl.llm;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
 import com.instana.dc.llm.AbstractLLMDc;
 import com.instana.dc.llm.DataCollector.CustomDcConfig;
+import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.LLM_COST_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_MAX_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_REQ_COUNT_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_STATUS_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_TOKEN_NAME;
+import static com.instana.dc.llm.LLMDcUtil.OPENAI_PRICE_COMPLETE_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.OPENAI_PRICE_PROMPT_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.SERVICE_LISTEN_PORT;
+import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_COMPLETE_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_PROMPT_TOKES_PER_KILO;
 import com.instana.dc.llm.impl.llm.MetricsCollectorService.OtelMetric;
-
-import java.util.logging.Logger;
-import java.util.*;
-
 import com.linecorp.armeria.common.HttpData;
 import com.linecorp.armeria.common.HttpResponse;
 import com.linecorp.armeria.common.HttpStatus;
@@ -18,9 +32,6 @@ import com.linecorp.armeria.common.MediaType;
 import com.linecorp.armeria.server.Server;
 import com.linecorp.armeria.server.grpc.GrpcService;
 import com.linecorp.armeria.server.healthcheck.HealthCheckService;
-
-//import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
-import static com.instana.dc.llm.LLMDcUtil.*;
 
 @SuppressWarnings("null")
 public class LLMDc extends AbstractLLMDc {
@@ -204,12 +215,11 @@ public class LLMDc extends AbstractLLMDc {
         metricsCollector.clearMetrics();
         for (OtelMetric metric : otelMetrics) {
             try {
-                double duration = metric.getDuration();
-                if(duration == 0.0) {
-                    continue;
-                }
                 String modelId = metric.getModelId();
                 String aiSystem = metric.getAiSystem();
+                long promptTokens = metric.getPromtTokens();
+                long completeTokens = metric.getCompleteTokens();
+                double duration = metric.getDuration();
                 long requestCount = metric.getReqCount();
 
                 ModelAggregation modelAggr = modelAggrMap.get(modelId);
@@ -217,33 +227,13 @@ public class LLMDc extends AbstractLLMDc {
                     modelAggr = new ModelAggregation(modelId, aiSystem);
                     modelAggrMap.put(modelId, modelAggr);
                 }
+                // Always handle duration first!
                 modelAggr.addDeltaDuration((long)(duration*1000), requestCount);
                 modelAggr.addDeltaReqCount(requestCount);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        for (OtelMetric metric : otelMetrics) {
-            try {
-                String modelId = metric.getModelId();
-                String aiSystem = metric.getAiSystem();
-                long promptTokens = metric.getPromtTokens();
-                long completeTokens = metric.getCompleteTokens();
-                if(promptTokens == 0 && completeTokens == 0) {
-                    continue;
-                }
-                ModelAggregation modelAggr = modelAggrMap.get(modelId);
-                if (modelAggr == null) {
-                    modelAggr = new ModelAggregation(modelId, aiSystem);
-                    modelAggrMap.put(modelId, modelAggr);
-                }
                 long currentReqCount = modelAggr.getCurrentReqCount();
-                if(promptTokens > 0) {
-                    modelAggr.addDeltaPromptTokens(promptTokens, currentReqCount);
-                }
-                if(completeTokens > 0) {
-                    modelAggr.addDeltaCompleteTokens(completeTokens, currentReqCount);
-                }
+                modelAggr.addDeltaPromptTokens(promptTokens, currentReqCount);
+                modelAggr.addDeltaCompleteTokens(completeTokens, currentReqCount);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -260,7 +250,7 @@ public class LLMDc extends AbstractLLMDc {
             long deltaCompleteTokens = aggr.getDeltaCompleteTokens();
             long maxDuration = aggr.getMaxDuration();
 
-            long avgDuration = deltaDuration/(deltaRequestCount==0?1:deltaRequestCount);
+            long avgDuration = deltaRequestCount == 0 ? 0 : deltaDuration/deltaRequestCount;
             if(avgDuration > maxDuration) {
                 maxDuration = avgDuration;
                 aggr.setMaxDuration(maxDuration);
@@ -272,18 +262,9 @@ public class LLMDc extends AbstractLLMDc {
                 intervalSeconds = 1;
             }
 
-            double pricePromptTokens = 0.0;
-            double priceCompleteTokens = 0.0;
-            if (aiSystem.compareTo("watsonx") == 0) {
-                pricePromptTokens = watsonxPricePromptTokens;
-                priceCompleteTokens = watsonxPriceCompleteTokens;
-            } else if (aiSystem.compareTo("openai") == 0) {
-                pricePromptTokens = openaiPricePromptTokens;
-                priceCompleteTokens = openaiPriceCompleteTokens;
-            } else if (aiSystem.compareTo("anthropic") == 0) {
-                pricePromptTokens = anthropicPricePromptTokens;
-                priceCompleteTokens = anthropicPriceCompleteTokens;
-            }
+            double pricePromptTokens = getPricePromptTokens(aiSystem);
+            double priceCompleteTokens = getPriceCompleteTokens(aiSystem);
+
             double intervalReqCount = (double)deltaRequestCount/intervalSeconds;
             double intervalPromptTokens = (double)deltaPromptTokens/intervalSeconds;
             double intervalCompleteTokens = (double)deltaCompleteTokens/intervalSeconds;
@@ -293,13 +274,12 @@ public class LLMDc extends AbstractLLMDc {
             double intervalTotalCost = intervalPromptCost + intervalCompleteCost;
             aggr.resetMetrics();
 
-            logger.info("ModelId         : " + modelId);
-            logger.info("AiSystem        : " + aiSystem);
-            logger.info("AvgDuration     : " + avgDuration);
-            logger.info("MaxDuration     : " + maxDuration);
-            logger.info("IntervalTokens  : " + intervalTotalTokens);
-            logger.info("IntervalCost    : " + intervalTotalCost);
-            logger.info("IntervalRequest : " + intervalReqCount);
+            System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
+            System.out.println(" - Average Duration : " + avgDuration + " ms");
+            System.out.println(" - Maximum Duration : " + maxDuration + " ms");
+            System.out.println(" - Interval Tokens  : " + intervalTotalTokens);
+            System.out.println(" - Interval Cost    : " + intervalTotalCost);
+            System.out.println(" - Interval Request : " + intervalReqCount);
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("model_id", modelId);
@@ -312,5 +292,23 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_REQ_COUNT_NAME).getDataPoint(modelId).setValue(intervalReqCount, attributes);
         }
         logger.info("-----------------------------------------");
+    }
+
+    private double getPricePromptTokens(String aiSystem) {
+        switch (aiSystem) {
+            case "watsonx": return watsonxPricePromptTokens;
+            case "openai": return openaiPricePromptTokens;
+            case "anthropic": return anthropicPricePromptTokens;
+            default: return 0.0;
+        }
+    }
+
+    private double getPriceCompleteTokens(String aiSystem) {
+        switch (aiSystem) {
+            case "watsonx": return watsonxPriceCompleteTokens;
+            case "openai": return openaiPriceCompleteTokens;
+            case "anthropic": return anthropicPriceCompleteTokens;
+            default: return 0.0;
+        }
     }
 }
