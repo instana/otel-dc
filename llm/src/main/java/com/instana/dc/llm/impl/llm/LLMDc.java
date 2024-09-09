@@ -4,6 +4,7 @@
  */
 package com.instana.dc.llm.impl.llm;
 
+import static com.instana.dc.DcUtil.POLLING_INTERVAL;
 import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.BEDROCK_PRICE_COMPLETE_TOKES_PER_KILO;
@@ -16,6 +17,7 @@ import static com.instana.dc.llm.LLMDcUtil.LLM_STATUS_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_TOKEN_NAME;
 import static com.instana.dc.llm.LLMDcUtil.OPENAI_PRICE_COMPLETE_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.OPENAI_PRICE_PROMPT_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.OTEL_AGENTLESS_MODE;
 import static com.instana.dc.llm.LLMDcUtil.SERVICE_LISTEN_PORT;
 import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_COMPLETE_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_PROMPT_TOKES_PER_KILO;
@@ -43,6 +45,8 @@ public class LLMDc extends AbstractLLMDc {
     public static final String SENSOR_NAME = "com.instana.plugin.watsonx";
     private HashMap<String, ModelAggregation> modelAggrMap = new HashMap<>();
     private MetricsCollectorService metricsCollector = new MetricsCollectorService();
+    private Boolean otelAgentlessMode = Boolean.FALSE;
+    private Integer otelPollInterval = DEFAULT_LLM_POLL_INTERVAL;
     private Double watsonxPricePromptTokens = 0.0;
     private Double watsonxPriceCompleteTokens = 0.0;
     private Double openaiPricePromptTokens = 0.0;
@@ -165,6 +169,8 @@ public class LLMDc extends AbstractLLMDc {
 
     public LLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) throws Exception {
         super(properties, cdcConfig);
+        otelAgentlessMode = (Boolean) properties.getOrDefault(OTEL_AGENTLESS_MODE, Boolean.FALSE);
+        otelPollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_LLM_POLL_INTERVAL);
         watsonxPricePromptTokens = (Double) properties.getOrDefault(WATSONX_PRICE_PROMPT_TOKES_PER_KILO, 0.0);
         watsonxPriceCompleteTokens = (Double) properties.getOrDefault(WATSONX_PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
         openaiPricePromptTokens = (Double) properties.getOrDefault(OPENAI_PRICE_PROMPT_TOKES_PER_KILO, 0.0);
@@ -267,19 +273,14 @@ public class LLMDc extends AbstractLLMDc {
                 maxDuration = avgDuration;
                 aggr.setMaxDuration(maxDuration);
             }
-
-            int intervalSeconds = LLM_POLL_INTERVAL;
-            String agentLess = System.getenv("AGENTLESS_MODE_ENABLED");
-            if (agentLess != null) {
-                intervalSeconds = 1;
-            }
+            int divideNum = otelAgentlessMode? 1:otelPollInterval;
 
             double pricePromptTokens = getPricePromptTokens(aiSystem);
             double priceCompleteTokens = getPriceCompleteTokens(aiSystem);
 
-            double intervalReqCount = (double)deltaRequestCount/intervalSeconds;
-            double intervalPromptTokens = (double)deltaPromptTokens/intervalSeconds;
-            double intervalCompleteTokens = (double)deltaCompleteTokens/intervalSeconds;
+            double intervalReqCount = (double)deltaRequestCount/divideNum;
+            double intervalPromptTokens = (double)deltaPromptTokens/divideNum;
+            double intervalCompleteTokens = (double)deltaCompleteTokens/divideNum;
             double intervalTotalTokens = intervalPromptTokens + intervalCompleteTokens;
             double intervalPromptCost = (intervalPromptTokens/1000) * pricePromptTokens;
             double intervalCompleteCost = (intervalCompleteTokens/1000) * priceCompleteTokens;

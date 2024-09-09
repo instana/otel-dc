@@ -4,14 +4,31 @@
  */
 package com.instana.dc.llm;
 
-import com.instana.dc.RawMetric;
+import static com.instana.dc.InstrumentType.GAUGE;
+import static com.instana.dc.InstrumentType.UPDOWN_COUNTER;
+import static com.instana.dc.llm.LLMDcUtil.LLM_COST_DESC;
+import static com.instana.dc.llm.LLMDcUtil.LLM_COST_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_COST_UNIT;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_DESC;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_MAX_DESC;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_MAX_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_MAX_UNIT;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_UNIT;
+import static com.instana.dc.llm.LLMDcUtil.LLM_REQ_COUNT_DESC;
+import static com.instana.dc.llm.LLMDcUtil.LLM_REQ_COUNT_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_REQ_COUNT_UNIT;
+import static com.instana.dc.llm.LLMDcUtil.LLM_STATUS_DESC;
+import static com.instana.dc.llm.LLMDcUtil.LLM_STATUS_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_STATUS_UNIT;
+import static com.instana.dc.llm.LLMDcUtil.LLM_TOKEN_DESC;
+import static com.instana.dc.llm.LLMDcUtil.LLM_TOKEN_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_TOKEN_UNIT;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.instana.dc.InstrumentType.GAUGE;
-import static com.instana.dc.InstrumentType.UPDOWN_COUNTER;
-import static com.instana.dc.llm.LLMDcUtil.*;
+import com.instana.dc.RawMetric;
 
 public class LLMRawMetricRegistry {
     private final Map<String, RawMetric> map = new ConcurrentHashMap<String, RawMetric>() {{

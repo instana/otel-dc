@@ -4,6 +4,10 @@
  */
 package com.instana.dc.llm;
 
+import static com.instana.dc.DcUtil.CONFIG_ENV;
+import static com.instana.dc.DcUtil.CONFIG_YAML;
+import static com.instana.dc.DcUtil.LOGGING_PROP;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +18,6 @@ import java.util.logging.Logger;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import static com.instana.dc.DcUtil.CONFIG_ENV;
-import static com.instana.dc.DcUtil.CONFIG_YAML;
-import static com.instana.dc.DcUtil.LOGGING_PROP;
 import com.instana.dc.IDc;
 
 public class DataCollector {

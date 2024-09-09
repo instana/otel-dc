@@ -1,14 +1,10 @@
 package com.instana.dc.llm.impl.llm;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Logger;
 
 import com.google.common.collect.ImmutableList;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
@@ -20,7 +16,6 @@ import io.opentelemetry.proto.metrics.v1.HistogramDataPoint;
 import io.opentelemetry.proto.metrics.v1.Metric;
 import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
 import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
-import io.opentelemetry.proto.resource.v1.Resource;
 
 class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase {
     private static final Logger logger = Logger.getLogger(MetricsCollectorService.class.getName());
