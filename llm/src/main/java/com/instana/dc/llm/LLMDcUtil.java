@@ -21,6 +21,8 @@ public class LLMDcUtil {
     public final static String OPENAI_PRICE_COMPLETE_TOKES_PER_KILO = "openai.price.complete.tokens.per.kilo";
     public final static String ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO = "anthropic.price.prompt.tokens.per.kilo";
     public final static String ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO = "anthropic.price.complete.tokens.per.kilo";
+    public final static String BEDROCK_PRICE_PROMPT_TOKES_PER_KILO = "bedrock.price.prompt.tokens.per.kilo";
+    public final static String BEDROCK_PRICE_COMPLETE_TOKES_PER_KILO = "bedrock.price.complete.tokens.per.kilo";
     public final static String SERVICE_LISTEN_PORT = "otel.service.port";
 
     /* Configurations for Metrics:
