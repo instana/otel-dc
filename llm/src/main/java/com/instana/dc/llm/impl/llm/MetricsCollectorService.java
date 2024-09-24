@@ -34,6 +34,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
         private double duration;
         private long requestCount;
         private String aiSystem;
+        private long startTimeNano;
 
         public String getModelId() {
             return modelId;
@@ -59,6 +60,10 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
             return aiSystem;
         }
 
+        public long getStartTimeNano() {
+            return startTimeNano;
+        }
+
         public void setModelId(String modelId) {
             this.modelId = modelId;
         }
@@ -81,6 +86,10 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
 
         public void setAiSystem(String aiSystem) {
             this.aiSystem = aiSystem;
+        }
+
+        public void setStartTimeNano(long startTimeNano) {
+            this.startTimeNano = startTimeNano;
         }
     }
     private HashMap<String, OtelMetric> exportMetrics = new HashMap<>();
@@ -204,6 +213,11 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                 otelMetric.setReqCount(requestCount);
                 System.out.println("Recv Metric --- Duration Sum: " + durationSum);
                 System.out.println("Recv Metric --- Duration Count: " + requestCount);
+
+                long beg  = dataPoint.getStartTimeUnixNano();
+                long end  = dataPoint.getTimeUnixNano();
+                System.out.println("DEBUG --- beg : " + beg);
+                System.out.println("DEBUG --- end : " + end);
             }
         }
     }

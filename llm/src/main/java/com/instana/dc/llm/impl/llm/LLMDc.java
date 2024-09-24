@@ -228,12 +228,17 @@ public class LLMDc extends AbstractLLMDc {
                 long completeTokens = metric.getCompleteTokens();
                 double duration = metric.getDuration();
                 long requestCount = metric.getReqCount();
+                long currStartTime = metric.getStartTimeNano();
 
                 ModelAggregation modelAggr = modelAggrMap.get(modelId);
                 if (modelAggr == null) {
                     modelAggr = new ModelAggregation(modelId, aiSystem);
                     modelAggrMap.put(modelId, modelAggr);
                 }
+
+                long lastStartTime = 0; //modelAggr.getLastStartTime();
+                boolean isDelta = currStartTime > lastStartTime;
+                
                 // Always handle duration first!
                 modelAggr.addDeltaDuration((long)(duration*1000), requestCount);
                 modelAggr.addDeltaReqCount(requestCount);
