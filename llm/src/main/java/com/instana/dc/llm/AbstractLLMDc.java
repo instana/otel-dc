@@ -4,14 +4,14 @@
  */
 package com.instana.dc.llm;
 
-import com.instana.dc.AbstractDc;
-import com.instana.dc.llm.DataCollector.CustomDcConfig;
-import com.instana.dc.resources.ContainerResource;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.metrics.SdkMeterProvider;
-import io.opentelemetry.sdk.resources.Resource;
+import static com.instana.dc.DcUtil.CALLBACK_INTERVAL;
+import static com.instana.dc.DcUtil.INSTANA_PLUGIN;
+import static com.instana.dc.DcUtil.OTEL_BACKEND_URL;
+import static com.instana.dc.DcUtil.OTEL_BACKEND_USING_HTTP;
+import static com.instana.dc.DcUtil.OTEL_SERVICE_NAME;
+import static com.instana.dc.DcUtil.POLLING_INTERVAL;
+import static com.instana.dc.DcUtil.mergeResourceAttributesFromEnv;
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -21,9 +21,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import static com.instana.dc.DcUtil.*;
-import static com.instana.dc.llm.LLMDcUtil.*;
-import static io.opentelemetry.api.common.AttributeKey.stringKey;
+import com.instana.dc.AbstractDc;
+import com.instana.dc.llm.DataCollector.CustomDcConfig;
+import com.instana.dc.resources.ContainerResource;
+
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.semconv.ResourceAttributes;
 public abstract class AbstractLLMDc extends AbstractDc {
     private static final Logger logger = Logger.getLogger(AbstractLLMDc.class.getName());
 
@@ -36,9 +43,8 @@ public abstract class AbstractLLMDc extends AbstractDc {
     private String serviceInstanceId;
     private CustomDcConfig cdcConfig;
 
-    // Used the fixed 10 seconds for poll interval
-    public static final int LLM_POLL_INTERVAL = 10;
-    public static final int LLM_CLBK_INTERVAL = 10;
+    public static final int DEFAULT_LLM_POLL_INTERVAL = 10;
+    public static final int DEFAULT_LLM_CLBK_INTERVAL = 10;
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
@@ -52,10 +58,8 @@ public abstract class AbstractLLMDc extends AbstractDc {
 
     public AbstractLLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
         super(new LLMRawMetricRegistry().getMap());
-		// pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, DEFAULT_POLL_INTERVAL);
-        // callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
-        pollInterval = LLM_POLL_INTERVAL;
-        callbackInterval = LLM_CLBK_INTERVAL;
+        callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_LLM_CLBK_INTERVAL);
+        pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);
         otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
         otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
         serviceName = (String) properties.get(OTEL_SERVICE_NAME);
@@ -68,12 +72,11 @@ public abstract class AbstractLLMDc extends AbstractDc {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(
                     stringKey("llm.platform"), "LLM",
-                    stringKey(SERVICE_NAME), serviceName,
-                    stringKey(SERVICE_INSTANCE_ID), serviceInstanceId
+                    ResourceAttributes.SERVICE_NAME, serviceName,
+                    ResourceAttributes.SERVICE_INSTANCE_ID, serviceInstanceId
                 )))
                 .merge(Resource.create(Attributes.of(
-                        stringKey("INSTANA_PLUGIN"), // com.instana.agent.sensorsdk.semconv.ResourceAttributes.INSTANA_PLUGIN
-                        "llmonitor" // com.instana.agent.sensorsdk.semconv.ResourceAttributes.LLM
+                    stringKey(INSTANA_PLUGIN), "llmonitor"
                 )));
 
         resource = resource.merge(ContainerResource.get());
