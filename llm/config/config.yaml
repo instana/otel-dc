@@ -11,3 +11,5 @@ instances:
     openai.price.complete.tokens.per.kilo: 0.0
     anthropic.price.prompt.tokens.per.kilo: 0.0
     anthropic.price.complete.tokens.per.kilo: 0.0
+    bedrock.price.prompt.tokens.per.kilo: 0.0
+    bedrock.price.complete.tokens.per.kilo: 0.0
