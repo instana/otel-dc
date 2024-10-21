@@ -4,15 +4,10 @@
  */
 package com.instana.dc.llm.impl.llm;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import com.instana.dc.llm.AbstractLLMDc;
-import com.instana.dc.llm.DataCollector.CustomDcConfig;
 import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.BEDROCK_PRICE_COMPLETE_TOKES_PER_KILO;
+import static com.instana.dc.llm.LLMDcUtil.BEDROCK_PRICE_PROMPT_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.LLM_COST_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_MAX_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_NAME;
@@ -24,6 +19,14 @@ import static com.instana.dc.llm.LLMDcUtil.OPENAI_PRICE_PROMPT_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.SERVICE_LISTEN_PORT;
 import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_COMPLETE_TOKES_PER_KILO;
 import static com.instana.dc.llm.LLMDcUtil.WATSONX_PRICE_PROMPT_TOKES_PER_KILO;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import com.instana.dc.llm.AbstractLLMDc;
+import com.instana.dc.llm.DataCollector.CustomDcConfig;
 import com.instana.dc.llm.impl.llm.MetricsCollectorService.OtelMetric;
 import com.linecorp.armeria.common.HttpData;
 import com.linecorp.armeria.common.HttpResponse;
@@ -46,6 +49,8 @@ public class LLMDc extends AbstractLLMDc {
     private Double openaiPriceCompleteTokens = 0.0;
     private Double anthropicPricePromptTokens = 0.0;
     private Double anthropicPriceCompleteTokens = 0.0;
+    private Double bedrockPricePromptTokens = 0.0;
+    private Double bedrockPriceCompleteTokens = 0.0;
     private int listenPort = 0;
 
     /**
@@ -166,6 +171,8 @@ public class LLMDc extends AbstractLLMDc {
         openaiPriceCompleteTokens = (Double) properties.getOrDefault(OPENAI_PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
         anthropicPricePromptTokens = (Double) properties.getOrDefault(ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO, 0.0);
         anthropicPriceCompleteTokens = (Double) properties.getOrDefault(ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
+        bedrockPricePromptTokens = (Double) properties.getOrDefault(BEDROCK_PRICE_PROMPT_TOKES_PER_KILO, 0.0);
+        bedrockPriceCompleteTokens = (Double) properties.getOrDefault(BEDROCK_PRICE_COMPLETE_TOKES_PER_KILO, 0.0);
         listenPort = (int) properties.getOrDefault(SERVICE_LISTEN_PORT, 8000);
     }
 
@@ -299,6 +306,7 @@ public class LLMDc extends AbstractLLMDc {
             case "watsonx": return watsonxPricePromptTokens;
             case "openai": return openaiPricePromptTokens;
             case "anthropic": return anthropicPricePromptTokens;
+            case "bedrock": return bedrockPricePromptTokens;
             default: return 0.0;
         }
     }
@@ -308,6 +316,7 @@ public class LLMDc extends AbstractLLMDc {
             case "watsonx": return watsonxPriceCompleteTokens;
             case "openai": return openaiPriceCompleteTokens;
             case "anthropic": return anthropicPriceCompleteTokens;
+            case "bedrock": return bedrockPriceCompleteTokens;
             default: return 0.0;
         }
     }
