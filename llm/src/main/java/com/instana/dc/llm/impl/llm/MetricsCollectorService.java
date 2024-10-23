@@ -1,14 +1,13 @@
 package com.instana.dc.llm.impl.llm;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import com.google.common.collect.ImmutableList;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.linecorp.armeria.common.RequestContext;
+import com.linecorp.armeria.common.RequestHeaders;
 
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
@@ -20,7 +19,6 @@ import io.opentelemetry.proto.metrics.v1.HistogramDataPoint;
 import io.opentelemetry.proto.metrics.v1.Metric;
 import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
 import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
-import io.opentelemetry.proto.resource.v1.Resource;
 
 class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase {
     private static final Logger logger = Logger.getLogger(MetricsCollectorService.class.getName());
@@ -99,6 +97,26 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
     public void export(
             ExportMetricsServiceRequest request,
             StreamObserver<ExportMetricsServiceResponse> responseObserver) {
+        
+        RequestContext ctx = RequestContext.current();
+        RequestHeaders headers = ctx.request().headers();
+        String xInstanaKey = headers.get("x-instana-key");
+        String xInstanaHost = headers.get("x-instana-host");
+        if (xInstanaKey != null && !xInstanaKey.isEmpty()) {
+            String keyValue = "";
+            if (xInstanaHost == null || xInstanaHost.isEmpty()) {
+                keyValue = String.format("x-instana-key=%s", xInstanaKey);
+            } else {
+                keyValue = String.format("x-instana-key=%s,x-instana-host=%s", xInstanaKey, xInstanaHost);
+            }
+            ProcessBuilder processBuilder = new ProcessBuilder();
+            Map<String, String> processEnv = processBuilder.environment();       
+            String name = "OTEL_EXPORTER_OTLP_HEADERS";
+            String value = processEnv.get(name);
+            if (value == null || value.compareTo(keyValue) != 0) {
+                processEnv.put(name, keyValue);
+            }    
+        }
 
         synchronized (mutex) {
             List<ResourceMetrics> allResourceMetrics = request.getResourceMetricsList();
