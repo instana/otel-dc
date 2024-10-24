@@ -264,7 +264,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                 System.out.println("Recv Metric --- Start Time : " + startTime);
                 System.out.println("Recv Metric --- End Time : " + endTime);
 
-                String modelKey = String.format("%s:%s", serviceName, modelId);
+                String modelKey = String.format("%s:%s:%s", serviceName, aiSystem, modelId);
                 OtelMetric otelMetric = exportMetrics.get(modelKey);
                 if (otelMetric == null ) {
                     otelMetric = new OtelMetric();
@@ -323,7 +323,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                 System.out.println("Recv Metric --- Start Time : " + startTime);
                 System.out.println("Recv Metric --- End Time : " + endTime);
 
-                String modelKey = String.format("%s:%s", serviceName, modelId);
+                String modelKey = String.format("%s:%s:%s", serviceName, aiSystem, modelId);
                 OtelMetric otelMetric = exportMetrics.get(modelKey);
                 if (otelMetric == null ) {
                     otelMetric = new OtelMetric();
