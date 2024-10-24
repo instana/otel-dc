@@ -1,7 +1,9 @@
 llm.application: LLM_DC
 
 instances:
-  - otel.backend.url: http://localhost:4317
+  - otel.agentless.mode: true
+    otel.backend.url: http://<backend/agent-otlp-acceptor>:4317
+    callback.interval: 10
     otel.service.name: DC1
     otel.service.port: 8000
     #Only configure the settings of the AI provider you are using

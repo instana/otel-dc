@@ -4,12 +4,10 @@
  */
 package com.instana.dc.llm;
 
-import com.instana.dc.llm.AbstractLLMDc;
-import com.instana.dc.llm.impl.llm.LLMDc;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import com.instana.dc.llm.impl.llm.LLMDc;
 public class LLMDcRegistry {
     /* Add all DataCollector implementations here:
     **/
