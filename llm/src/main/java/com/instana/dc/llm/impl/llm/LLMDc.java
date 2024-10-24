@@ -233,16 +233,17 @@ public class LLMDc extends AbstractLLMDc {
             double intervalOutputTokens = (double)deltaOutputTokens/divisor;
             double intervalTotalTokens = intervalInputTokens + intervalOutputTokens;
 
-            // This costs are 1000 times the actual value to prevent very small numbers from being rounded off. 
-            // When displayed on UI, it will be adjusted to the correct value.
-            double intervalInputCost = intervalInputTokens * priceInputTokens;
-            double intervalOutputCost = intervalOutputTokens * priceOutputTokens;
+            double intervalInputCost = intervalInputTokens/1000 * priceInputTokens;
+            double intervalOutputCost = intervalOutputTokens/1000 * priceOutputTokens;
             double intervalTotalCost = intervalInputCost + intervalOutputCost;
 
-            // This environment variable is just required to be compatible with older backend
-            String backwardCompatible = System.getenv("BACKWARD_COMPATIBLITY_BACKEND");
+            // This costs are 10000 times the actual value to prevent very small numbers from being rounded off. 
+            // And it will be adjusted to the correct value on UI.
+            String backwardCompatible = System.getenv("FORCE_BACKWARD_COMPATIBLE");
             if (backwardCompatible != null) {
-                intervalTotalCost = intervalTotalCost/1000;
+                System.out.printf("FORCE_BACKWARD_COMPATIBLE is set.");        
+            } else {
+                intervalTotalCost = intervalTotalCost * 10000;
             }
             
             System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
