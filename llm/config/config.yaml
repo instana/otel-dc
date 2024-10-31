@@ -3,6 +3,7 @@ llm.application: LLM_DC
 instances:
   - otel.agentless.mode: true
     otel.backend.url: http://<backend/agent-otlp-acceptor>:4317
+    otel.backend.using.http: false
     callback.interval: 10
     otel.service.name: DC1
     otel.service.port: 8000
