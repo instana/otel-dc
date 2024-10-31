@@ -1,5 +1,12 @@
 package com.instana.dc;
 
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import static com.instana.dc.DcUtil.getCert;
+
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
@@ -9,13 +16,6 @@ import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporterBuilder;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
-
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
-import static com.instana.dc.DcUtil.getCert;
 
 public abstract class AbstractDc implements IDc {
     private final Map<String, Meter> meters = new ConcurrentHashMap<>();
@@ -63,8 +63,10 @@ public abstract class AbstractDc implements IDc {
                 .setEndpoint(otelBackendUrl)
                 .setTimeout(timeout, TimeUnit.SECONDS);
 
+        HeadersSupplier supplier = HeadersSupplier.INSTANCE;
+        builder.setHeaders(supplier::getHeaders);
         if (headers != null) {
-            builder.setHeaders(() -> headers);
+            supplier.updateHeaders(headers);
         }
         if (cert != null) {
             builder.setTrustedCertificates(cert);
@@ -78,8 +80,10 @@ public abstract class AbstractDc implements IDc {
                 .setEndpoint(otelBackendUrl)
                 .setTimeout(timeout, TimeUnit.SECONDS);
 
+        HeadersSupplier supplier = HeadersSupplier.INSTANCE;
+        builder.setHeaders(supplier::getHeaders);
         if (headers != null) {
-            builder.setHeaders(() -> headers);
+            supplier.updateHeaders(headers);
         }
         if (cert != null) {
             builder.setTrustedCertificates(cert);
