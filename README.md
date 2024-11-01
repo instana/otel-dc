@@ -1,4 +1,4 @@
-# ODCD (OpenTelemetry Data Collector Divers)
+# ODCD (OpenTelemetry Data Collector Drivers)
 
 **[Semantic Convention](docs/semconv)** |
 **[Changelog](CHANGELOG.md)** |
