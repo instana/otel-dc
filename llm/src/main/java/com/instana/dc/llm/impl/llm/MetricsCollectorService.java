@@ -1,11 +1,18 @@
 package com.instana.dc.llm.impl.llm;
 
+import static com.instana.dc.DcUtil.OTEL_EXPORTER_OTLP_HEADERS;
+
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 import com.google.common.collect.ImmutableList;
+import com.instana.dc.HeadersSupplier;
+import com.linecorp.armeria.common.HttpRequest;
+import com.linecorp.armeria.common.RequestContext;
+import com.linecorp.armeria.common.RequestHeaders;
 
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
@@ -189,6 +196,26 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
     public void export(
             ExportMetricsServiceRequest request,
             StreamObserver<ExportMetricsServiceResponse> responseObserver) {
+
+        if (System.getenv(OTEL_EXPORTER_OTLP_HEADERS) == null) {
+            HttpRequest httpRequest = RequestContext.current().request();
+            RequestHeaders headers = httpRequest!=null ? httpRequest.headers() : null;
+            if ( headers != null ) {
+                HeadersSupplier supplier = HeadersSupplier.INSTANCE;
+                Map<String, String> newHeaders = new HashMap<>();
+                String xInstanaKey = headers.get("x-instana-key");
+                if (xInstanaKey != null && !xInstanaKey.isEmpty()) {
+                    newHeaders.put("x-instana-key", xInstanaKey);
+                }
+                String xInstanaHost = headers.get("x-instana-host");
+                if (xInstanaHost != null && !xInstanaHost.isEmpty()) {
+                    newHeaders.put("x-instana-host", xInstanaHost);
+                }
+                if ( ! newHeaders.isEmpty() ) {
+                    supplier.updateHeaders(newHeaders);
+                }
+            }
+        }
 
         synchronized (mutex) {
             List<ResourceMetrics> allResourceMetrics = request.getResourceMetricsList();
