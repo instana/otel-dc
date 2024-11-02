@@ -2,3 +2,6 @@
 .idea/
 build/
 *.class
+
+# output from nohup
+nohup.out
