@@ -13,14 +13,7 @@ public class LLMDcUtil {
      */
     public static final String DEFAULT_INSTRUMENTATION_SCOPE = "instana.sensor-sdk.dc.llm";
     public static final String DEFAULT_INSTRUMENTATION_SCOPE_VER = "1.0.0";
-    public final static String WATSONX_PRICE_PROMPT_TOKES_PER_KILO = "watsonx.price.prompt.tokens.per.kilo";
-    public final static String WATSONX_PRICE_COMPLETE_TOKES_PER_KILO = "watsonx.price.complete.tokens.per.kilo";
-    public final static String OPENAI_PRICE_PROMPT_TOKES_PER_KILO = "openai.price.prompt.tokens.per.kilo";
-    public final static String OPENAI_PRICE_COMPLETE_TOKES_PER_KILO = "openai.price.complete.tokens.per.kilo";
-    public final static String ANTHROPIC_PRICE_PROMPT_TOKES_PER_KILO = "anthropic.price.prompt.tokens.per.kilo";
-    public final static String ANTHROPIC_PRICE_COMPLETE_TOKES_PER_KILO = "anthropic.price.complete.tokens.per.kilo";
-    public final static String BEDROCK_PRICE_PROMPT_TOKES_PER_KILO = "bedrock.price.prompt.tokens.per.kilo";
-    public final static String BEDROCK_PRICE_COMPLETE_TOKES_PER_KILO = "bedrock.price.complete.tokens.per.kilo";
+    public final static String LLM_PRICES_PROPERTIES = "config/prices.properties";
     public final static String SERVICE_LISTEN_PORT = "otel.service.port";
     public final static String OTEL_AGENTLESS_MODE = "otel.agentless.mode";
 

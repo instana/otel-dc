@@ -269,6 +269,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
             String modelId = "";
             String tokenType = "";
             String aiSystem = "";
+            String aiVendor = "";
             for (KeyValue kv : kvList) {
                 if (kv.getKey().compareTo("gen_ai.response.model") == 0) {
                     modelId = kv.getValue().getStringValue();
@@ -276,10 +277,16 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                 } else if (kv.getKey().compareTo("gen_ai.system") == 0) {
                     aiSystem = kv.getValue().getStringValue();
                     System.out.println("Recv Metric --- AI System: " + aiSystem);
+                } else if (kv.getKey().compareTo("vendor") == 0) {
+                    aiVendor = kv.getValue().getStringValue();
+                    System.out.println("Recv Metric --- AI vendor: " + aiVendor);
                 } else if (kv.getKey().compareTo("gen_ai.token.type") == 0) {
                     tokenType = kv.getValue().getStringValue();
                     System.out.println("Recv Metric --- Token Type: " + tokenType);
                 }
+            }
+            if (!aiVendor.isEmpty() && !modelId.isEmpty()) {
+                modelId = aiVendor + "." + modelId;
             }
             if (!modelId.isEmpty()) {
                 double tokenSum = dataPoint.getSum();
@@ -331,6 +338,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
             List<KeyValue> kvList = dataPoint.getAttributesList();
             String modelId = "";
             String aiSystem = "";
+            String aiVendor = ""; // for Bedrock
             for (KeyValue kv : kvList) {
                 if (kv.getKey().compareTo("gen_ai.response.model") == 0) {
                     modelId = kv.getValue().getStringValue();
@@ -338,7 +346,13 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                 } else if (kv.getKey().compareTo("gen_ai.system") == 0) {
                     aiSystem = kv.getValue().getStringValue();
                     System.out.println("Recv Metric --- AI System: " + aiSystem);
+                } else if (kv.getKey().compareTo("vendor") == 0) {
+                    aiVendor = kv.getValue().getStringValue();
+                    System.out.println("Recv Metric --- AI vendor: " + aiVendor);
                 }
+            }
+            if (!aiVendor.isEmpty() && !modelId.isEmpty()) {
+                modelId = aiVendor + "." + modelId;
             }
             if (!modelId.isEmpty()) {
                 double durationSum = dataPoint.getSum();
