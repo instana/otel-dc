@@ -126,7 +126,7 @@ public class LLMDc extends AbstractLLMDc {
                 }
                 int equalIndex = line.indexOf('=');
                 if (equalIndex > 0) {
-                    String key = line.substring(0, equalIndex).trim();
+                    String key = line.substring(0, equalIndex).trim().toLowerCase();
                     String value = line.substring(equalIndex + 1).trim();
                     try {
                         Double dValue = Double.parseDouble(value);
@@ -232,19 +232,19 @@ public class LLMDc extends AbstractLLMDc {
             int divisor = otelAgentlessMode? 1:otelPollInterval;
 
             String inputPriceKey = aiSystem + "." + modelId + ".input";
-            Double priceInputTokens = llmTokenPrices.get(inputPriceKey);
+            Double priceInputTokens = llmTokenPrices.get(inputPriceKey.toLowerCase());
             if(priceInputTokens == null) {
                 String inputFlatPriceKey = aiSystem + ".*.input";
-                priceInputTokens = llmTokenPrices.get(inputFlatPriceKey);
+                priceInputTokens = llmTokenPrices.get(inputFlatPriceKey.toLowerCase());
                 if (priceInputTokens == null) {
                     priceInputTokens = 0.0;
                 }
             }
             String outputPriceKey = aiSystem + "." + modelId + ".output";
-            Double priceOutputTokens = llmTokenPrices.get(outputPriceKey);
+            Double priceOutputTokens = llmTokenPrices.get(outputPriceKey.toLowerCase());
             if(priceOutputTokens == null) {
                 String outputFlatPriceKey = aiSystem + ".*.output";
-                priceOutputTokens = llmTokenPrices.get(outputFlatPriceKey);
+                priceOutputTokens = llmTokenPrices.get(outputFlatPriceKey.toLowerCase());
                 if (priceOutputTokens == null) {
                     priceOutputTokens = 0.0;
                 }
