@@ -15,24 +15,38 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/Release/otel-dc-llm_1.0.0_linux_amd64.tar.gz
+curl -O https://github.com/instana/otel-dc/releases/download/v1.0.5/otel-dc-llm-1.0.5.tar
 ```
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-llm_1.0.0_linux_amd64.tar.gz
+tar vxf otel-dc-llm-1.0.5.tar
 ```
 
 ## Configuration
+
+### Configure otel dc
 ```bash
-cd otel-dc-llm-1.0.0
+cd otel-dc-llm-1.0.5
 vi config/config.yaml
 ```
 The following options are required：
-- `otel.backend.url`：The OTel gRPC address of the OTel backends, for example Instana Agent (as OTel Backend): http://localhost:4317
-- `otel.service.name`：The Data Collector name, which can be any string you choose.
-- `*.price.prompt.tokens.per.kilo`：The unit price per thousand prompt tokens.
-- `*.price.complete.tokens.per.kilo`：The unit price per thousand complete tokens.
+- `otel.agentless.mode`: The connection mode of the OTel data connector, the default mode is agentless.
+- `otel.backend.url`: The gRPC endpoint of the Instana backend or Instana agent, that depends on agentless or not.
+- `callback.interval`: The time interval in seconds to post data to backend or agent.
+- `otel.service.name`: The Data Collector name, which can be any string that you choose.
+- `otel.service.port`: The listen port of Data Collector for receiving the metrics data from the instrumented applications, the default port is 8000.
 
+
+### Configure model price
+```bash
+vi config/prices.properties
+```
+Customize more price items by the following format:
+```
+<aiSystem>.<modelId>.input=0.0
+<aiSystem>.<modelId>.output=0.0
+```
+The <modelId> can be set to '*' to match all modelIds within the aiSystem, but this has a lower priority than items with a specific modelId specified.
 
 ## Run ODCL
 Run the Data Collector with the following command according to your current system:

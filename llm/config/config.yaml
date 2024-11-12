@@ -7,12 +7,5 @@ instances:
     callback.interval: 10
     otel.service.name: DC1
     otel.service.port: 8000
-    #Only configure the settings of the AI provider you are using
-    watsonx.price.prompt.tokens.per.kilo: 0.0
-    watsonx.price.complete.tokens.per.kilo: 0.0
-    openai.price.prompt.tokens.per.kilo: 0.0
-    openai.price.complete.tokens.per.kilo: 0.0
-    anthropic.price.prompt.tokens.per.kilo: 0.0
-    anthropic.price.complete.tokens.per.kilo: 0.0
-    bedrock.price.prompt.tokens.per.kilo: 0.0
-    bedrock.price.complete.tokens.per.kilo: 0.0
+
+# Customize pricing only for models in use in config/prices.properties
