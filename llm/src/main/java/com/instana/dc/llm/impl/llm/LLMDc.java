@@ -262,7 +262,7 @@ public class LLMDc extends AbstractLLMDc {
             // This costs are 10000 times the actual value to prevent very small numbers from being rounded off. 
             // And it will be adjusted to the correct value on UI.
             String backwardCompatible = System.getenv("FORCE_BACKWARD_COMPATIBLE");
-            if (backwardCompatible != null) {
+            if (backwardCompatible != null && backwardCompatible.equalsIgnoreCase("true")) {
                 System.out.printf("FORCE_BACKWARD_COMPATIBLE is set.");        
             } else {
                 intervalTotalCost = intervalTotalCost * 10000;
@@ -276,14 +276,16 @@ public class LLMDc extends AbstractLLMDc {
             System.out.println(" - Interval Request : " + intervalReqCount);
 
             Map<String, Object> attributes = new HashMap<>();
-            attributes.put("model_id", modelId);
+            String replacedId = modelId.replace(".", "/");
+            String modelIdExt = aiSystem + ":" + replacedId;
+            attributes.put("model_id", modelIdExt);
             attributes.put("ai_system", aiSystem);
             getRawMetric(LLM_STATUS_NAME).setValue(1);
-            getRawMetric(LLM_DURATION_NAME).getDataPoint(modelId).setValue(avgDurationPerReq, attributes);
-            getRawMetric(LLM_DURATION_MAX_NAME).getDataPoint(modelId).setValue(maxDurationSoFar, attributes);
-            getRawMetric(LLM_COST_NAME).getDataPoint(modelId).setValue(intervalTotalCost, attributes);
-            getRawMetric(LLM_TOKEN_NAME).getDataPoint(modelId).setValue(intervalTotalTokens, attributes);
-            getRawMetric(LLM_REQ_COUNT_NAME).getDataPoint(modelId).setValue(intervalReqCount, attributes);
+            getRawMetric(LLM_DURATION_NAME).getDataPoint(modelIdExt).setValue(avgDurationPerReq, attributes);
+            getRawMetric(LLM_DURATION_MAX_NAME).getDataPoint(modelIdExt).setValue(maxDurationSoFar, attributes);
+            getRawMetric(LLM_COST_NAME).getDataPoint(modelIdExt).setValue(intervalTotalCost, attributes);
+            getRawMetric(LLM_TOKEN_NAME).getDataPoint(modelIdExt).setValue(intervalTotalTokens, attributes);
+            getRawMetric(LLM_REQ_COUNT_NAME).getDataPoint(modelIdExt).setValue(intervalReqCount, attributes);
         }
         logger.info("-----------------------------------------");
     }
