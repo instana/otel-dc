@@ -9,6 +9,10 @@ import static com.instana.dc.DcUtil.POLLING_INTERVAL;
 import static com.instana.dc.llm.LLMDcUtil.LLM_COST_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_MAX_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_DURATION_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_INPUT_COST_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_INPUT_TOKEN_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_OUTPUT_COST_NAME;
+import static com.instana.dc.llm.LLMDcUtil.LLM_OUTPUT_TOKEN_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_PRICES_PROPERTIES;
 import static com.instana.dc.llm.LLMDcUtil.LLM_REQ_COUNT_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_STATUS_NAME;
@@ -266,13 +270,19 @@ public class LLMDc extends AbstractLLMDc {
                 System.out.printf("FORCE_BACKWARD_COMPATIBLE is set.");        
             } else {
                 intervalTotalCost = intervalTotalCost * 10000;
+                intervalInputCost = intervalInputCost * 10000;
+                intervalOutputCost = intervalOutputCost * 10000;
             }
             
             System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
             System.out.println(" - Average Duration : " + avgDurationPerReq + " ms");
             System.out.println(" - Maximum Duration : " + maxDurationSoFar + " ms");
             System.out.println(" - Interval Tokens  : " + intervalTotalTokens);
+            System.out.println(" - Interval Input Tokens  : " + intervalInputTokens);
+            System.out.println(" - Interval Output Tokens  : " + intervalOutputTokens);
             System.out.println(" - Interval Cost    : " + intervalTotalCost);
+            System.out.println(" - Interval Input Cost    : " + intervalInputCost);
+            System.out.println(" - Interval Output Cost    : " + intervalOutputCost);
             System.out.println(" - Interval Request : " + intervalReqCount);
 
             Map<String, Object> attributes = new HashMap<>();
@@ -284,7 +294,11 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_DURATION_NAME).getDataPoint(modelIdExt).setValue(avgDurationPerReq, attributes);
             getRawMetric(LLM_DURATION_MAX_NAME).getDataPoint(modelIdExt).setValue(maxDurationSoFar, attributes);
             getRawMetric(LLM_COST_NAME).getDataPoint(modelIdExt).setValue(intervalTotalCost, attributes);
+            getRawMetric(LLM_INPUT_COST_NAME).getDataPoint(modelIdExt).setValue(intervalInputCost, attributes);
+            getRawMetric(LLM_OUTPUT_COST_NAME).getDataPoint(modelIdExt).setValue(intervalOutputCost, attributes);
             getRawMetric(LLM_TOKEN_NAME).getDataPoint(modelIdExt).setValue(intervalTotalTokens, attributes);
+            getRawMetric(LLM_INPUT_TOKEN_NAME).getDataPoint(modelIdExt).setValue(intervalInputTokens, attributes);
+            getRawMetric(LLM_OUTPUT_TOKEN_NAME).getDataPoint(modelIdExt).setValue(intervalOutputTokens, attributes);
             getRawMetric(LLM_REQ_COUNT_NAME).getDataPoint(modelIdExt).setValue(intervalReqCount, attributes);
         }
         logger.info("-----------------------------------------");

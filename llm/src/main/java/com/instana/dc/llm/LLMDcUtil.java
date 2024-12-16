@@ -46,10 +46,26 @@ public class LLMDcUtil {
     public static final String LLM_COST_NAME = "llm.usage.cost";
     public static final String LLM_COST_DESC = "The total cost of watsonx calls by interval";
     public static final String LLM_COST_UNIT = "{cost}";
+
+    public static final String LLM_INPUT_COST_NAME = "llm.usage.input_cost";
+    public static final String LLM_INPUT_COST_DESC = "The input cost of watsonx calls by interval";
+    public static final String LLM_INPUT_COST_UNIT = "{cost}";
+
+    public static final String LLM_OUTPUT_COST_NAME = "llm.usage.output_cost";
+    public static final String LLM_OUTPUT_COST_DESC = "The output cost of watsonx calls by interval";
+    public static final String LLM_OUTPUT_COST_UNIT = "{cost}";
  
     public static final String LLM_TOKEN_NAME = "llm.usage.total_tokens";
     public static final String LLM_TOKEN_DESC = "The total tokens of watsonx calls by interval";
     public static final String LLM_TOKEN_UNIT = "{token}";
+
+    public static final String LLM_INPUT_TOKEN_NAME = "llm.usage.input_tokens";
+    public static final String LLM_INPUT_TOKEN_DESC = "The input tokens of watsonx calls by interval";
+    public static final String LLM_INPUT_TOKEN_UNIT = "{token}";
+
+    public static final String LLM_OUTPUT_TOKEN_NAME = "llm.usage.output_tokens";
+    public static final String LLM_OUTPUT_TOKEN_DESC = "The output tokens of watsonx calls by interval";
+    public static final String LLM_OUTPUT_TOKEN_UNIT = "{token}";
 
     public static final String LLM_REQ_COUNT_NAME = "llm.request.count";
     public static final String LLM_REQ_COUNT_DESC = "The total count of watsonx calls by interval";
