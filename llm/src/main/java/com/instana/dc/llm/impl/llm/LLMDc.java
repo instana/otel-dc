@@ -303,52 +303,57 @@ public class LLMDc extends AbstractLLMDc {
         logger.info("-----------------------------------------");
 
         for (Map.Entry<String, Map<String, ModelAggregation>> serviceAggrEntry : serviceModelAggrMap.entrySet()) {
-            double intervalReqCount = 0.0;
-            double intervalInputTokens = 0.0, intervalOutputTokens = 0.0, intervalTotalTokens = 0.0;
-            double intervalInputCost = 0.0, intervalOutputCost = 0.0, intervalTotalCost = 0.0;
+            double serviceIntervalReqCount = 0.0;
+            double serviceIntervalInputTokens = 0.0, serviceIntervalOutputTokens = 0.0, serviceIntervalTotalTokens;
+            double serviceIntervalInputCost = 0.0, serviceIntervalOutputCost = 0.0, serviceIntervalTotalCost;
             for (Map.Entry<String, ModelAggregation> entry : serviceAggrEntry.getValue().entrySet()) {
                 ModelAggregation aggr = entry.getValue();
                 String modelId = aggr.getModelId();
                 String aiSystem = aggr.getAiSystem();
 
-                intervalInputTokens += (double) aggr.getDeltaInputTokens() / divisor;
-                intervalOutputTokens += (double) aggr.getDeltaOutputTokens() / divisor;
-                intervalTotalTokens = intervalInputTokens + intervalOutputTokens;
-                aggr.resetDeltaValues();
+                serviceIntervalReqCount += (double) aggr.getDeltaRequestCount() / divisor;
 
-                intervalInputCost += intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
-                intervalOutputCost += intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
-                intervalTotalCost = intervalInputCost + intervalOutputCost;
+                double intervalInputTokens = (double) aggr.getDeltaInputTokens() / divisor;
+                serviceIntervalInputTokens += intervalInputTokens;
+                serviceIntervalInputCost += intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
+
+                double intervalOutputTokens = (double) aggr.getDeltaOutputTokens() / divisor;
+                serviceIntervalOutputTokens += intervalOutputTokens;
+                serviceIntervalOutputCost += intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
+
+                aggr.resetDeltaValues();
             }
+            serviceIntervalTotalTokens = serviceIntervalInputTokens + serviceIntervalOutputTokens;
+            serviceIntervalTotalCost = serviceIntervalInputCost + serviceIntervalOutputCost;
 
             // This costs are 10000 times the actual value to prevent very small numbers from being rounded off.
             // And it will be adjusted to the correct value on UI.
             if (isForceBackwardCompatible()) {
                 System.out.println("FORCE_BACKWARD_COMPATIBLE is set.");
             } else {
-                intervalTotalCost = intervalTotalCost * 10000;
-                intervalInputCost = intervalInputCost * 10000;
-                intervalOutputCost = intervalOutputCost * 10000;
+                serviceIntervalTotalCost = serviceIntervalTotalCost * 10000;
+                serviceIntervalInputCost = serviceIntervalInputCost * 10000;
+                serviceIntervalOutputCost = serviceIntervalOutputCost * 10000;
             }
 
             String serviceName = serviceAggrEntry.getKey();
             System.out.printf("Metrics for service %s", serviceName);
-            System.out.println(" - Interval Tokens  : " + intervalTotalTokens);
-            System.out.println(" - Interval Input Tokens  : " + intervalInputTokens);
-            System.out.println(" - Interval Output Tokens  : " + intervalOutputTokens);
-            System.out.println(" - Interval Cost    : " + intervalTotalCost);
-            System.out.println(" - Interval Input Cost    : " + intervalInputCost);
-            System.out.println(" - Interval Output Cost    : " + intervalOutputCost);
-            System.out.println(" - Interval Request : " + intervalReqCount);
+            System.out.println(" - Interval Tokens  : " + serviceIntervalTotalTokens);
+            System.out.println(" - Interval Input Tokens  : " + serviceIntervalInputTokens);
+            System.out.println(" - Interval Output Tokens  : " + serviceIntervalOutputTokens);
+            System.out.println(" - Interval Cost    : " + serviceIntervalTotalCost);
+            System.out.println(" - Interval Input Cost    : " + serviceIntervalInputCost);
+            System.out.println(" - Interval Output Cost    : " + serviceIntervalOutputCost);
+            System.out.println(" - Interval Request : " + serviceIntervalReqCount);
 
             Map<String, Object> attributes = Map.of("service_name", serviceName);
-            getRawMetric(LLM_SERVICE_COST_NAME).getDataPoint(serviceName).setValue(intervalTotalCost, attributes);
-            getRawMetric(LLM_SERVICE_INPUT_COST_NAME).getDataPoint(serviceName).setValue(intervalInputCost, attributes);
-            getRawMetric(LLM_SERVICE_OUTPUT_COST_NAME).getDataPoint(serviceName).setValue(intervalOutputCost, attributes);
-            getRawMetric(LLM_SERVICE_TOKEN_NAME).getDataPoint(serviceName).setValue(intervalTotalTokens, attributes);
-            getRawMetric(LLM_SERVICE_INPUT_TOKEN_NAME).getDataPoint(serviceName).setValue(intervalInputTokens, attributes);
-            getRawMetric(LLM_SERVICE_OUTPUT_TOKEN_NAME).getDataPoint(serviceName).setValue(intervalOutputTokens, attributes);
-            getRawMetric(LLM_SERVICE_REQ_COUNT_NAME).getDataPoint(serviceName).setValue(intervalReqCount, attributes);
+            getRawMetric(LLM_SERVICE_COST_NAME).getDataPoint(serviceName).setValue(serviceIntervalTotalCost, attributes);
+            getRawMetric(LLM_SERVICE_INPUT_COST_NAME).getDataPoint(serviceName).setValue(serviceIntervalInputCost, attributes);
+            getRawMetric(LLM_SERVICE_OUTPUT_COST_NAME).getDataPoint(serviceName).setValue(serviceIntervalOutputCost, attributes);
+            getRawMetric(LLM_SERVICE_TOKEN_NAME).getDataPoint(serviceName).setValue(serviceIntervalTotalTokens, attributes);
+            getRawMetric(LLM_SERVICE_INPUT_TOKEN_NAME).getDataPoint(serviceName).setValue(serviceIntervalInputTokens, attributes);
+            getRawMetric(LLM_SERVICE_OUTPUT_TOKEN_NAME).getDataPoint(serviceName).setValue(serviceIntervalOutputTokens, attributes);
+            getRawMetric(LLM_SERVICE_REQ_COUNT_NAME).getDataPoint(serviceName).setValue(serviceIntervalReqCount, attributes);
         }
         logger.info("-----------------------------------------");
     }
