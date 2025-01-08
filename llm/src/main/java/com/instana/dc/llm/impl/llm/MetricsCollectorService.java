@@ -206,7 +206,6 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
     public void export(
             ExportMetricsServiceRequest request,
             StreamObserver<ExportMetricsServiceResponse> responseObserver) {
-        System.out.println("exporting--------" + request);
 
         if (System.getenv(OTEL_EXPORTER_OTLP_HEADERS) == null) {
             HttpRequest httpRequest = RequestContext.current().request();
