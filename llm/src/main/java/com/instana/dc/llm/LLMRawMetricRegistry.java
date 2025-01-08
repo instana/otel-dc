@@ -33,12 +33,6 @@ import static com.instana.dc.llm.LLMDcUtil.LLM_REQ_COUNT_UNIT;
 import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_COST_DESC;
 import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_COST_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_COST_UNIT;
-import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_DURATION_DESC;
-import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_DURATION_MAX_DESC;
-import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_DURATION_MAX_NAME;
-import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_DURATION_MAX_UNIT;
-import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_DURATION_NAME;
-import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_DURATION_UNIT;
 import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_INPUT_COST_DESC;
 import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_INPUT_COST_NAME;
 import static com.instana.dc.llm.LLMDcUtil.LLM_SERVICE_INPUT_COST_UNIT;
@@ -82,8 +76,6 @@ public class LLMRawMetricRegistry {
         put(LLM_OUTPUT_TOKEN_NAME, new RawMetric(GAUGE, LLM_OUTPUT_TOKEN_NAME, LLM_OUTPUT_TOKEN_DESC, LLM_OUTPUT_TOKEN_UNIT, false, "model_id"));
         put(LLM_REQ_COUNT_NAME, new RawMetric(UPDOWN_COUNTER, LLM_REQ_COUNT_NAME, LLM_REQ_COUNT_DESC, LLM_REQ_COUNT_UNIT, false, "model_id"));
 
-        put(LLM_SERVICE_DURATION_NAME, new RawMetric(GAUGE, LLM_SERVICE_DURATION_NAME, LLM_SERVICE_DURATION_DESC, LLM_SERVICE_DURATION_UNIT, true, "model_id"));
-        put(LLM_SERVICE_DURATION_MAX_NAME, new RawMetric(GAUGE, LLM_SERVICE_DURATION_MAX_NAME, LLM_SERVICE_DURATION_MAX_DESC, LLM_SERVICE_DURATION_MAX_UNIT, true, "model_id"));
         put(LLM_SERVICE_COST_NAME, new RawMetric(GAUGE, LLM_SERVICE_COST_NAME, LLM_SERVICE_COST_DESC, LLM_SERVICE_COST_UNIT, false, "model_id"));
         put(LLM_SERVICE_INPUT_COST_NAME, new RawMetric(GAUGE, LLM_SERVICE_INPUT_COST_NAME, LLM_SERVICE_INPUT_COST_DESC, LLM_SERVICE_INPUT_COST_UNIT, false, "model_id"));
         put(LLM_SERVICE_OUTPUT_COST_NAME, new RawMetric(GAUGE, LLM_SERVICE_OUTPUT_COST_NAME, LLM_SERVICE_OUTPUT_COST_DESC, LLM_SERVICE_OUTPUT_COST_UNIT, false, "model_id"));
