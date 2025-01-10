@@ -200,41 +200,38 @@ public class LLMDc extends AbstractLLMDc {
         metricsCollector.resetMetricsDetla();
 
         for (OtelMetric metric : otelMetrics) {
-            try {
-                String modelId = metric.getModelId();
-                String aiSystem = metric.getAiSystem();
-                String serviceName = metric.getServiceName();
-                long inputTokens = metric.getDeltaInputTokens();
-                long outputTokens = metric.getDeltaOutputTokens();
-                long duration = metric.getDeltaDuration();
-                long requestCount = metric.getDeltaRequestCount();
-
-                ModelAggregation modelAggr = modelAggrMap.get(modelId);
-                if (modelAggr == null) {
-                    modelAggr = new ModelAggregation(modelId, aiSystem);
-                    modelAggrMap.put(modelId, modelAggr);
-                }
-                modelAggr.addDeltaInputTokens(inputTokens);
-                modelAggr.addDeltaOutputTokens(outputTokens);
-                modelAggr.addDeltaDuration(duration);
-                modelAggr.addDeltaRequestCount(requestCount);
-
-                Map<String, ModelAggregation> serviceAggr = serviceModelAggrMap.computeIfAbsent(serviceName, k -> new HashMap<>());
-                ModelAggregation model = serviceAggr.computeIfAbsent(modelId, k -> new ModelAggregation(modelId, aiSystem));
-                model.addDeltaInputTokens(inputTokens);
-                model.addDeltaOutputTokens(outputTokens);
-                model.addDeltaDuration(duration);
-                model.addDeltaRequestCount(requestCount);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            aggregate(metric);
         }
 
         logger.info("-----------------------------------------");
         int divisor = Boolean.TRUE.equals(otelAgentlessMode) ? 1 : otelPollInterval;
+        processModelMetrics(divisor);
+        logger.info("-----------------------------------------");
+        processServiceMetrics(divisor);
+        logger.info("-----------------------------------------");
+    }
 
-        for(Map.Entry<String,ModelAggregation> entry : modelAggrMap.entrySet()){
+    private void aggregate(OtelMetric metric) {
+        try {
+            modelAggrMap.computeIfAbsent(metric.getModelId(), k -> buildModelAggregation(metric));
+            serviceModelAggrMap.computeIfAbsent(metric.getServiceName(), k -> new HashMap<>())
+                    .computeIfAbsent(metric.getModelId(), k -> buildModelAggregation(metric));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private ModelAggregation buildModelAggregation(OtelMetric metric) {
+        ModelAggregation modelAggregation = new ModelAggregation(metric.getModelId(), metric.getAiSystem());
+        modelAggregation.addDeltaInputTokens(metric.getDeltaInputTokens());
+        modelAggregation.addDeltaOutputTokens(metric.getDeltaOutputTokens());
+        modelAggregation.addDeltaDuration(metric.getDeltaDuration());
+        modelAggregation.addDeltaRequestCount(metric.getDeltaRequestCount());
+        return modelAggregation;
+    }
+
+    private void processModelMetrics(int divisor) {
+        for (Map.Entry<String, ModelAggregation> entry : modelAggrMap.entrySet()) {
             ModelAggregation aggr = entry.getValue();
             String modelId = aggr.getModelId();
             String aiSystem = aggr.getAiSystem();
@@ -245,34 +242,31 @@ public class LLMDc extends AbstractLLMDc {
             long maxDurationSoFar = aggr.getMaxDurationSoFar();
             aggr.resetDeltaValues();
 
-            long avgDurationPerReq = deltaRequestCount == 0 ? 0 : deltaDuration/deltaRequestCount;
-            if(avgDurationPerReq > maxDurationSoFar) {
+            long avgDurationPerReq = deltaRequestCount == 0 ? 0 : deltaDuration / deltaRequestCount;
+            if (avgDurationPerReq > maxDurationSoFar) {
                 maxDurationSoFar = avgDurationPerReq;
                 aggr.setMaxDurationSoFar(maxDurationSoFar);
             }
 
-            Double priceInputTokens = getTokenPrice(aiSystem, modelId, "input");
-            Double priceOutputTokens = getTokenPrice(aiSystem, modelId, "output");
-
-            double intervalReqCount = (double)deltaRequestCount/divisor;
-            double intervalInputTokens = (double)deltaInputTokens/divisor;
-            double intervalOutputTokens = (double)deltaOutputTokens/divisor;
+            double intervalReqCount = (double) deltaRequestCount / divisor;
+            double intervalInputTokens = (double) deltaInputTokens / divisor;
+            double intervalOutputTokens = (double) deltaOutputTokens / divisor;
             double intervalTotalTokens = intervalInputTokens + intervalOutputTokens;
 
-            double intervalInputCost = intervalInputTokens/1000 * priceInputTokens;
-            double intervalOutputCost = intervalOutputTokens/1000 * priceOutputTokens;
+            double intervalInputCost = intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
+            double intervalOutputCost = intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
             double intervalTotalCost = intervalInputCost + intervalOutputCost;
 
-            // This costs are 10000 times the actual value to prevent very small numbers from being rounded off. 
+            // This costs are 10000 times the actual value to prevent very small numbers from being rounded off.
             // And it will be adjusted to the correct value on UI.
             if (isForceBackwardCompatible()) {
-                System.out.printf("FORCE_BACKWARD_COMPATIBLE is set.");        
+                System.out.printf("FORCE_BACKWARD_COMPATIBLE is set.");
             } else {
                 intervalTotalCost = intervalTotalCost * 10000;
                 intervalInputCost = intervalInputCost * 10000;
                 intervalOutputCost = intervalOutputCost * 10000;
             }
-            
+
             System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
             System.out.println(" - Average Duration : " + avgDurationPerReq + " ms");
             System.out.println(" - Maximum Duration : " + maxDurationSoFar + " ms");
@@ -300,8 +294,9 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_OUTPUT_TOKEN_NAME).getDataPoint(modelIdExt).setValue(intervalOutputTokens, attributes);
             getRawMetric(LLM_REQ_COUNT_NAME).getDataPoint(modelIdExt).setValue(intervalReqCount, attributes);
         }
-        logger.info("-----------------------------------------");
+    }
 
+    private void processServiceMetrics(int divisor) {
         for (Map.Entry<String, Map<String, ModelAggregation>> serviceAggrEntry : serviceModelAggrMap.entrySet()) {
             double serviceIntervalReqCount = 0.0;
             double serviceIntervalInputTokens = 0.0, serviceIntervalOutputTokens = 0.0, serviceIntervalTotalTokens;
@@ -355,7 +350,6 @@ public class LLMDc extends AbstractLLMDc {
             getRawMetric(LLM_SERVICE_OUTPUT_TOKEN_NAME).getDataPoint(serviceName).setValue(serviceIntervalOutputTokens, attributes);
             getRawMetric(LLM_SERVICE_REQ_COUNT_NAME).getDataPoint(serviceName).setValue(serviceIntervalReqCount, attributes);
         }
-        logger.info("-----------------------------------------");
     }
 
     private static boolean isForceBackwardCompatible() {
