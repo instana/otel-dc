@@ -200,7 +200,13 @@ public class LLMDc extends AbstractLLMDc {
         metricsCollector.resetMetricsDetla();
 
         for (OtelMetric metric : otelMetrics) {
-            aggregate(metric);
+            try {
+                updateModelAggregation(metric, modelAggrMap);
+                updateModelAggregation(metric,
+                        serviceModelAggrMap.computeIfAbsent(metric.getServiceName(), k -> new HashMap<>()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         logger.info("-----------------------------------------");
@@ -211,23 +217,12 @@ public class LLMDc extends AbstractLLMDc {
         logger.info("-----------------------------------------");
     }
 
-    private void aggregate(OtelMetric metric) {
-        try {
-            modelAggrMap.computeIfAbsent(metric.getModelId(), k -> buildModelAggregation(metric));
-            serviceModelAggrMap.computeIfAbsent(metric.getServiceName(), k -> new HashMap<>())
-                    .computeIfAbsent(metric.getModelId(), k -> buildModelAggregation(metric));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private ModelAggregation buildModelAggregation(OtelMetric metric) {
-        ModelAggregation modelAggregation = new ModelAggregation(metric.getModelId(), metric.getAiSystem());
-        modelAggregation.addDeltaInputTokens(metric.getDeltaInputTokens());
-        modelAggregation.addDeltaOutputTokens(metric.getDeltaOutputTokens());
-        modelAggregation.addDeltaDuration(metric.getDeltaDuration());
-        modelAggregation.addDeltaRequestCount(metric.getDeltaRequestCount());
-        return modelAggregation;
+    private void updateModelAggregation(OtelMetric metric, Map<String, ModelAggregation> modelAggrMap) {
+        ModelAggregation modelAggr = modelAggrMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(k, metric.getAiSystem()));
+        modelAggr.addDeltaInputTokens(metric.getDeltaInputTokens());
+        modelAggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
+        modelAggr.addDeltaDuration(metric.getDeltaDuration());
+        modelAggr.addDeltaRequestCount(metric.getDeltaRequestCount());
     }
 
     private void processModelMetrics(int divisor) {
