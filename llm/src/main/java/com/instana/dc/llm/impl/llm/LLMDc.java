@@ -59,7 +59,7 @@ public class LLMDc extends AbstractLLMDc {
 
     /**
      * The poll rate in the configuration, in seconds. In other words, the number of
-     * seconds between calls to Watsonx.
+     * seconds between calls to LLM.
      */
 
     private static class ModelAggregation {

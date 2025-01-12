@@ -49,7 +49,7 @@ public class DataCollector {
     }
 
     private IDc newDc(Map<String, Object> props, CustomDcConfig cdcConfig) throws Exception {
-        return new LLMDcRegistry().findLLMDc("WATSONX").getConstructor(Map.class, CustomDcConfig.class)
+        return new LLMDcRegistry().findLLMDc("LLM").getConstructor(Map.class, CustomDcConfig.class)
                 .newInstance(props, cdcConfig);
     }
 
