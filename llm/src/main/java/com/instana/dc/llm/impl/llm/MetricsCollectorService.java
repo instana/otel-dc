@@ -33,6 +33,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
 
     public class OtelMetric {
         private String modelId;
+        private String serviceName;
         private double inputTokenSum;
         private double outputTokenSum;
         private double durationSum;
@@ -50,6 +51,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
 
         public OtelMetric(OtelMetric other) {
             this.modelId = other.modelId;
+            this.serviceName = other.serviceName;
             this.inputTokenSum = other.inputTokenSum;
             this.outputTokenSum = other.outputTokenSum;
             this.durationSum = other.durationSum;
@@ -66,6 +68,10 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
 
         public String getModelId() {
             return modelId;
+        }
+
+        public String getServiceName() {
+            return serviceName;
         }
 
         public String getAiSystem() {
@@ -118,6 +124,10 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
 
         public void setModelId(String modelId) {
             this.modelId = modelId;
+        }
+
+        public void setServiceName(String serviceName) {
+            this.serviceName = serviceName;
         }
 
         public void setAiSystem(String aiSystem) {
@@ -305,6 +315,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                     exportMetrics.put(modelKey, otelMetric);
                     otelMetric.setModelId(modelId);
                     otelMetric.setAiSystem(aiSystem);
+                    otelMetric.setServiceName(serviceName);
                 }
                 
                 if (tokenType.compareTo("input") == 0) {
@@ -371,6 +382,7 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                     exportMetrics.put(modelKey, otelMetric);
                     otelMetric.setModelId(modelId);
                     otelMetric.setAiSystem(aiSystem);
+                    otelMetric.setServiceName(serviceName);
                 }
 
                 long lastStartTime = otelMetric.getLastDurationStartTime();
