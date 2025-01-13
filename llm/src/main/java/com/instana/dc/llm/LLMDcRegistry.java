@@ -12,7 +12,7 @@ public class LLMDcRegistry {
     /* Add all DataCollector implementations here:
     **/
     private final Map<String, Class<? extends AbstractLLMDc>> map = new HashMap<String, Class<? extends AbstractLLMDc>>() {{
-        put("WATSONX", LLMDc.class);
+        put("LLM", LLMDc.class);
         // More DCs can be registred here
     }};
 
