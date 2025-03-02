@@ -97,15 +97,20 @@ public class VLLMDc extends AbstractVLLMDc {
             getRawMetric(VLLM_GPU_CACHE_USAGE_PERC_NAME).getDataPoint(metric.getServiceName()).setValue(aggregate(metric, VLLM_GPU_CACHE_USAGE_PERC_NAME), attributes);
             getRawMetric(VLLM_GPU_CACHE_HIT_RATE_NAME).getDataPoint(metric.getServiceName()).setValue(aggregate(metric, VLLM_GPU_CACHE_HIT_RATE_NAME), attributes);
 
-            getRawMetric(VLLM_REQUEST_LATENCY_NAME).getDataPoint(metric.getServiceName()).setValue(aggregate(metric, "llm.total.duration") / aggregate(metric, "llm.total.requests"), attributes);
-            getRawMetric(VLLM_REQUEST_TTFT_NAME).getDataPoint(metric.getServiceName()).setValue(aggregate(metric, "llm.total.ttft.duration") / aggregate(metric, "llm.total.ttft.requests"), attributes);
-
             double promptTokens = aggregate(metric, VLLM_PROMPT_TOKENS_NAME);
             double generationTokens = aggregate(metric, VLLM_GENERATION_TOKENS_NAME);
             getRawMetric(VLLM_PROMPT_TOKENS_NAME).getDataPoint(metric.getServiceName()).setValue(promptTokens / divisor, attributes);
             getRawMetric(VLLM_GENERATION_TOKENS_NAME).getDataPoint(metric.getServiceName()).setValue(generationTokens / divisor, attributes);
             getRawMetric(VLLM_TOTAL_TOKENS_NAME).getDataPoint(metric.getServiceName()).setValue((promptTokens + generationTokens) / divisor, attributes);
 
+            double count = aggregate(metric, "llm.total.requests");
+            if (count > 0) {
+                getRawMetric(VLLM_REQUEST_LATENCY_NAME).getDataPoint(metric.getServiceName()).setValue(aggregate(metric, "llm.total.duration") / count, attributes);
+            }
+            count = aggregate(metric, "llm.total.ttft.requests");
+            if (count > 0) {
+                getRawMetric(VLLM_REQUEST_TTFT_NAME).getDataPoint(metric.getServiceName()).setValue(aggregate(metric, "llm.total.ttft.duration") / aggregate(metric, "llm.total.ttft.requests"), attributes);
+            }
             getRawMetric(VLLM_STATUS_NAME).setValue(1);
         }
 
@@ -113,7 +118,10 @@ public class VLLMDc extends AbstractVLLMDc {
     }
 
     private static double aggregate(MetricsCollectorService.OtelMetric metric, String metricName) {
-        return metric.getMetrics().get(metricName).values().stream().mapToDouble(MetricsCollectorService.OtelMetric.Measure::getValue).sum();
+        if (metric.getMetrics().get(metricName) != null) {
+            return metric.getMetrics().get(metricName).values().stream().mapToDouble(MetricsCollectorService.OtelMetric.Measure::getValue).sum();
+        }
+        return 0;
     }
 
 }

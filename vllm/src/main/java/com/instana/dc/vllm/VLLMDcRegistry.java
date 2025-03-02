@@ -12,7 +12,7 @@ public class VLLMDcRegistry {
     /* Add all DataCollector implementations here:
     **/
     private final Map<String, Class<? extends AbstractVLLMDc>> map = new HashMap<>() {{
-        put("vLLM", VLLMDc.class);
+        put("VLLM", VLLMDc.class);
         // More DCs can be registred here
     }};
 

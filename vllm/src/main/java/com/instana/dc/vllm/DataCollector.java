@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,24 +28,18 @@ public class DataCollector {
 
     private static final Logger logger = Logger.getLogger(DataCollector.class.getName());
 
-    private final CustomDcConfig cdcConfig;
-
     private final List<IDc> dcs;
 
     private DataCollector() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-        String configFile = System.getenv(CONFIG_ENV);
-        if (configFile == null) {
-            configFile = CONFIG_YAML;
-        }
-        cdcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
-        int n = cdcConfig.getInstances().size();
-        dcs = new ArrayList<>(n);
+        String configFile = Optional.ofNullable(System.getenv(CONFIG_ENV)).orElse(CONFIG_YAML);
+        CustomDcConfig cdcConfig = objectMapper.readValue(new File(configFile), CustomDcConfig.class);
+        dcs = new ArrayList<>(cdcConfig.getInstances().size());
         for (Map<String, Object> props : cdcConfig.getInstances()) {
             dcs.add(newDc(props));
         }
-        if (!dcs.isEmpty()) {
-            dcs.get(0).initOnce();
+        for (IDc dc: dcs) {
+            dc.initOnce();
         }
     }
 
@@ -55,9 +50,9 @@ public class DataCollector {
 
     public static void main(String[] args) {
         try {
-            DataCollector dcol = new DataCollector();
-            dcol.initDcs();
-            dcol.startCollect();
+            DataCollector dataCollector = new DataCollector();
+            dataCollector.initDcs();
+            dataCollector.startCollect();
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
         }
