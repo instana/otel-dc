@@ -23,10 +23,14 @@ dependencies {
     implementation("io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha")
     implementation("io.opentelemetry.semconv:opentelemetry-semconv:1.23.1-alpha")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0-rc1")
-    implementation("com.google.protobuf:protobuf-java:3.23.4")
-    implementation("com.google.protobuf:protobuf-java-util:3.23.4")
-    implementation("com.linecorp.armeria:armeria:1.27.3")
-    implementation("com.linecorp.armeria:armeria-grpc:1.27.3")
+    implementation("com.google.protobuf:protobuf-java:4.28.2")
+    implementation("com.google.protobuf:protobuf-java-util:4.28.2")
+    implementation("com.linecorp.armeria:armeria:1.29.4")
+    constraints {
+      implementation("io.netty:netty-handler:4.1.118+") // because 4.1.110 from com.linecorp.armeria:armeria:1.29.4 has CVE-2025-24970
+      implementation("io.netty:netty-handler-proxy:4.1.118+") // because 4.1.110 from com.linecorp.armeria:armeria:1.29.4 has CVE-2025-24970
+    }
+    implementation("com.linecorp.armeria:armeria-grpc:1.29.4")
     implementation(files("libs/otel-dc-0.10.0.jar"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
