@@ -1,18 +1,13 @@
 package com.instana.dc.vllm.impl.vllm;
 
 import static com.instana.dc.DcUtil.OTEL_EXPORTER_OTLP_HEADERS;
-import static com.instana.dc.vllm.VLLMDcUtil.VLLM_GENERATION_TOKENS_NAME;
-import static com.instana.dc.vllm.VLLMDcUtil.VLLM_GPU_CACHE_HIT_RATE_NAME;
-import static com.instana.dc.vllm.VLLMDcUtil.VLLM_GPU_CACHE_USAGE_PERC_NAME;
-import static com.instana.dc.vllm.VLLMDcUtil.VLLM_PENDING_REQ_COUNT_NAME;
-import static com.instana.dc.vllm.VLLMDcUtil.VLLM_PROMPT_TOKENS_NAME;
-import static com.instana.dc.vllm.VLLMDcUtil.VLLM_REQ_COUNT_NAME;
+import static com.instana.dc.vllm.VLLMDcConstants.INSTANCE_ID;
+import static com.instana.dc.vllm.VLLMDcConstants.MODEL_NAME;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
@@ -22,6 +17,7 @@ import com.linecorp.armeria.common.RequestContext;
 import com.linecorp.armeria.common.RequestHeaders;
 
 import io.grpc.stub.StreamObserver;
+import io.opentelemetry.api.internal.StringUtils;
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse;
 import io.opentelemetry.proto.collector.metrics.v1.MetricsServiceGrpc;
@@ -32,41 +28,33 @@ import io.opentelemetry.proto.metrics.v1.Metric;
 import io.opentelemetry.proto.metrics.v1.NumberDataPoint;
 import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
 import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
-import io.opentelemetry.proto.resource.v1.Resource;
 
 class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase {
-    private static final HashMap<String, String> GAUGES = new HashMap<>();
-    private static final HashMap<String, String> SUMS = new HashMap<>();
-    private static final HashMap<String, Map<String, String>> HISTOGRAMS = new HashMap<>();
-    static {
-        GAUGES.put("vllm:num_requests_running", VLLM_REQ_COUNT_NAME);
-        GAUGES.put("vllm:num_requests_waiting", VLLM_PENDING_REQ_COUNT_NAME);
-        GAUGES.put("vllm:gpu_cache_usage_perc", VLLM_GPU_CACHE_USAGE_PERC_NAME);
-        GAUGES.put("vllm:gpu_prefix_cache_hit_rate", VLLM_GPU_CACHE_HIT_RATE_NAME);
-
-        SUMS.put("vllm:prompt_tokens_total", VLLM_PROMPT_TOKENS_NAME);
-        SUMS.put("vllm:generation_tokens_total", VLLM_GENERATION_TOKENS_NAME);
-
-        HISTOGRAMS.put("vllm:e2e_request_latency_seconds", Map.of("sum", "llm.total.duration", "count", "llm.total.requests"));
-        HISTOGRAMS.put("vllm:time_to_first_token_seconds", Map.of("sum", "llm.total.ttft.duration", "count", "llm.total.ttft.requests"));
-    }
 
     private final Object mutex = new Object();
 
-    public static class OtelMetric {
-        public static class Measure {
+    public static class MetricsAggregation {
+
+        public static class Measurement {
             private double value;
             private double cumulativeValue;
+            private double sum;
+            private double cumulativeSum;
+            private double count;
+            private double cumulativeCount;
+            private long startTime;
 
-            public Measure(Measure other) {
+            public Measurement(Measurement other) {
                 this.value = other.value;
                 this.cumulativeValue = other.cumulativeValue;
+                this.sum = other.sum;
+                this.cumulativeSum = other.cumulativeSum;
+                this.count = other.count;
+                this.cumulativeCount = other.cumulativeCount;
                 this.startTime = other.startTime;
             }
 
-            private long startTime;
-
-            public Measure() {
+            public Measurement() {
             }
 
             public long getStartTime() {
@@ -93,45 +81,77 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
                 this.value = value;
             }
 
+            public double getSum() {
+                return sum;
+            }
+
+            public void setSum(double sum) {
+                this.sum = sum;
+            }
+
+            public double getCumulativeSum() {
+                return cumulativeSum;
+            }
+
+            public void setCumulativeSum(double cumulativeSum) {
+                this.cumulativeSum = cumulativeSum;
+            }
+
+            public double getCount() {
+                return count;
+            }
+
+            public void setCount(double count) {
+                this.count = count;
+            }
+
+            public double getCumulativeCount() {
+                return cumulativeCount;
+            }
+
+            public void setCumulativeCount(double cumulativeCount) {
+                this.cumulativeCount = cumulativeCount;
+            }
+
         }
 
-        private final String serviceName;
-        Map<String, Map<String, Measure>> metrics;
+        private final String instance;
+        Map<String, Map<String, Measurement>> metrics;
 
-        public Map<String, Map<String, Measure>> getMetrics() {
+        public Map<String, Map<String, Measurement>> getMetrics() {
             return metrics;
         }
 
-        public String getServiceName() {
-            return serviceName;
+        public String getInstance() {
+            return instance;
         }
 
-        public OtelMetric(String instance) {
-            this.serviceName = instance;
+        public MetricsAggregation(String instance) {
+            this.instance = instance;
             this.metrics = new HashMap<>();
         }
 
-        public OtelMetric(OtelMetric other) {
-            this.serviceName = other.serviceName;
+        public MetricsAggregation(MetricsAggregation other) {
+            this.instance = other.instance;
             this.metrics = deepCopy(other);
         }
 
-        private static Map<String, Map<String, Measure>> deepCopy(OtelMetric other) {
+        private static Map<String, Map<String, Measurement>> deepCopy(MetricsAggregation other) {
             return other.getMetrics().entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey, entry -> entry.getValue().entrySet().stream()
-                                    .collect(Collectors.toMap(Map.Entry::getKey, modelEntry -> new Measure(modelEntry.getValue())))));
+                                    .collect(Collectors.toMap(Map.Entry::getKey, modelEntry -> new Measurement(modelEntry.getValue())))));
         }
 
     }
 
-    private final HashMap<String, OtelMetric> exportMetrics = new HashMap<>();
+    private final HashMap<String, MetricsAggregation> exportMetrics = new HashMap<>();
 
-    public List<OtelMetric> getDeltaMetricsList() {
+    public List<MetricsAggregation> getDeltaMetricsList() {
         synchronized (mutex) {
             return exportMetrics.values().stream()
                 .filter(Objects::nonNull)
-                .map(OtelMetric::new)
+                .map(MetricsAggregation::new)
                 .collect(ImmutableList.toImmutableList());
         }
     }
@@ -143,48 +163,26 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
         System.out.println(request);
 
         if (System.getenv(OTEL_EXPORTER_OTLP_HEADERS) == null) {
-            HttpRequest httpRequest = RequestContext.current().request();
-            RequestHeaders headers = httpRequest!=null ? httpRequest.headers() : null;
-            if ( headers != null ) {
-                HeadersSupplier supplier = HeadersSupplier.INSTANCE;
-                Map<String, String> newHeaders = new HashMap<>();
-                String xInstanaKey = headers.get("x-instana-key");
-                if (xInstanaKey != null && !xInstanaKey.isEmpty()) {
-                    newHeaders.put("x-instana-key", xInstanaKey);
-                }
-                String xInstanaHost = headers.get("x-instana-host");
-                if (xInstanaHost != null && !xInstanaHost.isEmpty()) {
-                    newHeaders.put("x-instana-host", xInstanaHost);
-                }
-                if ( ! newHeaders.isEmpty() ) {
-                    supplier.updateHeaders(newHeaders);
-                }
-            }
+            generateHeaders();
         }
 
         synchronized (mutex) {
             List<ResourceMetrics> allResourceMetrics = request.getResourceMetricsList();
             for (ResourceMetrics resourceMetrics : allResourceMetrics) {
-                Resource resource = resourceMetrics.getResource();
-                String instance = resource.getAttributesList().stream()
-                        .filter(keyValue -> "service.instance.id".equals(keyValue.getKey()))
-                        .findAny()
-                        .map(KeyValue::getValue)
-                        .map(AnyValue::getStringValue)
-                        .orElse("");
+                String instance = getInstanceId(resourceMetrics);
                 System.out.println("Recv Metric --- vLLM instance id: " + instance);
-                OtelMetric otelMetric = exportMetrics.computeIfAbsent(instance, key -> new OtelMetric(instance));
+                MetricsAggregation metricsAggregation = exportMetrics.computeIfAbsent(instance, key -> new MetricsAggregation(instance));
                 for (ScopeMetrics scopeMetrics : resourceMetrics.getScopeMetricsList()) {
                     for (Metric metric : scopeMetrics.getMetricsList()) {
                         System.out.println("-----------------");
                         System.out.println("Recv Metric --- Scope Name: " + metric.getName());
                         System.out.println("Recv Metric --- Scope Desc: " + metric.getDescription());
                         switch (metric.getDataCase()) {
-                            case GAUGE: processGauge(metric, otelMetric);
+                            case GAUGE: processGauge(metric, metricsAggregation);
                                 break;
-                            case HISTOGRAM: processHistogram(metric, otelMetric);
+                            case SUM: processSum(metric, metricsAggregation);
                                 break;
-                            case SUM: processSum(metric, otelMetric);
+                            case HISTOGRAM: processHistogram(metric, metricsAggregation);
                                 break;
                             default:
                                 System.out.println("Skip Metric DataCase: " + metric.getDataCase());
@@ -198,64 +196,99 @@ class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase 
         responseObserver.onCompleted();
     }
 
-    private void processGauge(Metric metric, OtelMetric otelMetric) {
-        Optional.ofNullable(GAUGES.get(metric.getName())).ifPresent(gauge -> {
-            Map<String, OtelMetric.Measure> measure = otelMetric.getMetrics().computeIfAbsent(gauge, key -> new HashMap<>());
-            for (NumberDataPoint dataPoint : metric.getGauge().getDataPointsList()) {
-                dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals("model_name"))
-                        .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
-                            OtelMetric.Measure modelMeasure = measure.computeIfAbsent(model, key -> new OtelMetric.Measure());
-                            modelMeasure.setValue(dataPoint.getAsDouble());
-                        });
-            }
-        });
-
+    private static String getInstanceId(ResourceMetrics resourceMetrics) {
+        return resourceMetrics.getResource().getAttributesList().stream()
+                .filter(keyValue -> INSTANCE_ID.equals(keyValue.getKey()))
+                .findAny()
+                .map(KeyValue::getValue)
+                .map(AnyValue::getStringValue)
+                .orElse("");
     }
 
-    private static void processSum(Metric metric, OtelMetric otelMetric) {
-        Optional.ofNullable(SUMS.get(metric.getName())).ifPresent(sum -> {
-            Map<String, OtelMetric.Measure> measure = otelMetric.getMetrics().computeIfAbsent(sum, key -> new HashMap<>());
-            for (NumberDataPoint dataPoint : metric.getSum().getDataPointsList()) {
-                dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals("model_name"))
-                        .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
-                            OtelMetric.Measure modelMeasure = measure.computeIfAbsent(model, key -> new OtelMetric.Measure());
-                            if (dataPoint.getStartTimeUnixNano() == modelMeasure.getStartTime()) {
-                                modelMeasure.setValue(dataPoint.getAsDouble() - modelMeasure.getCumulativeValue());
-                                modelMeasure.setCumulativeValue(dataPoint.getAsDouble());
-                            } else {
-                                modelMeasure.setValue(dataPoint.getAsDouble());
-                                modelMeasure.setCumulativeValue(dataPoint.getAsDouble() + modelMeasure.getCumulativeValue());
-                                modelMeasure.setStartTime(dataPoint.getStartTimeUnixNano());
-                            }
-                        });
+    private static void generateHeaders() {
+        HttpRequest httpRequest = RequestContext.current().request();
+        RequestHeaders headers = httpRequest != null ? httpRequest.headers() : null;
+        if (headers != null) {
+            HeadersSupplier supplier = HeadersSupplier.INSTANCE;
+            Map<String, String> newHeaders = new HashMap<>();
+            String xInstanaKey = headers.get("x-instana-key");
+            if (!StringUtils.isNullOrEmpty(xInstanaKey)) {
+                newHeaders.put("x-instana-key", xInstanaKey);
             }
-        });
+            String xInstanaHost = headers.get("x-instana-host");
+            if (!StringUtils.isNullOrEmpty(xInstanaHost)) {
+                newHeaders.put("x-instana-host", xInstanaHost);
+            }
+            if (!newHeaders.isEmpty()) {
+                supplier.updateHeaders(newHeaders);
+            }
+        }
     }
 
-    private static void processHistogram(Metric metric, OtelMetric otelMetric) {
-        Optional.ofNullable(HISTOGRAMS.get(metric.getName())).ifPresent(histogram -> {
-            Map<String, OtelMetric.Measure> measureRequests = otelMetric.getMetrics().computeIfAbsent(histogram.get("count"), key -> new HashMap<>());
-            Map<String, OtelMetric.Measure> measureDuration = otelMetric.getMetrics().computeIfAbsent(histogram.get("sum"), key -> new HashMap<>());
-            for (HistogramDataPoint dataPoint : metric.getHistogram().getDataPointsList()) {
-                dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals("model_name"))
-                        .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
-                            OtelMetric.Measure modelMeasureRequests = measureRequests.computeIfAbsent(model, key -> new OtelMetric.Measure());
-                            OtelMetric.Measure modelMeasureDuration = measureDuration.computeIfAbsent(model, key -> new OtelMetric.Measure());
-                            if (dataPoint.getStartTimeUnixNano() == modelMeasureRequests.getStartTime()) {
-                                modelMeasureRequests.setValue(dataPoint.getCount() - modelMeasureRequests.getCumulativeValue());
-                                modelMeasureRequests.setCumulativeValue(dataPoint.getCount());
-                                modelMeasureDuration.setValue(dataPoint.getSum() - modelMeasureDuration.getCumulativeValue());
-                                modelMeasureDuration.setCumulativeValue(dataPoint.getSum());
-                            } else {
-                                modelMeasureRequests.setValue(dataPoint.getCount());
-                                modelMeasureRequests.setCumulativeValue(dataPoint.getCount() + modelMeasureRequests.getCumulativeValue());
-                                modelMeasureDuration.setValue(dataPoint.getSum());
-                                modelMeasureDuration.setCumulativeValue(dataPoint.getSum() + modelMeasureDuration.getCumulativeValue());
-                                modelMeasureRequests.setStartTime(dataPoint.getStartTimeUnixNano());
-                            }
-                        });
-            }
-        });
+    private void processGauge(Metric metric, MetricsAggregation metricsAggregation) {
+        Map<String, MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
+                .computeIfAbsent(metric.getName(), key -> new HashMap<>());
+        for (NumberDataPoint dataPoint : metric.getGauge().getDataPointsList()) {
+            dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
+                    .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
+                        MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new MetricsAggregation.Measurement());
+                        recordGauge(dataPoint, modelMeasurement);
+                    });
+        }
+    }
+
+    private static void recordGauge(NumberDataPoint dataPoint, MetricsAggregation.Measurement modelMeasurement) {
+        modelMeasurement.setValue(dataPoint.getAsDouble());
+    }
+
+    private static void processSum(Metric metric, MetricsAggregation metricsAggregation) {
+        Map<String, MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
+                .computeIfAbsent(metric.getName(), key -> new HashMap<>());
+        for (NumberDataPoint dataPoint : metric.getSum().getDataPointsList()) {
+            dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
+                    .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
+                        MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new MetricsAggregation.Measurement());
+                        recordSum(dataPoint, modelMeasurement);
+                    });
+        }
+    }
+
+    private static void recordSum(NumberDataPoint dataPoint, MetricsAggregation.Measurement modelMeasurement) {
+        if (dataPoint.getStartTimeUnixNano() == modelMeasurement.getStartTime()) {
+            modelMeasurement.setValue(dataPoint.getAsDouble() - modelMeasurement.getCumulativeValue());
+            modelMeasurement.setCumulativeValue(dataPoint.getAsDouble());
+        } else {
+            modelMeasurement.setValue(dataPoint.getAsDouble());
+            modelMeasurement.setCumulativeValue(dataPoint.getAsDouble() + modelMeasurement.getCumulativeValue());
+            modelMeasurement.setStartTime(dataPoint.getStartTimeUnixNano());
+        }
+    }
+
+    private static void processHistogram(Metric metric, MetricsAggregation metricsAggregation) {
+        Map<String, MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
+                .computeIfAbsent(metric.getName(), key -> new HashMap<>());
+        for (HistogramDataPoint dataPoint : metric.getHistogram().getDataPointsList()) {
+            dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
+                    .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
+                        MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new MetricsAggregation.Measurement());
+                        recordHistogram(dataPoint, modelMeasurement);
+                    });
+        }
+    }
+
+    private static void recordHistogram(HistogramDataPoint dataPoint, MetricsAggregation.Measurement modelMeasurement) {
+        if (dataPoint.getStartTimeUnixNano() == modelMeasurement.getStartTime()) {
+            modelMeasurement.setCount(dataPoint.getCount() - modelMeasurement.getCumulativeCount());
+            modelMeasurement.setCumulativeCount(dataPoint.getCount());
+            modelMeasurement.setSum(dataPoint.getSum() - modelMeasurement.getCumulativeSum());
+            modelMeasurement.setCumulativeSum(dataPoint.getSum());
+        } else {
+            modelMeasurement.setCount(dataPoint.getCount());
+            modelMeasurement.setCumulativeCount(dataPoint.getCount() + modelMeasurement.getCumulativeCount());
+            modelMeasurement.setSum(dataPoint.getSum());
+            modelMeasurement.setCumulativeSum(dataPoint.getSum() + modelMeasurement.getCumulativeSum());
+            modelMeasurement.setStartTime(dataPoint.getStartTimeUnixNano());
+        }
     }
 
 }
