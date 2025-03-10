@@ -23,7 +23,7 @@ public class VLLMDcConstants {
         VLLM_RUNNING_REQUESTS("vllm.request.running.count", "Number of requests currently running on GPU", "{count}"),
         VLLM_WAITING_REQUESTS("vllm.request.waiting.count", "Number of requests waiting to be processed", "{count}"),
         VLLM_GPU_CACHE_USAGE_PERC("vllm.gpu.cache.usage.perc", "GPU KV-cache usage", "{perc}"),
-        VLLM_GPU_CACHE_HIT_RATE("vllm.gpu.cache.hit.rate", " GPU prefix cache block hit rate", "{rate}"),
+        VLLM_GPU_CACHE_HIT_RATE("vllm.gpu.cache.hit.rate", "GPU prefix cache block hit rate", "{rate}"),
         VLLM_REQUEST_LATENCY("vllm.request.latency", "End to end request latency", "{seconds}"),
         VLLM_REQUEST_TTFT("vllm.request.ttft", "Time to first token", "{seconds}"),
         VLLM_PROMPT_TOKENS("vllm.tokens.prompt.count", "Number of prefill tokens processed", "{count}"),
