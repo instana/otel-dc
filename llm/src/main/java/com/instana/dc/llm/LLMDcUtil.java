@@ -6,14 +6,8 @@ package com.instana.dc.llm;
 
 //import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
 
-import java.util.Currency;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class LLMDcUtil {
-    private static final Logger logger = Logger.getLogger(LLMDcUtil.class.getName());
+    //private static final Logger logger = Logger.getLogger(LLMDcUtil.class.getName());
 
     /* Configurations for the Data Collector:
      */
@@ -104,16 +98,4 @@ public class LLMDcUtil {
     public static final String LLM_SERVICE_REQ_COUNT_NAME = "llm.service.request.count";
     public static final String LLM_SERVICE_REQ_COUNT_DESC = "The total count of LLM calls by interval";
     public static final String LLM_SERVICE_REQ_COUNT_UNIT = "{count}";
-
-    public static String currencySymbolOf(String currencyCode) {
-        try {
-            return Optional.ofNullable(currencyCode)
-                    .filter(code -> code.matches("[a-zA-Z]+"))
-                    .map(code -> Currency.getInstance(currencyCode.toUpperCase()).getSymbol(Locale.getDefault()))
-                    .orElseThrow(() -> new Exception("Invalid currency code"));
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot process currency code {0}: {1}", new String[] {currencyCode, e.getMessage()});
-            return "";
-        }
-    }
 }
