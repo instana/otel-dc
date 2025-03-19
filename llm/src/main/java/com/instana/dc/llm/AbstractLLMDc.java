@@ -11,6 +11,7 @@ import static com.instana.dc.DcUtil.OTEL_BACKEND_USING_HTTP;
 import static com.instana.dc.DcUtil.OTEL_SERVICE_NAME;
 import static com.instana.dc.DcUtil.POLLING_INTERVAL;
 import static com.instana.dc.DcUtil.mergeResourceAttributesFromEnv;
+import static com.instana.dc.llm.LLMDcUtil.currencySymbolOf;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import java.net.InetAddress;
@@ -19,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import com.instana.dc.AbstractDc;
 import com.instana.dc.llm.DataCollector.CustomDcConfig;
@@ -32,7 +32,6 @@ import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
 public abstract class AbstractLLMDc extends AbstractDc {
-    private static final Logger logger = Logger.getLogger(AbstractLLMDc.class.getName());
 
     private final String otelBackendUrl;
     private final boolean otelUsingHttp;
@@ -42,9 +41,12 @@ public abstract class AbstractLLMDc extends AbstractDc {
 	public final static String INSTRUMENTATION_SCOPE_PREFIX = "otelcol/llmmetricsreceiver/";
     private String serviceInstanceId;
     private CustomDcConfig cdcConfig;
+    private String currencyCode;
 
     public static final int DEFAULT_LLM_POLL_INTERVAL = 10;
     public static final int DEFAULT_LLM_CLBK_INTERVAL = 10;
+    private static final String CURRENCY = "currency";
+    private static final String USD = "USD";
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
@@ -64,6 +66,7 @@ public abstract class AbstractLLMDc extends AbstractDc {
         otelUsingHttp = (Boolean) properties.getOrDefault(OTEL_BACKEND_USING_HTTP, Boolean.FALSE);
         serviceName = (String) properties.get(OTEL_SERVICE_NAME);
         serviceInstanceId = serviceName + "@" + getHostName();
+        currencyCode = (String) properties.getOrDefault(CURRENCY, USD);
         this.cdcConfig = cdcConfig;
     }
 
@@ -77,6 +80,9 @@ public abstract class AbstractLLMDc extends AbstractDc {
                 )))
                 .merge(Resource.create(Attributes.of(
                     stringKey(INSTANA_PLUGIN), "llmonitor"
+                )))
+                .merge(Resource.create(Attributes.of(
+                    stringKey(CURRENCY), currencySymbolOf(currencyCode)
                 )));
 
         resource = resource.merge(ContainerResource.get());
