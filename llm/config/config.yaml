@@ -7,5 +7,6 @@ instances:
     callback.interval: 10
     otel.service.name: DC1
     otel.service.port: 8000
+    currency: USD # currency code
 
 # Customize pricing only for models in use in config/prices.properties
