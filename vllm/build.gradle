@@ -28,6 +28,10 @@ dependencies {
     implementation("com.linecorp.armeria:armeria:1.27.3")
     implementation("com.linecorp.armeria:armeria-grpc:1.27.3")
     implementation(files("libs/otel-dc-0.10.0.jar"))
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'io.prometheus:simpleclient:0.16.0'
+    implementation 'io.prometheus:simpleclient_common:0.16.0'
+    implementation 'io.prometheus:simpleclient_pushgateway:0.16.0'
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
