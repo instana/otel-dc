@@ -6,8 +6,14 @@ package com.instana.dc.llm;
 
 //import static com.instana.agent.sensorsdk.semconv.SemanticAttributes.*;
 
+import java.util.Currency;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class LLMDcUtil {
-    //private static final Logger logger = Logger.getLogger(LLMDcUtil.class.getName());
+    private static final Logger logger = Logger.getLogger(LLMDcUtil.class.getName());
 
     /* Configurations for the Data Collector:
      */
@@ -16,6 +22,8 @@ public class LLMDcUtil {
     public final static String LLM_PRICES_PROPERTIES = "config/prices.properties";
     public final static String SERVICE_LISTEN_PORT = "otel.service.port";
     public final static String OTEL_AGENTLESS_MODE = "otel.agentless.mode";
+    public static final String CURRENCY = "currency";
+    public static final String USD = "USD";
 
     /* Configurations for Metrics:
      */
@@ -98,4 +106,17 @@ public class LLMDcUtil {
     public static final String LLM_SERVICE_REQ_COUNT_NAME = "llm.service.request.count";
     public static final String LLM_SERVICE_REQ_COUNT_DESC = "The total count of LLM calls by interval";
     public static final String LLM_SERVICE_REQ_COUNT_UNIT = "{count}";
+
+    public static String currencySymbolOf(String currencyCode) {
+        try {
+            return Optional.ofNullable(currencyCode).or(() -> Optional.of(USD))
+                    .map(String::trim)
+                    .filter(code -> code.matches("[a-zA-Z]+"))
+                    .map(code -> Currency.getInstance(code.toUpperCase()).getCurrencyCode())
+                    .orElseThrow(() -> new Exception("Invalid currency code"));
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Cannot process currency code {0}: {1}", new String[]{currencyCode, e.getMessage()});
+            return "";
+        }
+    }
 }
