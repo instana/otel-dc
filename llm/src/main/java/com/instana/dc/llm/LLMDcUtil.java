@@ -109,7 +109,6 @@ public class LLMDcUtil {
         try {
             return Optional.ofNullable(currencyCode)
                     .filter(code -> code.matches("[a-zA-Z]+"))
-                    .map(code -> Currency.getInstance(currencyCode.toUpperCase()).getSymbol(Locale.getDefault()))
                     .orElseThrow(() -> new Exception("Invalid currency code"));
         } catch (Exception e) {
             logger.log(Level.WARNING, "Cannot process currency code {0}: {1}", new String[] {currencyCode, e.getMessage()});
