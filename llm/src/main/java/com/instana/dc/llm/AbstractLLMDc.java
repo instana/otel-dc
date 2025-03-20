@@ -11,6 +11,8 @@ import static com.instana.dc.DcUtil.OTEL_BACKEND_USING_HTTP;
 import static com.instana.dc.DcUtil.OTEL_SERVICE_NAME;
 import static com.instana.dc.DcUtil.POLLING_INTERVAL;
 import static com.instana.dc.DcUtil.mergeResourceAttributesFromEnv;
+import static com.instana.dc.llm.LLMDcUtil.CURRENCY;
+import static com.instana.dc.llm.LLMDcUtil.USD;
 import static com.instana.dc.llm.LLMDcUtil.currencySymbolOf;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
@@ -45,8 +47,6 @@ public abstract class AbstractLLMDc extends AbstractDc {
 
     public static final int DEFAULT_LLM_POLL_INTERVAL = 10;
     public static final int DEFAULT_LLM_CLBK_INTERVAL = 10;
-    private static final String CURRENCY = "currency";
-    private static final String USD = "USD";
 
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 

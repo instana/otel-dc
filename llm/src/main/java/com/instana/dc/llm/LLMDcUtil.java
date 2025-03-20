@@ -22,6 +22,8 @@ public class LLMDcUtil {
     public final static String LLM_PRICES_PROPERTIES = "config/prices.properties";
     public final static String SERVICE_LISTEN_PORT = "otel.service.port";
     public final static String OTEL_AGENTLESS_MODE = "otel.agentless.mode";
+    public static final String CURRENCY = "currency";
+    public static final String USD = "USD";
 
     /* Configurations for Metrics:
      */
@@ -107,11 +109,13 @@ public class LLMDcUtil {
 
     public static String currencySymbolOf(String currencyCode) {
         try {
-            return Optional.ofNullable(currencyCode)
+            return Optional.ofNullable(currencyCode).or(() -> Optional.of(USD))
+                    .map(String::trim)
                     .filter(code -> code.matches("[a-zA-Z]+"))
+                    .map(code -> Currency.getInstance(code.toUpperCase()).getCurrencyCode())
                     .orElseThrow(() -> new Exception("Invalid currency code"));
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot process currency code {0}: {1}", new String[] {currencyCode, e.getMessage()});
+            logger.log(Level.WARNING, "Cannot process currency code {0}: {1}", new String[]{currencyCode, e.getMessage()});
             return "";
         }
     }
