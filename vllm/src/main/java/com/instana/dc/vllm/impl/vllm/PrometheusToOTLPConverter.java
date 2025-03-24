@@ -25,12 +25,10 @@ import static com.instana.dc.vllm.VLLMDcConstants.MODEL_NAME;
 
 public class PrometheusToOTLPConverter {
     private final OkHttpClient client;
-    private final String prometheusEndpoint;
     private static final long startTimeUnixNano = System.currentTimeMillis() * 1_000_000L;
 
-    public PrometheusToOTLPConverter(String prometheusEndpoint) {
+    public PrometheusToOTLPConverter() {
         this.client = new OkHttpClient();
-        this.prometheusEndpoint = prometheusEndpoint;
     }
 
 
@@ -146,7 +144,7 @@ public class PrometheusToOTLPConverter {
 
     }
 
-    public void scrapeMetrics() {
+    public void scrapeMetrics(String prometheusEndpoint) {
             Request request = new Request.Builder()
                     .url(prometheusEndpoint)
                     .header("Accept", TextFormat.CONTENT_TYPE_004)
@@ -197,30 +195,19 @@ public class PrometheusToOTLPConverter {
                     continue;
                 }
 
-
                 try {
-                    System.out.println("metricName---"+metricName);
                     double value = Double.parseDouble(valueStr);
                     if (metricName.endsWith("_bucket")) {
                         String baseName = metricName.replace("_bucket", "");
                         Pattern labelPattern = Pattern.compile("le=\"([^\"]+)\"|model_name=\"([^\"]+)\"");
                         Matcher labelMatcher = labelPattern.matcher(labels);
                         String boundaryStr = null;
-                        String modelName = null;
 
                         while (labelMatcher.find()) {
                             if (labelMatcher.group(1) != null) {
                                 boundaryStr = labelMatcher.group(1);
                             }
-                            if (labelMatcher.group(2) != null) {
-                                modelName = labelMatcher.group(2);
-                            }
                         }
-
-                        System.out.println("Base Name: " + baseName);
-                        System.out.println("Boundary Str: " + boundaryStr);
-                        System.out.println("Model Name: " + modelName);
-
                         assert boundaryStr != null;
                         if (!boundaryStr.equals("+Inf")) {
                             double boundary = Double.parseDouble(boundaryStr);
@@ -240,7 +227,6 @@ public class PrometheusToOTLPConverter {
                     }
                 } catch (NumberFormatException e) {
                     System.err.println("Skipping invalid metric value: " + valueStr + " for metric: " + metricName + " with labels: " + labels);
-
                 }
             }
         }
@@ -251,14 +237,12 @@ public class PrometheusToOTLPConverter {
             TreeMap<Double, Long> cumulativeBuckets = histogramBuckets.get(histName);
             List<Double> explicitBounds = new ArrayList<>(cumulativeBuckets.keySet());
             List<Long> bucketCounts = new ArrayList<>();
-
             long prevCount = 0;
             for (double bound : explicitBounds) {
                 long currentCount = cumulativeBuckets.get(bound);
                 bucketCounts.add(currentCount - prevCount);
                 prevCount = currentCount;
             }
-
             metrics.add(createHistogramMetric(histName, labels, explicitBounds, bucketCounts,
                     histogramCounts.getOrDefault(histName, 0L), histogramSums.getOrDefault(histName, 0.0),
                     metricDescriptions.getOrDefault(histName, "Histogram metric"),
@@ -330,15 +314,8 @@ private static Metric createCounterMetric(String name, String labels, double val
                         .setKey(key)
                         .setValue(AnyValue.newBuilder().setStringValue(value).build())
                         .build());
-
             }
         }
-
-//        attributes.add(KeyValue.newBuilder()
-//                .setKey("prometheus.type")
-//                .setValue(AnyValue.newBuilder().setStringValue(metricType).build())
-//                .build());
-
         return attributes;
     }
 
@@ -363,13 +340,9 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
                     .build())
             .build();
 
-    ExportMetricsServiceRequest request = ExportMetricsServiceRequest.newBuilder()
+    return ExportMetricsServiceRequest.newBuilder()
             .addResourceMetrics(resourceMetrics)
             .build();
-
-    System.out.println(request);
-
-    return request;
 
 }
 
@@ -386,7 +359,6 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
         List<ResourceMetrics> allResourceMetrics = request.getResourceMetricsList();
         for (ResourceMetrics resourceMetric : allResourceMetrics) {
             String instance = getInstanceId(resourceMetric);
-            System.out.println("Recv Metric --- vLLM instance id: " + instance);
             PrometheusToOTLPConverter.MetricsAggregation metricsAggregation = exportMetrics.computeIfAbsent(instance, key -> new PrometheusToOTLPConverter.MetricsAggregation(instance));
             for (ScopeMetrics scopeMetrics : resourceMetric.getScopeMetricsList()) {
                 for (Metric metric : scopeMetrics.getMetricsList()) {
@@ -483,7 +455,5 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
                 .map(AnyValue::getStringValue)
                 .orElse("");
     }
-
-
 
 }

@@ -6,9 +6,7 @@ package com.instana.dc.vllm.impl.vllm;
 
 import static com.instana.dc.DcUtil.CALLBACK_INTERVAL;
 import static com.instana.dc.DcUtil.POLLING_INTERVAL;
-import static com.instana.dc.vllm.VLLMDcConstants.OTEL_AGENTLESS_MODE;
-import static com.instana.dc.vllm.VLLMDcConstants.SERVICE_LISTEN_PORT;
-import static com.instana.dc.vllm.VLLMDcConstants.SERVICE_NAME;
+import static com.instana.dc.vllm.VLLMDcConstants.*;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_GENERATION_TOKENS;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_GPU_CACHE_HIT_RATE;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_GPU_CACHE_USAGE_PERC;
@@ -39,13 +37,11 @@ import com.linecorp.armeria.server.healthcheck.HealthCheckService;
 public class VLLMDc extends AbstractVLLMDc {
     private static final Logger logger = Logger.getLogger(VLLMDc.class.getName());
 
-    String prometheusEndpoint = "http://9.30.109.130:8000/metrics";
-    PrometheusToOTLPConverter scraper = new PrometheusToOTLPConverter(prometheusEndpoint);
-
-    private final MetricsCollectorService metricsCollector = new MetricsCollectorService();
-    private final int listenPort;
     private final Boolean otelAgentlessMode;
     private final Integer otelPollInterval;
+    private final String vllmMetricsUrl;
+    PrometheusToOTLPConverter scraper = new PrometheusToOTLPConverter();
+
 
     /**
      * The poll rate in the configuration, in seconds. In other words, the number of
@@ -56,121 +52,55 @@ public class VLLMDc extends AbstractVLLMDc {
         otelAgentlessMode = (Boolean) properties.getOrDefault(OTEL_AGENTLESS_MODE, Boolean.FALSE);
         Integer callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_LLM_CLBK_INTERVAL);
         otelPollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);
-        listenPort = (int) properties.getOrDefault(SERVICE_LISTEN_PORT, 8000);
+        vllmMetricsUrl = properties.get(VLLM_METRICS_URL)+"/metrics";
     }
 
-    @Override
-    public void initOnce() {
-        var server = Server.builder()
-                .http(listenPort)
-                .service(
-                        GrpcService.builder()
-                                .addService(metricsCollector)
-                                .build())
-                .service(
-                        "/",
-                        (ctx, req) -> {
-                            var requests = metricsCollector.getDeltaMetricsList();
-                            if (requests != null) {
-                                return HttpResponse.of(
-                                        HttpStatus.OK, MediaType.JSON, HttpData.wrap("OK".getBytes()));
-                            } else {
-                                return HttpResponse.of(
-                                        HttpStatus.BAD_REQUEST, MediaType.JSON,
-                                        HttpData.wrap("Bad Request".getBytes()));
-                            }
-                        })
-                .service("/health", HealthCheckService.of())
-                .build();
-
-        server.start().join();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> server.stop().join()));
-    }
 
     @Override
     public void collectData() {
 
         logger.info("Start to collect metrics");
 
-        List<MetricsCollectorService.MetricsAggregation> metricsAggregations = metricsCollector.getDeltaMetricsList();
+        scraper.scrapeMetrics(vllmMetricsUrl);
+        List<PrometheusToOTLPConverter.MetricsAggregation> metricsAggregations = scraper.getDeltaMetricsList();
+
         int divisor = Boolean.TRUE.equals(otelAgentlessMode) ? 1 : otelPollInterval;
 
-        for (MetricsCollectorService.MetricsAggregation metric : metricsAggregations) {
-
-            System.out.println("MetricsAggregation------ "+metric);
+        for (PrometheusToOTLPConverter.MetricsAggregation metric : metricsAggregations) {
             Map<String, Object> attributes = Map.of(SERVICE_NAME, metric.getInstance());
 
-            getRawMetric(VLLM_RUNNING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_running", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);
-            getRawMetric(VLLM_WAITING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_waiting", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);
-            getRawMetric(VLLM_GPU_CACHE_USAGE_PERC.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:gpu_cache_usage_perc", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);
-            getRawMetric(VLLM_GPU_CACHE_HIT_RATE.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:gpu_prefix_cache_hit_rate", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);
+            getRawMetric(VLLM_RUNNING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_running", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
+            getRawMetric(VLLM_WAITING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_waiting", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
+            getRawMetric(VLLM_GPU_CACHE_USAGE_PERC.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:gpu_cache_usage_perc", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
+            getRawMetric(VLLM_GPU_CACHE_HIT_RATE.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:gpu_prefix_cache_hit_rate", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
 
-            double promptTokens = aggregate(metric, "vllm:prompt_tokens_total", MetricsCollectorService.MetricsAggregation.Measurement::getValue);
-            double generationTokens = aggregate(metric, "vllm:generation_tokens_total", MetricsCollectorService.MetricsAggregation.Measurement::getValue);
+            double promptTokens = aggregate(metric, "vllm:prompt_tokens_total", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue);
+            double generationTokens = aggregate(metric, "vllm:generation_tokens_total", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue);
             getRawMetric(VLLM_PROMPT_TOKENS.getName()).getDataPoint(metric.getInstance()).setValue(promptTokens / divisor, attributes);
             getRawMetric(VLLM_GENERATION_TOKENS.getName()).getDataPoint(metric.getInstance()).setValue(generationTokens / divisor, attributes);
             getRawMetric(VLLM_TOTAL_TOKENS.getName()).getDataPoint(metric.getInstance()).setValue((promptTokens + generationTokens) / divisor, attributes);
 
-            double count = aggregate(metric, "vllm:e2e_request_latency_seconds", MetricsCollectorService.MetricsAggregation.Measurement::getCount);
+            double count = aggregate(metric, "vllm:e2e_request_latency_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getCount);
             if (count > 0) {
-                getRawMetric(VLLM_REQUEST_LATENCY.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:e2e_request_latency_seconds", MetricsCollectorService.MetricsAggregation.Measurement::getSum) / count, attributes);
+                getRawMetric(VLLM_REQUEST_LATENCY.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:e2e_request_latency_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getSum) / count, attributes);
             }
-            count = aggregate(metric, "vllm:time_to_first_token_seconds", MetricsCollectorService.MetricsAggregation.Measurement::getCount);
+            count = aggregate(metric, "vllm:time_to_first_token_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getCount);
             if (count > 0) {
-                getRawMetric(VLLM_REQUEST_TTFT.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:time_to_first_token_seconds", MetricsCollectorService.MetricsAggregation.Measurement::getSum) / count, attributes);
+                getRawMetric(VLLM_REQUEST_TTFT.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:time_to_first_token_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getSum) / count, attributes);
             }
             getRawMetric(VLLM_STATUS.getName()).setValue(1);
         }
-//        scraper.scrapeMetrics();
-//        List<PrometheusToOTLPConverter.MetricsAggregation> metricsAggregations = scraper.getDeltaMetricsList();
-//
-//        int divisor = Boolean.TRUE.equals(otelAgentlessMode) ? 1 : otelPollInterval;
-//
-//        for (PrometheusToOTLPConverter.MetricsAggregation metric : metricsAggregations) {
-//            Map<String, Object> attributes = Map.of(SERVICE_NAME, metric.getInstance());
-//
-//            getRawMetric(VLLM_RUNNING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_running", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
-//            getRawMetric(VLLM_WAITING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_waiting", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
-//            getRawMetric(VLLM_GPU_CACHE_USAGE_PERC.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:gpu_cache_usage_perc", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
-//            getRawMetric(VLLM_GPU_CACHE_HIT_RATE.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:gpu_prefix_cache_hit_rate", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue), attributes);
-//
-//            double promptTokens = aggregate(metric, "vllm:prompt_tokens_total", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue);
-//            double generationTokens = aggregate(metric, "vllm:generation_tokens_total", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getValue);
-//            getRawMetric(VLLM_PROMPT_TOKENS.getName()).getDataPoint(metric.getInstance()).setValue(promptTokens / divisor, attributes);
-//            getRawMetric(VLLM_GENERATION_TOKENS.getName()).getDataPoint(metric.getInstance()).setValue(generationTokens / divisor, attributes);
-//            getRawMetric(VLLM_TOTAL_TOKENS.getName()).getDataPoint(metric.getInstance()).setValue((promptTokens + generationTokens) / divisor, attributes);
-//
-//            double count = aggregate(metric, "vllm:e2e_request_latency_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getCount);
-//            if (count > 0) {
-//                getRawMetric(VLLM_REQUEST_LATENCY.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:e2e_request_latency_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getSum) / count, attributes);
-//            }
-//            count = aggregate(metric, "vllm:time_to_first_token_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getCount);
-//            if (count > 0) {
-//                getRawMetric(VLLM_REQUEST_TTFT.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:time_to_first_token_seconds", PrometheusToOTLPConverter.MetricsAggregation.Measurement::getSum) / count, attributes);
-//            }
-//            getRawMetric(VLLM_STATUS.getName()).setValue(1);
-//        }
 
         logger.info("-----------------------------------------");
     }
 
-//    private static double aggregate(PrometheusToOTLPConverter.MetricsAggregation metricsAggregation, String metricName,
-//                                    ToDoubleFunction<PrometheusToOTLPConverter.MetricsAggregation.Measurement> getter) {
-//        return Optional.ofNullable(metricsAggregation.getMetrics())
-//                .map(metrics -> metrics.get(metricName))
-//                .map(metric -> metric.values().stream()
-//                        .mapToDouble(getter).sum())
-//                .orElse(0.0);
-//    }
-
-    private static double aggregate(MetricsCollectorService.MetricsAggregation metricsAggregation, String metricName,
-                                    ToDoubleFunction<MetricsCollectorService.MetricsAggregation.Measurement> getter) {
+    private static double aggregate(PrometheusToOTLPConverter.MetricsAggregation metricsAggregation, String metricName,
+                                    ToDoubleFunction<PrometheusToOTLPConverter.MetricsAggregation.Measurement> getter) {
         return Optional.ofNullable(metricsAggregation.getMetrics())
                 .map(metrics -> metrics.get(metricName))
                 .map(metric -> metric.values().stream()
                         .mapToDouble(getter).sum())
                 .orElse(0.0);
     }
-
 
 }

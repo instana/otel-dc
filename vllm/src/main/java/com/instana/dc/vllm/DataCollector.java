@@ -38,8 +38,8 @@ public class DataCollector {
         for (Map<String, Object> props : cdcConfig.getInstances()) {
             dcs.add(newDc(props));
         }
-        for (IDc dc: dcs) {
-            dc.initOnce();
+        for (Map<String, Object> props : cdcConfig.getReceivers()) {
+            dcs.add(newDc(props));
         }
     }
 
@@ -91,6 +91,12 @@ public class DataCollector {
 
         public List<Map<String, Object>> getInstances() {
             return instances;
+        }
+
+        private final List<Map<String, Object>> receivers = new ArrayList<>();
+
+        public List<Map<String, Object>> getReceivers() {
+            return receivers;
         }
     }
 }

@@ -15,6 +15,8 @@ public class VLLMDcConstants {
     public static final String MODEL_NAME = "model_name";
     public static final String SERVICE_NAME = "service_name";
 
+    public static final String VLLM_METRICS_URL = "otel.prom.vllm.url";
+
     /* Configurations for Metrics:
      */
     public enum VllmMetric {
