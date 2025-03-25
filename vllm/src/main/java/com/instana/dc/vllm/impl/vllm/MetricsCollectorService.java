@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 import static com.instana.dc.vllm.VLLMDcConstants.INSTANCE_ID;
 import static com.instana.dc.vllm.VLLMDcConstants.MODEL_NAME;
 
-public class PrometheusToOTLPConverter {
+public class MetricsCollectorService {
     private final OkHttpClient client;
     private static final long startTimeUnixNano = System.currentTimeMillis() * 1_000_000L;
 
-    public PrometheusToOTLPConverter() {
+    public MetricsCollectorService() {
         this.client = new OkHttpClient();
     }
 
@@ -43,7 +43,7 @@ public class PrometheusToOTLPConverter {
             private double cumulativeCount;
             private long startTime;
 
-            public Measurement(PrometheusToOTLPConverter.MetricsAggregation.Measurement other) {
+            public Measurement(MetricsCollectorService.MetricsAggregation.Measurement other) {
                 this.value = other.value;
                 this.cumulativeValue = other.cumulativeValue;
                 this.sum = other.sum;
@@ -115,9 +115,9 @@ public class PrometheusToOTLPConverter {
         }
 
         private final String instance;
-        Map<String, Map<String, PrometheusToOTLPConverter.MetricsAggregation.Measurement>> metrics;
+        Map<String, Map<String, MetricsCollectorService.MetricsAggregation.Measurement>> metrics;
 
-        public Map<String, Map<String, PrometheusToOTLPConverter.MetricsAggregation.Measurement>> getMetrics() {
+        public Map<String, Map<String, MetricsCollectorService.MetricsAggregation.Measurement>> getMetrics() {
             return metrics;
         }
 
@@ -130,16 +130,16 @@ public class PrometheusToOTLPConverter {
             this.metrics = new HashMap<>();
         }
 
-        public MetricsAggregation(PrometheusToOTLPConverter.MetricsAggregation other) {
+        public MetricsAggregation(MetricsCollectorService.MetricsAggregation other) {
             this.instance = other.instance;
             this.metrics = deepCopy(other);
         }
 
-        private static Map<String, Map<String, PrometheusToOTLPConverter.MetricsAggregation.Measurement>> deepCopy(PrometheusToOTLPConverter.MetricsAggregation other) {
+        private static Map<String, Map<String, MetricsCollectorService.MetricsAggregation.Measurement>> deepCopy(MetricsCollectorService.MetricsAggregation other) {
             return other.getMetrics().entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey, entry -> entry.getValue().entrySet().stream()
-                                    .collect(Collectors.toMap(Map.Entry::getKey, modelEntry -> new PrometheusToOTLPConverter.MetricsAggregation.Measurement(modelEntry.getValue())))));
+                                    .collect(Collectors.toMap(Map.Entry::getKey, modelEntry -> new MetricsCollectorService.MetricsAggregation.Measurement(modelEntry.getValue())))));
         }
 
     }
@@ -346,12 +346,12 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
 
 }
 
-    private static final HashMap<String, PrometheusToOTLPConverter.MetricsAggregation>  exportMetrics = new HashMap<>();
+    private static final HashMap<String, MetricsCollectorService.MetricsAggregation>  exportMetrics = new HashMap<>();
 
-    public List<PrometheusToOTLPConverter.MetricsAggregation> getDeltaMetricsList() {
+    public List<MetricsCollectorService.MetricsAggregation> getDeltaMetricsList() {
             return exportMetrics.values().stream()
                     .filter(Objects::nonNull)
-                    .map(PrometheusToOTLPConverter.MetricsAggregation::new)
+                    .map(MetricsCollectorService.MetricsAggregation::new)
                     .collect(ImmutableList.toImmutableList());
     }
     private static void processMetrics(ExportMetricsServiceRequest request) {
@@ -359,7 +359,7 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
         List<ResourceMetrics> allResourceMetrics = request.getResourceMetricsList();
         for (ResourceMetrics resourceMetric : allResourceMetrics) {
             String instance = getInstanceId(resourceMetric);
-            PrometheusToOTLPConverter.MetricsAggregation metricsAggregation = exportMetrics.computeIfAbsent(instance, key -> new PrometheusToOTLPConverter.MetricsAggregation(instance));
+            MetricsCollectorService.MetricsAggregation metricsAggregation = exportMetrics.computeIfAbsent(instance, key -> new MetricsCollectorService.MetricsAggregation(instance));
             for (ScopeMetrics scopeMetrics : resourceMetric.getScopeMetricsList()) {
                 for (Metric metric : scopeMetrics.getMetricsList()) {
                     System.out.println("-----------------");
@@ -381,35 +381,35 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
         }
     }
 
-    private static void processGauge(Metric metric, PrometheusToOTLPConverter.MetricsAggregation metricsAggregation) {
-        Map<String, PrometheusToOTLPConverter.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
+    private static void processGauge(Metric metric, MetricsCollectorService.MetricsAggregation metricsAggregation) {
+        Map<String, MetricsCollectorService.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
                 .computeIfAbsent(metric.getName(), key -> new HashMap<>());
         for (NumberDataPoint dataPoint : metric.getGauge().getDataPointsList()) {
             dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
                     .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
-                        PrometheusToOTLPConverter.MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new PrometheusToOTLPConverter.MetricsAggregation.Measurement());
+                        MetricsCollectorService.MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new MetricsCollectorService.MetricsAggregation.Measurement());
                         recordGauge(dataPoint, modelMeasurement);
                     });
         }
     }
 
-    private static void recordGauge(NumberDataPoint dataPoint, PrometheusToOTLPConverter.MetricsAggregation.Measurement modelMeasurement) {
+    private static void recordGauge(NumberDataPoint dataPoint, MetricsCollectorService.MetricsAggregation.Measurement modelMeasurement) {
         modelMeasurement.setValue(dataPoint.getAsDouble());
     }
 
-    private static void processSum(Metric metric, PrometheusToOTLPConverter.MetricsAggregation metricsAggregation) {
-        Map<String, PrometheusToOTLPConverter.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
+    private static void processSum(Metric metric, MetricsCollectorService.MetricsAggregation metricsAggregation) {
+        Map<String, MetricsCollectorService.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
                 .computeIfAbsent(metric.getName(), key -> new HashMap<>());
         for (NumberDataPoint dataPoint : metric.getSum().getDataPointsList()) {
             dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
                     .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
-                        PrometheusToOTLPConverter.MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new PrometheusToOTLPConverter.MetricsAggregation.Measurement());
+                        MetricsCollectorService.MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new MetricsCollectorService.MetricsAggregation.Measurement());
                         recordSum(dataPoint, modelMeasurement);
                     });
         }
     }
 
-    private static void recordSum(NumberDataPoint dataPoint, PrometheusToOTLPConverter.MetricsAggregation.Measurement modelMeasurement) {
+    private static void recordSum(NumberDataPoint dataPoint, MetricsCollectorService.MetricsAggregation.Measurement modelMeasurement) {
         if (dataPoint.getStartTimeUnixNano() == modelMeasurement.getStartTime()) {
             modelMeasurement.setValue(dataPoint.getAsDouble() - modelMeasurement.getCumulativeValue());
             modelMeasurement.setCumulativeValue(dataPoint.getAsDouble());
@@ -420,19 +420,19 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
         }
     }
 
-    private static void processHistogram(Metric metric, PrometheusToOTLPConverter.MetricsAggregation metricsAggregation) {
-        Map<String, PrometheusToOTLPConverter.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
+    private static void processHistogram(Metric metric, MetricsCollectorService.MetricsAggregation metricsAggregation) {
+        Map<String, MetricsCollectorService.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
                 .computeIfAbsent(metric.getName(), key -> new HashMap<>());
         for (HistogramDataPoint dataPoint : metric.getHistogram().getDataPointsList()) {
             dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
                     .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
-                        PrometheusToOTLPConverter.MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new PrometheusToOTLPConverter.MetricsAggregation.Measurement());
+                        MetricsCollectorService.MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new MetricsCollectorService.MetricsAggregation.Measurement());
                         recordHistogram(dataPoint, modelMeasurement);
                     });
         }
     }
 
-    private static void recordHistogram(HistogramDataPoint dataPoint, PrometheusToOTLPConverter.MetricsAggregation.Measurement modelMeasurement) {
+    private static void recordHistogram(HistogramDataPoint dataPoint, MetricsCollectorService.MetricsAggregation.Measurement modelMeasurement) {
         if (dataPoint.getStartTimeUnixNano() == modelMeasurement.getStartTime()) {
             modelMeasurement.setCount(dataPoint.getCount() - modelMeasurement.getCumulativeCount());
             modelMeasurement.setCumulativeCount(dataPoint.getCount());
