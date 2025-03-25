@@ -38,9 +38,6 @@ public class DataCollector {
         for (Map<String, Object> props : cdcConfig.getInstances()) {
             dcs.add(newDc(props));
         }
-        for (Map<String, Object> props : cdcConfig.getReceivers()) {
-            dcs.add(newDc(props));
-        }
     }
 
     private IDc newDc(Map<String, Object> props) throws Exception {
@@ -93,10 +90,5 @@ public class DataCollector {
             return instances;
         }
 
-        private final List<Map<String, Object>> receivers = new ArrayList<>();
-
-        public List<Map<String, Object>> getReceivers() {
-            return receivers;
-        }
     }
 }

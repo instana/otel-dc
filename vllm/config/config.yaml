@@ -7,8 +7,6 @@ instances:
     callback.interval: 10
     otel.service.name: DC1
     otel.service.port: 8000
-
-receivers:
-  - otel.prom.vllm.url: http://9.30.109.130:8000
+    otel.prom.vllm.url: http://9.30.109.130:8000
 
 # Customize pricing only for models in use in config/prices.properties
