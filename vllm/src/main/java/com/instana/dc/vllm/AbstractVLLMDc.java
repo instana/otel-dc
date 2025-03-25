@@ -87,6 +87,5 @@ public abstract class AbstractVLLMDc extends AbstractDc {
     @Override
     public void start() {
         exec.scheduleAtFixedRate(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
-//        exec.scheduleWithFixedDelay(this::collectData, 1, pollInterval, TimeUnit.SECONDS);
     }
 }
