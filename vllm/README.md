@@ -39,7 +39,7 @@ The following options are required：
 ## Run ODCV
 Run the Data Collector with the following command according to your current system:
 ```bash
-nohup ./bin/otel-dc-vllm &
+nohup ./bin/otel-dc-vllm >/dev/null 2>&1 &
 ```
 
 ## Reference

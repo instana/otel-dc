@@ -55,4 +55,4 @@ Then, user can create the proper configuration files:
   - config/logging.properties
 
 Run the Data Collector with following command according to your current OS:
-  - bin/odcv
+  - nohup ./bin/otel-dc-vllm >/dev/null 2>&1 &
