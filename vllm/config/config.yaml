@@ -1,13 +1,9 @@
 llm.application: LLM_DC
 
 instances:
-  - otel.vllm.metrics.url: http://9.30.109.130:8000
+  - otel.vllm.metrics.url: http://<vllm-host>:<port>
     otel.agentless.mode: false
     otel.backend.url: http://localhost:4317
     otel.backend.using.http: false
     callback.interval: 10
     otel.service.name: DC1
-
-
-
-# Customize pricing only for models in use in config/prices.properties

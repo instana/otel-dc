@@ -45,7 +45,7 @@ public class VLLMDc extends AbstractVLLMDc {
         otelAgentlessMode = (Boolean) properties.getOrDefault(OTEL_AGENTLESS_MODE, Boolean.FALSE);
         Integer callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_LLM_CLBK_INTERVAL);
         otelPollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);
-        vllmMetricsUrl = properties.get(VLLM_METRICS_URL)+"/metrics";
+        vllmMetricsUrl = (String) properties.get(VLLM_METRICS_URL);
     }
 
 

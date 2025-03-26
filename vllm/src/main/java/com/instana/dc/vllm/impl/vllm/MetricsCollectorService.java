@@ -15,6 +15,8 @@ import okhttp3.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -145,23 +147,36 @@ public class MetricsCollectorService {
     }
 
     public void scrapeMetrics(String prometheusEndpoint) {
+        try {
+            validateEndpoint(prometheusEndpoint);
             Request request = new Request.Builder()
-                    .url(prometheusEndpoint)
+                    .url(prometheusEndpoint+"/metrics")
                     .header("Accept", TextFormat.CONTENT_TYPE_004)
                     .build();
 
-            try {
-                Response response = client.newCall(request).execute();
+            try (Response response = client.newCall(request).execute()){
                 if (response.isSuccessful() && response.body() != null) {
                     String metricsData = response.body().string();
                     List<Metric> metrics = parsePrometheusFile(metricsData);
                     System.out.println("Total metrics parsed: " + metrics.size());
-                    ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics);
+                    ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics, prometheusEndpoint.substring(prometheusEndpoint.lastIndexOf('/')+1));
                     processMetrics(serviceRequest);
                 }
-            } catch (IOException e) {
+            }
+        }
+        catch (Exception e) {
                 System.err.println("Error scraping metrics: " + e.getMessage());
             }
+    }
+
+    private void validateEndpoint(String endpoint) throws URISyntaxException {
+        URI uri = new URI(endpoint);
+        if (uri.getScheme() == null || uri.getHost() == null) {
+            throw new IllegalArgumentException("Invalid URL: Missing host in " + endpoint);
+        }
+        if (uri.getPort() == -1) {
+            throw new IllegalArgumentException("URL must include a port: " + endpoint);
+        }
     }
 
     private static List<Metric> parsePrometheusFile(String metricData) throws IOException {
@@ -319,7 +334,7 @@ private static Metric createCounterMetric(String name, String labels, double val
         return attributes;
     }
 
-private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) throws IOException {
+private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics,String serviceInstance) throws IOException {
     ResourceMetrics resourceMetrics = ResourceMetrics.newBuilder()
             .setResource(Resource.newBuilder()
                     .addAttributes(KeyValue.newBuilder()
@@ -328,7 +343,7 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics) th
                             .build())
                     .addAttributes(KeyValue.newBuilder()
                             .setKey("service.instance.id")
-                            .setValue(AnyValue.newBuilder().setStringValue("9.30.109.130:8000").build())
+                            .setValue(AnyValue.newBuilder().setStringValue(serviceInstance).build())
                             .build())
                     .build())
             .addScopeMetrics(ScopeMetrics.newBuilder()
