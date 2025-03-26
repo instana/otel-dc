@@ -22,7 +22,7 @@ java -version
 
 2) Get the source code from `github.ibm.com`.
 ```bash
-git clone https://github.ibm.com/instana-llmetry/otel-dc.git
+git clone https://github.com/instana/otel-dc.git
 cd otel-dc/vllm
 ```
 
