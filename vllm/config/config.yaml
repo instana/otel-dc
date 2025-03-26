@@ -1,0 +1,9 @@
+llm.application: LLM_DC
+
+instances:
+  - otel.vllm.metrics.url: http://<vllm-host>:<port>
+    otel.agentless.mode: false
+    otel.backend.url: http://localhost:4317
+    otel.backend.using.http: false
+    callback.interval: 10
+    otel.service.name: DC1
