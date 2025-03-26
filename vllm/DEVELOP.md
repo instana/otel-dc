@@ -1,4 +1,4 @@
-# ODCL (OTel based Data Collector for LLM)
+# ODCV (OTel based Data Collector for vLLM)
 
 **[Semantic Convention](docs/semconv)** |
 **[Support](docs/support/README.md)** |
@@ -7,7 +7,7 @@
 **[License](LICENSE)**
 
 ---
-ODCL (OTel based Data Collector for vLLM) is the tool or template to generate OpenTelemetry metrics for vLLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
+ODCV (OTel based Data Collector for vLLM) is the tool or template to generate OpenTelemetry metrics for vLLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
 
 ## Requirements
 
@@ -32,7 +32,7 @@ cd otel-dc/vllm
 ```
 *Note: gradle 7.4 will be installed if you do not have it.*
 
-## Run ODCL
+## Run ODCV
 
 1) Make sure code is built with Java SDK 11+.
 
@@ -55,4 +55,4 @@ Then, user can create the proper configuration files:
   - config/logging.properties
 
 Run the Data Collector with following command according to your current OS:
-  - bin/odcl
+  - bin/odcv

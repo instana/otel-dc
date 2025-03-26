@@ -1,6 +1,6 @@
-# ODCL (OTel Data Collector for vLLM)
+# ODCV (OTel Data Collector for vLLM)
 
-ODCL (OTel Data Collector for vLLM) is the tool or template to generate OpenTelemetry metrics for various vLLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
+ODCV (OTel Data Collector for vLLM) is the tool or template to generate OpenTelemetry metrics for various vLLM Applications. All implementation are based on predefined OpenTelemetry Semantic Conventions.
 
 ## Requirements
 
@@ -36,7 +36,7 @@ The following options are required：
 - `callback.interval`: The time interval in seconds to post data to backend or agent.
 - `otel.service.name`: The Data Collector name, which can be any string that you choose.
 
-## Run ODCL
+## Run ODCV
 Run the Data Collector with the following command according to your current system:
 ```bash
 nohup ./bin/otel-dc-vllm &
