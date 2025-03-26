@@ -146,11 +146,17 @@ public class MetricsCollectorService {
 
     }
 
-    public void scrapeMetrics(String prometheusEndpoint) {
+    public void scrapeMetrics(String endpoint) {
         try {
-            validateEndpoint(prometheusEndpoint);
+            URI uri = new URI(endpoint);
+            if (uri.getScheme() == null || uri.getHost() == null) {
+                throw new IllegalArgumentException("Invalid URL: Invalid host in " + endpoint);
+            }
+            if (uri.getPort() == -1) {
+                throw new IllegalArgumentException("URL must include a port: " + endpoint);
+            }
             Request request = new Request.Builder()
-                    .url(prometheusEndpoint+"/metrics")
+                    .url(endpoint+"/metrics")
                     .header("Accept", TextFormat.CONTENT_TYPE_004)
                     .build();
 
@@ -159,7 +165,7 @@ public class MetricsCollectorService {
                     String metricsData = response.body().string();
                     List<Metric> metrics = parsePrometheusFile(metricsData);
                     System.out.println("Total metrics parsed: " + metrics.size());
-                    ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics, prometheusEndpoint.substring(prometheusEndpoint.lastIndexOf('/')+1));
+                    ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics,uri.getAuthority());
                     processMetrics(serviceRequest);
                 }
             }
@@ -167,16 +173,6 @@ public class MetricsCollectorService {
         catch (Exception e) {
                 System.err.println("Error scraping metrics: " + e.getMessage());
             }
-    }
-
-    private void validateEndpoint(String endpoint) throws URISyntaxException {
-        URI uri = new URI(endpoint);
-        if (uri.getScheme() == null || uri.getHost() == null) {
-            throw new IllegalArgumentException("Invalid URL: Missing host in " + endpoint);
-        }
-        if (uri.getPort() == -1) {
-            throw new IllegalArgumentException("URL must include a port: " + endpoint);
-        }
     }
 
     private static List<Metric> parsePrometheusFile(String metricData) throws IOException {
