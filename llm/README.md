@@ -15,18 +15,18 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/v1.0.5/otel-dc-llm-1.0.5.tar
+curl -O https://github.com/instana/otel-dc/releases/download/v1.0.7/otel-dc-llm-1.0.7.tar
 ```
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-llm-1.0.5.tar
+tar vxf otel-dc-llm-1.0.7.tar
 ```
 
 ## Configuration
 
 ### Configure otel dc
 ```bash
-cd otel-dc-llm-1.0.5
+cd otel-dc-llm-1.0.7
 vi config/config.yaml
 ```
 The following options are required：
