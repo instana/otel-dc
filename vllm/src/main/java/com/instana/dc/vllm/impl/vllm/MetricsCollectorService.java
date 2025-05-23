@@ -18,6 +18,10 @@ import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -27,12 +31,11 @@ import static com.instana.dc.vllm.VLLMDcConstants.MODEL_NAME;
 
 public class MetricsCollectorService {
     private final OkHttpClient client;
-    private static final long startTimeUnixNano = System.currentTimeMillis() * 1_000_000L;
+    private static final long START_TIME_UNIX_NANO = System.currentTimeMillis() * 1_000_000L;
 
     public MetricsCollectorService() {
         this.client = new OkHttpClient();
     }
-
 
     public static class MetricsAggregation {
 
@@ -117,9 +120,9 @@ public class MetricsCollectorService {
         }
 
         private final String instance;
-        Map<String, Map<String, MetricsCollectorService.MetricsAggregation.Measurement>> metrics;
+        ConcurrentMap<String, ConcurrentMap<String, MetricsCollectorService.MetricsAggregation.Measurement>> metrics;
 
-        public Map<String, Map<String, MetricsCollectorService.MetricsAggregation.Measurement>> getMetrics() {
+        public ConcurrentMap<String, ConcurrentMap<String, MetricsCollectorService.MetricsAggregation.Measurement>> getMetrics() {
             return metrics;
         }
 
@@ -129,7 +132,7 @@ public class MetricsCollectorService {
 
         public MetricsAggregation(String instance) {
             this.instance = instance;
-            this.metrics = new HashMap<>();
+            this.metrics = new ConcurrentHashMap<>();
         }
 
         public MetricsAggregation(MetricsCollectorService.MetricsAggregation other) {
@@ -137,118 +140,183 @@ public class MetricsCollectorService {
             this.metrics = deepCopy(other);
         }
 
-        private static Map<String, Map<String, MetricsCollectorService.MetricsAggregation.Measurement>> deepCopy(MetricsCollectorService.MetricsAggregation other) {
+        private static ConcurrentMap<String, ConcurrentMap<String, MetricsCollectorService.MetricsAggregation.Measurement>> deepCopy(MetricsCollectorService.MetricsAggregation other) {
             return other.getMetrics().entrySet().stream()
-                    .collect(Collectors.toMap(
+                    .collect(Collectors.toConcurrentMap(
                             Map.Entry::getKey, entry -> entry.getValue().entrySet().stream()
-                                    .collect(Collectors.toMap(Map.Entry::getKey, modelEntry -> new MetricsCollectorService.MetricsAggregation.Measurement(modelEntry.getValue())))));
+                                    .collect(Collectors.toConcurrentMap(Map.Entry::getKey, modelEntry -> new MetricsCollectorService.MetricsAggregation.Measurement(modelEntry.getValue())))));
         }
-
     }
 
-    public void scrapeMetrics(String endpoint) {
+    public void scrapeMetrics(List<String> endpoints) {
+        List<CompletableFuture<Void>> futures = endpoints.stream()
+                .map(endpoint -> CompletableFuture.runAsync(() -> scrapeSingleEndpoint(endpoint)))
+                .collect(Collectors.toList());
+
+        for (CompletableFuture<Void> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                System.err.println("Error in async metric scrape: " + e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    private void scrapeSingleEndpoint(String endpoint) {
         try {
-            URI uri = new URI(endpoint);
-            if (uri.getScheme() == null || uri.getHost() == null) {
-                throw new IllegalArgumentException("Invalid URL: Invalid host in " + endpoint);
-            }
-            if (uri.getPort() == -1) {
-                throw new IllegalArgumentException("URL must include a port: " + endpoint);
-            }
-            Request request = new Request.Builder()
-                    .url(endpoint+"/metrics")
-                    .header("Accept", TextFormat.CONTENT_TYPE_004)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()){
-                if (response.isSuccessful() && response.body() != null) {
-                    String metricsData = response.body().string();
-                    List<Metric> metrics = parsePrometheusFile(metricsData);
-                    System.out.println("Total metrics parsed: " + metrics.size());
-                    ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics,uri.getAuthority());
-                    processMetrics(serviceRequest);
-                }
-            }
+            URI uri = validateEndpoint(endpoint);
+            String metricsData = fetchMetrics(uri);
+            List<Metric> metrics = parsePrometheusFile(metricsData);
+            ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics, uri.getAuthority());
+            processMetrics(serviceRequest);
+        } catch (Exception e) {
+            System.err.println("[" + endpoint + "] Error scraping metrics: " + e.getMessage());
         }
-        catch (Exception e) {
-                System.err.println("Error scraping metrics: " + e.getMessage());
-            }
     }
+
+    private URI validateEndpoint(String endpoint) throws URISyntaxException {
+        URI uri = new URI(endpoint);
+        if (uri.getScheme() == null || uri.getHost() == null) {
+            throw new IllegalArgumentException("Invalid URL: Invalid host in " + endpoint);
+        }
+        if (uri.getPort() == -1) {
+            throw new IllegalArgumentException("URL must include a port: " + endpoint);
+        }
+        return uri;
+    }
+
+    private String fetchMetrics(URI uri) throws IOException {
+        Request request = new Request.Builder()
+                .url(uri.toString() + "/metrics")
+                .header("Accept", TextFormat.CONTENT_TYPE_004)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                return response.body().string();
+            }
+            throw new IOException("HTTP status: " + response.code());
+        }
+    }
+
+    private static final Pattern HELP_PATTERN = Pattern.compile("^# HELP (\\S+) (.+)$");
+    private static final Pattern METRIC_PATTERN = Pattern.compile("^(\\S+)\\{(.*?)\\}\\s+(\\S+)$");
+
 
     private static List<Metric> parsePrometheusFile(String metricData) throws IOException {
         List<Metric> metrics = new ArrayList<>();
-        BufferedReader reader = new BufferedReader(new StringReader(metricData));
-        String line;
-
-        Pattern helpPattern = Pattern.compile("^# HELP (\\S+) (.+)$");
-        Pattern metricPattern = Pattern.compile("^(\\S+)\\{(.*?)\\}\\s+(\\S+)$");
         Map<String, String> metricDescriptions = new HashMap<>();
         Map<String, TreeMap<Double, Long>> histogramBuckets = new HashMap<>();
         Map<String, Long> histogramCounts = new HashMap<>();
         Map<String, String> histogramLabels = new HashMap<>();
         Map<String, Double> histogramSums = new HashMap<>();
         long currentTimeNano = System.currentTimeMillis() * 1_000_000L;
+
+        BufferedReader reader = new BufferedReader(new StringReader(metricData));
+        String line;
+
         while ((line = reader.readLine()) != null) {
-            Matcher helpMatcher = helpPattern.matcher(line);
+            Matcher helpMatcher = HELP_PATTERN.matcher(line);
             if (helpMatcher.matches()) {
-                metricDescriptions.put(helpMatcher.group(1), helpMatcher.group(2).trim().replaceAll("\\\\$", ""));
+                parseHelpLine(helpMatcher, metricDescriptions);
                 continue;
             }
 
-            Matcher matcher = metricPattern.matcher(line);
-            if (matcher.matches()) {
-                String metricName = matcher.group(1).trim().replaceAll("\\\\$", "");
-                String labels = matcher.group(2).trim();
-                String valueStr = matcher.group(3).trim().replaceAll("[^0-9.eE-]", "");
-                String description = metricDescriptions.getOrDefault(metricName, "Metric description not available");
-                if (valueStr.isEmpty()) {
-                    System.err.println("Empty metric value detected for " + metricName);
-                    continue;
-                }
-
-                try {
-                    double value = Double.parseDouble(valueStr);
-                    if (metricName.endsWith("_bucket")) {
-                        String baseName = metricName.replace("_bucket", "");
-                        Pattern labelPattern = Pattern.compile("le=\"([^\"]+)\"|model_name=\"([^\"]+)\"");
-                        Matcher labelMatcher = labelPattern.matcher(labels);
-                        String boundaryStr = null;
-
-                        while (labelMatcher.find()) {
-                            if (labelMatcher.group(1) != null) {
-                                boundaryStr = labelMatcher.group(1);
-                            }
-                        }
-                        assert boundaryStr != null;
-                        if (!boundaryStr.equals("+Inf")) {
-                            double boundary = Double.parseDouble(boundaryStr);
-                            histogramBuckets.computeIfAbsent(baseName, k -> new TreeMap<>()).put(boundary, (long) value);
-                        }
-                    } else if (metricName.endsWith("_count")) {
-                        String baseName = metricName.replace("_count", "");
-                        histogramCounts.put(baseName, (long) value);
-                        histogramLabels.put(baseName, labels);
-                    } else if (metricName.endsWith("_sum")) {
-                        String baseName = metricName.replace("_sum", "");
-                        histogramSums.put(baseName, value);
-                    }else if (metricName.endsWith("_total")) {
-                        metrics.add(createCounterMetric(metricName, labels, value, description,currentTimeNano));
-                    } else {
-                        metrics.add(createGaugeMetric(metricName, labels, value, description,currentTimeNano));
-                    }
-                } catch (NumberFormatException e) {
-                    System.err.println("Skipping invalid metric value: " + valueStr + " for metric: " + metricName + " with labels: " + labels);
-                }
-            }
+            parseMetricLine(line, metricDescriptions, metrics,
+                    histogramBuckets, histogramCounts, histogramLabels,
+                    histogramSums, currentTimeNano);
         }
+
         reader.close();
 
-        for (String histName : histogramBuckets.keySet()) {
+        buildHistograms(metrics, histogramBuckets, histogramCounts, histogramLabels, histogramSums, metricDescriptions, currentTimeNano);
+
+        return metrics;
+    }
+
+    private static void parseHelpLine(Matcher matcher, Map<String, String> descriptions) {
+        String metricName = matcher.group(1);
+        String description = matcher.group(2).trim().replaceAll("\\\\$", "");
+        descriptions.put(metricName, description);
+    }
+
+    private static void parseMetricLine(String line,
+                                        Map<String, String> descriptions,
+                                        List<Metric> metrics,
+                                        Map<String, TreeMap<Double, Long>> histogramBuckets,
+                                        Map<String, Long> histogramCounts,
+                                        Map<String, String> histogramLabels,
+                                        Map<String, Double> histogramSums,
+                                        long currentTimeNano) {
+        Matcher matcher = METRIC_PATTERN.matcher(line);
+        if (!matcher.matches())
+            return;
+
+        String name = clean(matcher.group(1));
+        String labels = matcher.group(2).trim();
+        String valueStr = cleanValue(matcher.group(3));
+        if (valueStr.isEmpty()) {
+            System.err.println("Empty metric value for " + name);
+            return;
+        }
+
+        try {
+            double value = Double.parseDouble(valueStr);
+            String description = descriptions.getOrDefault(name, "Metric description not available");
+
+            if (name.endsWith("_bucket")) {
+                handleHistogramBucket(name, labels, value, histogramBuckets);
+            } else if (name.endsWith("_count")) {
+                String baseName = name.replace("_count", "");
+                histogramCounts.put(baseName, (long) value);
+                histogramLabels.put(baseName, labels);
+            } else if (name.endsWith("_sum")) {
+                String baseName = name.replace("_sum", "");
+                histogramSums.put(baseName, value);
+            } else if (name.endsWith("_total")) {
+                metrics.add(createCounterMetric(name, labels, value, description, currentTimeNano));
+            } else {
+                metrics.add(createGaugeMetric(name, labels, value, description, currentTimeNano));
+            }
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid metric value: " + valueStr + " for " + name);
+        }
+    }
+
+    private static void handleHistogramBucket(String name, String labels, double value,
+                                              Map<String, TreeMap<Double, Long>> histogramBuckets) {
+        String baseName = name.replace("_bucket", "");
+        Pattern labelPattern = Pattern.compile("le=\"([^\"]+)\"");
+        Matcher matcher = labelPattern.matcher(labels);
+        String boundaryStr = null;
+        while (matcher.find()) {
+            if (matcher.group(1) != null) {
+                boundaryStr = matcher.group(1);
+            }
+        }
+        if (boundaryStr == null || boundaryStr.equals("+Inf"))
+            return;
+        double boundary = Double.parseDouble(boundaryStr);
+        histogramBuckets.computeIfAbsent(baseName, k -> new TreeMap<>()).put(boundary, (long) value);
+    }
+
+    private static void buildHistograms(List<Metric> metrics,
+                                        Map<String, TreeMap<Double, Long>> histogramBuckets,
+                                        Map<String, Long> histogramCounts,
+                                        Map<String, String> histogramLabels,
+                                        Map<String, Double> histogramSums,
+                                        Map<String, String> metricDescriptions,
+                                        long currentTimeNano) {
+        for (Map.Entry<String, TreeMap<Double, Long>> histogramEntry : histogramBuckets.entrySet()) {
+            String histName = histogramEntry.getKey();
+            TreeMap<Double, Long> cumulativeBuckets = histogramEntry.getValue();
             String labels = histogramLabels.getOrDefault(histName, "");
-            TreeMap<Double, Long> cumulativeBuckets = histogramBuckets.get(histName);
+
             List<Double> explicitBounds = new ArrayList<>(cumulativeBuckets.keySet());
             List<Long> bucketCounts = new ArrayList<>();
             long prevCount = 0;
+
             for (double bound : explicitBounds) {
                 long currentCount = cumulativeBuckets.get(bound);
                 bucketCounts.add(currentCount - prevCount);
@@ -259,7 +327,6 @@ public class MetricsCollectorService {
                     metricDescriptions.getOrDefault(histName, "Histogram metric"),
                     currentTimeNano));
         }
-        return metrics;
     }
 
     private static Metric createGaugeMetric(String name, String labels, double value, String description, long timestamp) {
@@ -270,35 +337,38 @@ public class MetricsCollectorService {
                         .addDataPoints(NumberDataPoint.newBuilder()
                                 .setAsDouble(value)
                                 .setTimeUnixNano(timestamp)
-                                .addAllAttributes(parseAttributes(labels, "gauge"))
+                                .addAllAttributes(parseAttributes(labels))
                                 .build())
                         .build())
                 .build();
     }
 
-private static Metric createCounterMetric(String name, String labels, double value, String description, long timestamp) {
-    return Metric.newBuilder()
-            .setName(name)
-            .setDescription(description.replaceAll("\\\\$", ""))
-            .setSum(Sum.newBuilder()
-                    .setAggregationTemporality(AggregationTemporality.AGGREGATION_TEMPORALITY_CUMULATIVE)
-                    .setIsMonotonic(true)
-                    .addDataPoints(NumberDataPoint.newBuilder()
-                            .setAsDouble(value)
-                            .setStartTimeUnixNano(startTimeUnixNano)
-                            .setTimeUnixNano(timestamp)
-                            .addAllAttributes(parseAttributes(labels, "counter"))
-                            .build())
-                    .build())
-            .build();
-}
-    private static Metric createHistogramMetric(String name, String labels, List<Double> explicitBounds, List<Long> bucketCounts, long count, double sum, String description, long timestamp) {
+    private static Metric createCounterMetric(String name, String labels, double value, String description, long timestamp) {
+        return Metric.newBuilder()
+                .setName(name)
+                .setDescription(description.replaceAll("\\\\$", ""))
+                .setSum(Sum.newBuilder()
+                        .setAggregationTemporality(AggregationTemporality.AGGREGATION_TEMPORALITY_CUMULATIVE)
+                        .setIsMonotonic(true)
+                        .addDataPoints(NumberDataPoint.newBuilder()
+                                .setAsDouble(value)
+                                .setStartTimeUnixNano(START_TIME_UNIX_NANO)
+                                .setTimeUnixNano(timestamp)
+                                .addAllAttributes(parseAttributes(labels))
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private static Metric createHistogramMetric(String name, String labels, List<Double> explicitBounds,
+                                                List<Long> bucketCounts, long count, double sum, String description,
+                                                long timestamp) {
         HistogramDataPoint.Builder dataPoint = HistogramDataPoint.newBuilder()
-                .setStartTimeUnixNano(startTimeUnixNano)
+                .setStartTimeUnixNano(START_TIME_UNIX_NANO)
                 .setTimeUnixNano(timestamp)
                 .setCount(count)
                 .setSum(sum)
-                .addAllAttributes(parseAttributes(labels, "histogram"))
+                .addAllAttributes(parseAttributes(labels))
                 .addAllBucketCounts(bucketCounts)
                 .addAllExplicitBounds(explicitBounds);
 
@@ -312,7 +382,7 @@ private static Metric createCounterMetric(String name, String labels, double val
                 .build();
     }
 
-    private static List<KeyValue> parseAttributes(String labels, String metricType) {
+    private static List<KeyValue> parseAttributes(String labels) {
         List<KeyValue> attributes = new ArrayList<>();
         String[] labelPairs = labels.split(",");
 
@@ -330,43 +400,42 @@ private static Metric createCounterMetric(String name, String labels, double val
         return attributes;
     }
 
-private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics,String serviceInstance) throws IOException {
-    ResourceMetrics resourceMetrics = ResourceMetrics.newBuilder()
-            .setResource(Resource.newBuilder()
-                    .addAttributes(KeyValue.newBuilder()
-                            .setKey("service.name")
-                            .setValue(AnyValue.newBuilder().setStringValue("prometheus-metrics").build())
-                            .build())
-                    .addAttributes(KeyValue.newBuilder()
-                            .setKey("service.instance.id")
-                            .setValue(AnyValue.newBuilder().setStringValue(serviceInstance).build())
-                            .build())
-                    .build())
-            .addScopeMetrics(ScopeMetrics.newBuilder()
-                    .setScope(InstrumentationScope.newBuilder()
-                            .setName("github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver")
-                            .setVersion("0.121.0")
-                            .build())
-                    .addAllMetrics(metrics)
-                    .build())
-            .build();
+    private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics, String serviceInstance) {
+        ResourceMetrics resourceMetrics = ResourceMetrics.newBuilder()
+                .setResource(Resource.newBuilder()
+                        .addAttributes(KeyValue.newBuilder()
+                                .setKey("service.name")
+                                .setValue(AnyValue.newBuilder().setStringValue("prometheus-metrics").build())
+                                .build())
+                        .addAttributes(KeyValue.newBuilder()
+                                .setKey("service.instance.id")
+                                .setValue(AnyValue.newBuilder().setStringValue(serviceInstance).build())
+                                .build())
+                        .build())
+                .addScopeMetrics(ScopeMetrics.newBuilder()
+                        .setScope(InstrumentationScope.newBuilder()
+                                .setName("github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver")
+                                .setVersion("0.121.0")
+                                .build())
+                        .addAllMetrics(metrics)
+                        .build())
+                .build();
 
-    return ExportMetricsServiceRequest.newBuilder()
-            .addResourceMetrics(resourceMetrics)
-            .build();
+        return ExportMetricsServiceRequest.newBuilder()
+                .addResourceMetrics(resourceMetrics)
+                .build();
+    }
 
-}
-
-    private static final HashMap<String, MetricsCollectorService.MetricsAggregation>  exportMetrics = new HashMap<>();
+    private static final ConcurrentMap<String, MetricsAggregation> exportMetrics = new ConcurrentHashMap<>();
 
     public List<MetricsCollectorService.MetricsAggregation> getDeltaMetricsList() {
-            return exportMetrics.values().stream()
-                    .filter(Objects::nonNull)
-                    .map(MetricsCollectorService.MetricsAggregation::new)
-                    .collect(ImmutableList.toImmutableList());
+        return exportMetrics.values().stream()
+                .filter(Objects::nonNull)
+                .map(MetricsCollectorService.MetricsAggregation::new)
+                .collect(ImmutableList.toImmutableList());
     }
-    private static void processMetrics(ExportMetricsServiceRequest request) {
 
+    private static void processMetrics(ExportMetricsServiceRequest request) {
         List<ResourceMetrics> allResourceMetrics = request.getResourceMetricsList();
         for (ResourceMetrics resourceMetric : allResourceMetrics) {
             String instance = getInstanceId(resourceMetric);
@@ -394,7 +463,7 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics,Str
 
     private static void processGauge(Metric metric, MetricsCollectorService.MetricsAggregation metricsAggregation) {
         Map<String, MetricsCollectorService.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
-                .computeIfAbsent(metric.getName(), key -> new HashMap<>());
+                .computeIfAbsent(metric.getName(), key -> new ConcurrentHashMap<>());
         for (NumberDataPoint dataPoint : metric.getGauge().getDataPointsList()) {
             dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
                     .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
@@ -410,7 +479,7 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics,Str
 
     private static void processSum(Metric metric, MetricsCollectorService.MetricsAggregation metricsAggregation) {
         Map<String, MetricsCollectorService.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
-                .computeIfAbsent(metric.getName(), key -> new HashMap<>());
+                .computeIfAbsent(metric.getName(), key -> new ConcurrentHashMap<>());
         for (NumberDataPoint dataPoint : metric.getSum().getDataPointsList()) {
             dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
                     .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
@@ -433,7 +502,7 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics,Str
 
     private static void processHistogram(Metric metric, MetricsCollectorService.MetricsAggregation metricsAggregation) {
         Map<String, MetricsCollectorService.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
-                .computeIfAbsent(metric.getName(), key -> new HashMap<>());
+                .computeIfAbsent(metric.getName(), key -> new ConcurrentHashMap<>());
         for (HistogramDataPoint dataPoint : metric.getHistogram().getDataPointsList()) {
             dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
                     .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
@@ -467,4 +536,11 @@ private static ExportMetricsServiceRequest exportToOTLP(List<Metric> metrics,Str
                 .orElse("");
     }
 
+    private static String clean(String raw) {
+        return raw.trim().replaceAll("\\\\$", "");
+    }
+
+    private static String cleanValue(String raw) {
+        return raw.trim().replaceAll("[^0-9.eE-]", "");
+    }
 }

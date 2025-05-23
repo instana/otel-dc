@@ -32,7 +32,7 @@ public class VLLMDc extends AbstractVLLMDc {
 
     private final Boolean otelAgentlessMode;
     private final Integer otelPollInterval;
-    private final String vllmMetricsUrl;
+    private final List<String> vllmMetricsUrls;
     MetricsCollectorService scraper = new MetricsCollectorService();
 
 
@@ -45,7 +45,7 @@ public class VLLMDc extends AbstractVLLMDc {
         otelAgentlessMode = (Boolean) properties.getOrDefault(OTEL_AGENTLESS_MODE, Boolean.FALSE);
         Integer callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_LLM_CLBK_INTERVAL);
         otelPollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);
-        vllmMetricsUrl = (String) properties.get(VLLM_METRICS_URL);
+        vllmMetricsUrls = (List<String>) properties.get(VLLM_METRICS_URLS);
     }
 
 
@@ -54,7 +54,7 @@ public class VLLMDc extends AbstractVLLMDc {
 
         logger.info("Start to collect metrics");
 
-        scraper.scrapeMetrics(vllmMetricsUrl);
+        scraper.scrapeMetrics(vllmMetricsUrls);
         List<MetricsCollectorService.MetricsAggregation> metricsAggregations = scraper.getDeltaMetricsList();
 
         int divisor = Boolean.TRUE.equals(otelAgentlessMode) ? 1 : otelPollInterval;
