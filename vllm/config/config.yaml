@@ -1,7 +1,8 @@
 llm.application: LLM_DC
 
 instances:
-  - otel.vllm.metrics.url: http://<vllm-host>:<port>
+  - otel.vllm.metrics.url:
+      - http://<vllm-host>:<port>
     otel.agentless.mode: false
     otel.backend.url: http://localhost:4317
     otel.backend.using.http: false

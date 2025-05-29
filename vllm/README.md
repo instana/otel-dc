@@ -15,22 +15,22 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/v1.0.7/otel-dc-vllm-1.0.0.tar
+curl -O https://github.com/instana/otel-dc/releases/download/v1.0.7/otel-dc-vllm-1.0.1.tar
 ```
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-vllm-1.0.0.tar
+tar vxf otel-dc-vllm-1.0.1.tar
 ```
 
 ## Configuration
 
 ### Configure otel dc
 ```bash
-cd otel-dc-vllm-1.0.0
+cd otel-dc-vllm-1.0.1
 vi config/config.yaml
 ```
 The following options are required：
-- `otel.vllm.metrics.url`: The endpoint of vllm server to collect the metrics from. If tls is enabled please use https.
+- `otel.vllm.metrics.url`: List of endpoints of vllm servers to collect the metrics from. If tls is enabled please use https.
 - `otel.agentless.mode`: The connection mode of the OTel data connector, the default mode is agentless.
 - `otel.backend.url`: The gRPC endpoint of the Instana backend or Instana agent, that depends on agentless or not.
 - `callback.interval`: The time interval in seconds to post data to backend or agent.
