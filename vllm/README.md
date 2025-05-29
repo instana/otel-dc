@@ -15,7 +15,7 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/v1.0.7/otel-dc-vllm-1.0.1.tar
+curl -O https://github.com/instana/otel-dc/releases/download/v1.0.8/otel-dc-vllm-1.0.1.tar
 ```
 2) Extract the package to the desired deployment location:
 ```bash
