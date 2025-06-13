@@ -14,7 +14,7 @@ ODCD (OpenTelemetry Data Collector Drivers) is a collection of standalone OpenTe
 
 - [OTel Data Collector for Relational Databases](rdb/README.md) (**Java 8+**)
 - [OTel Data Collector for Host](host/README.md) (**Java 11+**)
-- [OTel Data Collector for LLM](llm/README.md) (**Java 11+**)
+- [OTel Data Collector for Gen AI](genai/README.md) (**Java 11+**)
 
 ## Common Configuration Parameters
 
