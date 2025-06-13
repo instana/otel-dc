@@ -1,6 +1,9 @@
 package com.instana.dc.genai.llm.impl;
 
-import static com.instana.dc.genai.llm.utils.LLMDcUtil.*;
+import com.instana.dc.RawMetric;
+import com.instana.dc.genai.base.AbstractMetricCollector;
+import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
+import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -8,13 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-import com.instana.dc.RawMetric;
-import com.instana.dc.genai.base.AbstractMetricCollector;
-import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
-import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
-import com.instana.dc.genai.metrics.OtelMetric;
+import static com.instana.dc.genai.llm.utils.LLMDcUtil.*;
 
 public class LLMMetricCollector extends AbstractMetricCollector {
     private static final Logger logger = Logger.getLogger(LLMMetricCollector.class.getName());
@@ -75,8 +73,8 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     }
 
     private void updateModelAggregation(LLMOtelMetric metric) {
-        ModelAggregation modelAggr = modelAggrMap.computeIfAbsent(metric.getModelId(), 
-            k -> new ModelAggregation(k, metric.getAiSystem()));
+        ModelAggregation modelAggr = modelAggrMap.computeIfAbsent(metric.getModelId(),
+                k -> new ModelAggregation(k, metric.getAiSystem()));
         modelAggr.addDeltaInputTokens(metric.getDeltaInputTokens());
         modelAggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
         modelAggr.addDeltaDuration(metric.getDeltaDuration());
@@ -85,8 +83,8 @@ public class LLMMetricCollector extends AbstractMetricCollector {
 
     private void updateServiceModelAggregation(LLMOtelMetric metric) {
         Map<String, ModelAggregation> serviceAggrMap = serviceModelAggrMap.computeIfAbsent(metric.getServiceName(), k -> new HashMap<>());
-        ModelAggregation modelAggr = serviceAggrMap.computeIfAbsent(metric.getModelId(), 
-            k -> new ModelAggregation(k, metric.getAiSystem()));
+        ModelAggregation modelAggr = serviceAggrMap.computeIfAbsent(metric.getModelId(),
+                k -> new ModelAggregation(k, metric.getAiSystem()));
         modelAggr.addDeltaInputTokens(metric.getDeltaInputTokens());
         modelAggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
         modelAggr.addDeltaDuration(metric.getDeltaDuration());
@@ -102,7 +100,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     private void processModelMetrics(int divisor) {
         modelAggrMap.forEach((modelId, aggr) -> {
             String aiSystem = aggr.getAiSystem();
-            
+
             long deltaInputTokens = aggr.getDeltaInputTokens();
             long deltaOutputTokens = aggr.getDeltaOutputTokens();
             long deltaDuration = aggr.getDeltaDuration();
@@ -114,7 +112,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
             double intervalInputTokens = (double) deltaInputTokens / divisor;
             double intervalOutputTokens = (double) deltaOutputTokens / divisor;
             double intervalTotalTokens = intervalInputTokens + intervalOutputTokens;
-            
+
             double intervalInputCost = intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
             double intervalOutputCost = intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
             double intervalTotalCost = intervalInputCost + intervalOutputCost;
@@ -143,17 +141,17 @@ public class LLMMetricCollector extends AbstractMetricCollector {
             logger.info(String.format(" - Interval Request : %.2f", intervalReqCount));
 
             // Update raw metrics
-            updateModelRawMetrics(modelId, aiSystem, avgDurationPerReq, maxDurationSoFar, 
-                                intervalTotalCost, intervalInputCost, intervalOutputCost,
-                                intervalTotalTokens, intervalInputTokens, intervalOutputTokens,
-                                intervalReqCount);
+            updateModelRawMetrics(modelId, aiSystem, avgDurationPerReq, maxDurationSoFar,
+                    intervalTotalCost, intervalInputCost, intervalOutputCost,
+                    intervalTotalTokens, intervalInputTokens, intervalOutputTokens,
+                    intervalReqCount);
         });
     }
 
     private void updateModelRawMetrics(String modelId, String aiSystem, long avgDuration, long maxDuration,
-                                     double totalCost, double inputCost, double outputCost,
-                                     double totalTokens, double inputTokens, double outputTokens,
-                                     double reqCount) {
+                                       double totalCost, double inputCost, double outputCost,
+                                       double totalTokens, double inputTokens, double outputTokens,
+                                       double reqCount) {
         Map<String, Object> attributes = new HashMap<>();
         String replacedId = modelId.replace(".", "/");
         String modelIdExt = aiSystem + ":" + replacedId;
@@ -174,7 +172,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
 
     private void processServiceMetrics(int divisor) {
         serviceModelAggrMap.forEach((serviceName, modelAggregationMap) -> {
-            
+
             double serviceIntervalReqCount = 0.0;
             double serviceIntervalInputTokens = 0.0;
             double serviceIntervalOutputTokens = 0.0;
@@ -218,16 +216,16 @@ public class LLMMetricCollector extends AbstractMetricCollector {
             logger.info(String.format(" - Interval Request : %.2f", serviceIntervalReqCount));
 
             // Update raw metrics
-            updateServiceRawMetrics(serviceName, serviceIntervalTotalCost, serviceIntervalInputCost, 
-                                  serviceIntervalOutputCost, serviceIntervalTotalTokens,
-                                  serviceIntervalInputTokens, serviceIntervalOutputTokens,
-                                  serviceIntervalReqCount);
+            updateServiceRawMetrics(serviceName, serviceIntervalTotalCost, serviceIntervalInputCost,
+                    serviceIntervalOutputCost, serviceIntervalTotalTokens,
+                    serviceIntervalInputTokens, serviceIntervalOutputTokens,
+                    serviceIntervalReqCount);
         });
     }
 
-    private void updateServiceRawMetrics(String serviceName, double totalCost, double inputCost, 
-                                       double outputCost, double totalTokens, double inputTokens,
-                                       double outputTokens, double reqCount) {
+    private void updateServiceRawMetrics(String serviceName, double totalCost, double inputCost,
+                                         double outputCost, double totalTokens, double inputTokens,
+                                         double outputTokens, double reqCount) {
         Map<String, Object> attributes = Map.of("service_name", serviceName);
         rawMetricsMap.get(LLM_SERVICE_COST_NAME).getDataPoint(serviceName).setValue(totalCost, attributes);
         rawMetricsMap.get(LLM_SERVICE_INPUT_COST_NAME).getDataPoint(serviceName).setValue(inputCost, attributes);
@@ -251,15 +249,10 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     protected void collectMetrics() {
         try {
             resetAggregations();
-            List<OtelMetric> metrics = metricsCollectorService.getDeltaMetrics();
-            
-            List<LLMOtelMetric> llmMetrics = metrics.stream()
-                .filter(LLMOtelMetric.class::isInstance)
-                .map(LLMOtelMetric.class::cast)
-                .collect(Collectors.toList());
-                
-            if (!llmMetrics.isEmpty()) {
-                llmMetrics.forEach(this::processLLMMetric);
+            List<LLMOtelMetric> metrics = metricsCollectorService.getLLMDeltaMetrics();
+
+            if (!metrics.isEmpty()) {
+                metrics.forEach(this::processLLMMetric);
                 processMetrics(otelPollInterval);
                 metricsCollectorService.resetDeltaMetrics();
             }

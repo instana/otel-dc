@@ -4,16 +4,13 @@ import com.instana.dc.RawMetric;
 import com.instana.dc.genai.base.AbstractMetricCollector;
 import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
 import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
-import com.instana.dc.genai.metrics.OtelMetric;
+import com.instana.dc.genai.vectordb.utils.VectordbDcUtil;
+import com.instana.dc.genai.vectordb.metrics.MetricValue;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import static com.instana.dc.genai.vectordb.utils.VectordbDcUtil.*;
 
 public class VectordbMetricCollector extends AbstractMetricCollector {
     private final Map<String, VectordbAggregation> vectordbAggrMap;
@@ -38,15 +35,18 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
 
     private void updateVectordbAggregation(VectordbOtelMetric metric) {
         VectordbAggregation aggr = vectordbAggrMap.computeIfAbsent(
-            metric.getDbSystem(),
-            k -> new VectordbAggregation(k, metric.getServiceName())
+                metric.getDbSystem(),
+                k -> new VectordbAggregation(k, metric.getServiceName())
         );
-        
+
         aggr.addDeltaDuration(metric.getDeltaDuration());
-        aggr.addDeltaSearchDistance(metric.getDeltaSearchDistance());
-        aggr.addDeltaInsertCount(metric.getDeltaInsertCount());
-        aggr.addDeltaUpsertCount(metric.getDeltaUpsertCount());
-        aggr.addDeltaDeleteCount(metric.getDeltaDeleteCount());
+
+        for (Map.Entry<String, MetricValue> entry : metric.getMetrics().entrySet()) {
+            String metricName = entry.getKey();
+            if (!metricName.equals(VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME)) {  // Skip duration as it's handled separately
+                aggr.addMetricDelta(metricName, entry.getValue().getDelta());
+            }
+        }
     }
 
     @Override
@@ -54,34 +54,30 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
         vectordbAggrMap.values().forEach(aggr -> {
             String dbSystem = aggr.getDbSystem();
             String serviceName = aggr.getServiceName();
+            Map<String, Object> attributes = new HashMap<>();
+            attributes.put("db_system", dbSystem);
 
             double duration = (double) aggr.getDeltaDuration() / divisor;
-            double searchDistance = (double) aggr.getDeltaSearchDistance() / divisor;
-            double insertCount = (double) aggr.getDeltaInsertCount() / divisor;
-            double upsertCount = (double) aggr.getDeltaUpsertCount() / divisor;
-            double deleteCount = (double) aggr.getDeltaDeleteCount() / divisor;
-
-            // Update metrics
-            updateMetric(MILVUS_DB_QUERY_DURATION_NAME, aggr.getDeltaDuration(), divisor);
-            updateMetric(MILVUS_DB_SEARCH_DISTANCE_NAME, aggr.getDeltaSearchDistance(), divisor);
-            updateMetric(MILVUS_DB_INSERT_UNITS_NAME, aggr.getDeltaInsertCount(), divisor);
-            updateMetric(MILVUS_DB_UPSERT_UNITS_NAME, aggr.getDeltaUpsertCount(), divisor);
-            updateMetric(MILVUS_DB_DELETE_UNITS_NAME, aggr.getDeltaDeleteCount(), divisor);
-
             logger.info(String.format("Metrics for DB system %s of %s:", dbSystem, serviceName));
-            logger.info(String.format(" - Duration : %.2f ms", duration));
-            logger.info(String.format(" - Search distance : %.2f", searchDistance));
-            logger.info(String.format(" - Insert Count  : %.2f", insertCount));
-            logger.info(String.format(" - Upsert Count  : %.2f", upsertCount));
-            logger.info(String.format(" - Delete Count  : %.2f", deleteCount));
+            logger.info(String.format(" - %s : %.2f ms", VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME, duration));
+            updateMetric(VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME, duration, attributes, dbSystem);
+
+            for (Map.Entry<String, Long> entry : aggr.getMetricDeltas().entrySet()) {
+                String metricName = entry.getKey();
+                long delta = entry.getValue();
+                double value = (double) delta / divisor;
+                
+                if (rawMetricsMap.containsKey(metricName)) {
+                    updateMetric(metricName, value, attributes, dbSystem);
+                    logger.info(String.format(" - %s : %.2f", metricName, value));
+                }
+            }
         });
     }
 
-    private void updateMetric(String metricName, long value, int divisor) {
-        Optional.ofNullable(getRawMetric(metricName))
-            .ifPresent(metric -> metric.setValue((double) value / divisor));
+    private void updateMetric(String metricName, double value, Map<String, Object> attributes, String dbSystem) {
+        getRawMetric(metricName).getDataPoint(dbSystem).setValue(value, attributes);
     }
-
 
     private RawMetric getRawMetric(String name) {
         return rawMetricsMap.get(name);
@@ -91,15 +87,10 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
     protected void collectMetrics() {
         try {
             resetAggregations();
-            List<OtelMetric> metrics = metricsCollectorService.getDeltaMetrics();
-            
-            List<VectordbOtelMetric> vectordbMetrics = metrics.stream()
-                .filter(VectordbOtelMetric.class::isInstance)
-                .map(VectordbOtelMetric.class::cast)
-                .collect(Collectors.toList());
-                
-            if (!vectordbMetrics.isEmpty()) {
-                vectordbMetrics.forEach(this::processVectordbMetric);
+            List<VectordbOtelMetric> metrics = metricsCollectorService.getVectordbDeltaMetrics();
+
+            if (!metrics.isEmpty()) {
+                metrics.forEach(this::processVectordbMetric);
                 processMetrics(otelPollInterval);
                 metricsCollectorService.resetDeltaMetrics();
             }
@@ -116,22 +107,17 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
         private final String serviceName;
         private final String dbSystem;
         private long deltaDuration;
-        private long deltaInsertCount;
-        private long deltaUpsertCount;
-        private long deltaDeleteCount;
-        private long deltaSearchDistance;
+        private final Map<String, Long> metricDeltas;
 
         public VectordbAggregation(String dbSystem, String serviceName) {
             this.dbSystem = dbSystem;
             this.serviceName = serviceName;
+            this.metricDeltas = new HashMap<>();
         }
 
         public void resetDeltaValues() {
             this.deltaDuration = 0;
-            this.deltaInsertCount = 0;
-            this.deltaUpsertCount = 0;
-            this.deltaDeleteCount = 0;
-            this.deltaSearchDistance = 0;
+            metricDeltas.clear();
         }
 
         public String getDbSystem() {
@@ -146,40 +132,16 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
             return deltaDuration;
         }
 
-        public long getDeltaInsertCount() {
-            return deltaInsertCount;
-        }
-
-        public long getDeltaUpsertCount() {
-            return deltaUpsertCount;
-        }
-
-        public long getDeltaDeleteCount() {
-            return deltaDeleteCount;
-        }
-
-        public long getDeltaSearchDistance() {
-            return deltaSearchDistance;
+        public Map<String, Long> getMetricDeltas() {
+            return metricDeltas;
         }
 
         public void addDeltaDuration(long duration) {
             deltaDuration += duration;
         }
 
-        public void addDeltaSearchDistance(long searchDistance) {
-            deltaSearchDistance += searchDistance;
-        }
-
-        public void addDeltaInsertCount(long insertCount) {
-            deltaInsertCount += insertCount;
-        }
-
-        public void addDeltaUpsertCount(long upsertCount) {
-            deltaUpsertCount += upsertCount;
-        }
-
-        public void addDeltaDeleteCount(long deleteCount) {
-            deltaDeleteCount += deleteCount;
+        public void addMetricDelta(String name, long delta) {
+            metricDeltas.merge(name, delta, Long::sum);
         }
     }
 } 

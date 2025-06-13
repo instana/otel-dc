@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.instana.dc.IDc;
-import com.instana.dc.genai.llm.LLMDcRegistry;
-import com.instana.dc.genai.vectordb.VectordbDcRegistry;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,15 +65,15 @@ public class DataCollector {
     }
 
     private IDc createLLMCollector(Map<String, Object> props) throws Exception {
-        return new LLMDcRegistry()
-                .findLLMDc("LLM")
+        return new GenAIDcRegistry()
+                .findGenAIDc("LLM")
                 .getConstructor(Map.class, CustomDcConfig.class)
                 .newInstance(props, cdcConfig);
     }
 
     private IDc createVectorDBCollector(Map<String, Object> props) throws Exception {
-        return new VectordbDcRegistry()
-                .findVecotrdbDc("VectorDB")
+        return new GenAIDcRegistry()
+                .findGenAIDc("VECTORDB")
                 .getConstructor(Map.class, CustomDcConfig.class)
                 .newInstance(props, cdcConfig);
     }

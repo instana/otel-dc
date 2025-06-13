@@ -1,6 +1,22 @@
 package com.instana.dc.genai.service;
 
-import static com.instana.dc.DcUtil.OTEL_EXPORTER_OTLP_HEADERS;
+import com.google.common.collect.ImmutableList;
+import com.instana.dc.HeadersSupplier;
+import com.instana.dc.genai.llm.LLMMetricProcessor;
+import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
+import com.instana.dc.genai.metrics.OtelMetric;
+import com.instana.dc.genai.vectordb.VectordbMetricProcessor;
+import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
+import com.linecorp.armeria.common.HttpRequest;
+import com.linecorp.armeria.common.RequestContext;
+import com.linecorp.armeria.common.RequestHeaders;
+import io.grpc.stub.StreamObserver;
+import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
+import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse;
+import io.opentelemetry.proto.collector.metrics.v1.MetricsServiceGrpc;
+import io.opentelemetry.proto.metrics.v1.Metric;
+import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
+import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,24 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.instana.dc.HeadersSupplier;
-import com.linecorp.armeria.common.HttpRequest;
-import com.linecorp.armeria.common.RequestContext;
-import com.linecorp.armeria.common.RequestHeaders;
-import com.instana.dc.genai.llm.LLMMetricProcessor;
-import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
-import com.instana.dc.genai.vectordb.VectordbMetricProcessor;
-import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
-import com.instana.dc.genai.metrics.OtelMetric;
-
-import io.grpc.stub.StreamObserver;
-import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
-import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse;
-import io.opentelemetry.proto.collector.metrics.v1.MetricsServiceGrpc;
-import io.opentelemetry.proto.common.v1.KeyValue;
-import io.opentelemetry.proto.metrics.v1.Metric;
-import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
-import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
+import static com.instana.dc.DcUtil.OTEL_EXPORTER_OTLP_HEADERS;
 
 public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase {
     private static final Logger logger = Logger.getLogger(MetricsCollectorService.class.getName());
@@ -48,6 +47,14 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
         metrics.addAll(llmMetrics.values());
         metrics.addAll(vectordbMetrics.values());
         return metrics;
+    }
+
+    public List<VectordbOtelMetric> getVectordbDeltaMetrics() {
+        return vectordbMetrics.values().stream().collect(ImmutableList.toImmutableList());
+    }
+
+    public List<LLMOtelMetric> getLLMDeltaMetrics() {
+        return llmMetrics.values().stream().collect(ImmutableList.toImmutableList());
     }
 
     public void resetDeltaMetrics() {
@@ -89,17 +96,17 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
     private void updateHeadersFromRequest(RequestHeaders headers) {
         HeadersSupplier supplier = HeadersSupplier.INSTANCE;
         Map<String, String> newHeaders = new HashMap<>();
-        
+
         String xInstanaKey = headers.get("x-instana-key");
         if (xInstanaKey != null && !xInstanaKey.isEmpty()) {
             newHeaders.put("x-instana-key", xInstanaKey);
         }
-        
+
         String xInstanaHost = headers.get("x-instana-host");
         if (xInstanaHost != null && !xInstanaHost.isEmpty()) {
             newHeaders.put("x-instana-host", xInstanaHost);
         }
-        
+
         if (!newHeaders.isEmpty()) {
             supplier.updateHeaders(newHeaders);
         }
@@ -108,20 +115,18 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
     private void processMetrics(ExportMetricsServiceRequest request) {
         for (ResourceMetrics resourceMetrics : request.getResourceMetricsList()) {
             String serviceName = extractServiceName(resourceMetrics);
-            if (serviceName == null) {
-                continue;
+            if (serviceName != null) {
+                processScopeMetrics(resourceMetrics.getScopeMetricsList(), serviceName);
             }
-            processScopeMetrics(resourceMetrics.getScopeMetricsList(), serviceName);
         }
     }
 
     private String extractServiceName(ResourceMetrics resourceMetrics) {
-        for (KeyValue attribute : resourceMetrics.getResource().getAttributesList()) {
-            if (attribute.getKey().equals("service.name")) {
-                return attribute.getValue().getStringValue();
-            }
-        }
-        return null;
+        return resourceMetrics.getResource().getAttributesList().stream()
+                .filter(attr -> "service.name".equals(attr.getKey()))
+                .map(attr -> attr.getValue().getStringValue())
+                .findFirst()
+                .orElse(null);
     }
 
     private void processScopeMetrics(List<ScopeMetrics> scopeMetricsList, String serviceName) {
@@ -140,31 +145,12 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
     }
 
     private void processMetric(Metric metric, String serviceName) {
-        switch (metric.getDataCase()) {
-            case HISTOGRAM:
-                processHistogramMetric(metric, serviceName);
-                break;
-            case SUM:
-                processSumMetric(metric, serviceName);
-                break;
-            case GAUGE:
-            case SUMMARY:
-            default:
-                logger.log(Level.FINE, "Skipping metric with DataCase: {0}", metric.getDataCase());
-        }
-    }
-
-    private void processHistogramMetric(Metric metric, String serviceName) {
         if (metric.getName().contains("gen_ai.client")) {
             LLMMetricProcessor.processLLMMetric(metric, llmMetrics, serviceName);
         } else if (metric.getName().contains("db.milvus")) {
-            VectordbMetricProcessor.processVectordbHistogramMetric(metric, vectordbMetrics, serviceName);
-        }
-    }
-
-    private void processSumMetric(Metric metric, String serviceName) {
-        if (metric.getName().contains("db.milvus")) {
-            VectordbMetricProcessor.processVectordbCounterMetric(metric, vectordbMetrics, serviceName);
+            VectordbMetricProcessor.processVectordbMetric(metric, vectordbMetrics, serviceName);
+        } else {
+            logger.log(Level.FINE, "Skipping unknown metric type: {0}", metric.getName());
         }
     }
 

@@ -1,136 +1,57 @@
 package com.instana.dc.genai.vectordb.metrics;
 
 import com.instana.dc.genai.metrics.OtelMetric;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VectordbOtelMetric extends OtelMetric {
     private String dbSystem;
-    private long insertCount;
-    private long insertCountStartTime;
-    private long deltaInsertCount;
-    private long upsertCount;
-    private long upsertCountStartTime;
-    private long deltaUpsertCount;
-    private long deleteCount;
-    private long deleteCountStartTime;
-    private long deltaDeleteCount;
-    private double searchDistance;
-    private long deltaSearchDistance;
-    private long searchDistanceStartTime;
+    private final Map<String, MetricValue> metrics;
 
     public VectordbOtelMetric() {
         super();
+        this.metrics = new HashMap<>();
     }
 
     public String getDbSystem() {
         return this.dbSystem;
     }
 
-    public long getLastInsertCount() {
-        return this.insertCount;
-    }
-
-    public long getLastUpsertCount() {
-        return this.upsertCount;
-    }
-
-    public long getLastDeleteCount() {
-        return this.deleteCount;
-    }
-
-    public double getLastSearchDistance() {
-        return this.searchDistance;
-    }
-
-    public long getLastInsertCountStartTime() {
-        return this.insertCountStartTime;
-    }
-
-    public long getLastUpsertCountStartTime() {
-        return this.upsertCountStartTime;
-    }
-
-    public long getLastDeleteCountStartTime() {
-        return this.deleteCountStartTime;
-    }
-
-    public long getLastSearchDistanceStartTime() {
-        return this.searchDistanceStartTime;
-    }
-
-    public long getDeltaInsertCount() {
-        return this.deltaInsertCount;
-    }
-
-    public long getDeltaUpsertCount() {
-        return this.deltaUpsertCount;
-    }
-
-    public long getDeltaDeleteCount() {
-        return this.deltaDeleteCount;
-    }
-
-    public long getDeltaSearchDistance() {
-        return this.deltaSearchDistance;
-    }
-
     public void setDbSystem(String dbSystem) {
         this.dbSystem = dbSystem;
     }
 
-    public void setLastInsertCount(long insertCount) {
-        this.insertCount = insertCount;
+    public Map<String, MetricValue> getMetrics() {
+        return metrics;
     }
 
-    public void setLastUpsertCount(long upsertCount) {
-        this.upsertCount = upsertCount;
+    public MetricValue getMetric(String name) {
+        return metrics.computeIfAbsent(name, k -> new MetricValue());
     }
 
-    public void setLastDeleteCount(long deleteCount) {
-        this.deleteCount = deleteCount;
+    public void setMetricCount(String name, long count) {
+        getMetric(name).setCount(count);
     }
 
-    public void setLastSearchDistance(double searchDistance) {
-        this.searchDistance = searchDistance;
+    public void setMetricStartTime(String name, long startTime) {
+        getMetric(name).setStartTime(startTime);
     }
 
-    public void setLastInsertCountStartTime(long startTime) {
-        this.insertCountStartTime = startTime;
+    public void addMetricDelta(String name, long delta) {
+        getMetric(name).addDelta(delta);
     }
 
-    public void setLastUpsertCountStartTime(long startTime) {
-        this.upsertCountStartTime = startTime;
+    public long getMetricCount(String name) {
+        return getMetric(name).getCount();
     }
 
-    public void setLastDeleteCountStartTime(long startTime) {
-        this.deleteCountStartTime = startTime;
-    }
-
-    public void setLastSearchDistanceStartTime(long startTime) {
-        this.searchDistanceStartTime = startTime;
-    }
-
-    public void addDeltaInsertCount(long deltaInsertCount) {
-        this.deltaInsertCount += deltaInsertCount;
-    }
-
-    public void addDeltaUpsertCount(long deltaUpsertCount) {
-        this.deltaUpsertCount += deltaUpsertCount;
-    }
-
-    public void addDeltaDeleteCount(long deltaDeleteCount) {
-        this.deltaDeleteCount += deltaDeleteCount;
-    }
-
-    public void addDeltaSearchDistance(double deltaSearchDistance) {
-        this.deltaSearchDistance += (long)deltaSearchDistance;
+    public long getMetricStartTime(String name) {
+        return getMetric(name).getStartTime();
     }
 
     @Override
     public void resetDeltaValues() {
         super.resetDeltaValues();
-        this.deltaInsertCount = 0;
-        this.deltaUpsertCount = 0;
-        this.deltaDeleteCount = 0;
-        this.deltaSearchDistance = 0;
+        metrics.values().forEach(MetricValue::resetDelta);
     }
 }
