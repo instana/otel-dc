@@ -42,4 +42,4 @@ public abstract class AbstractMetricCollector {
     protected abstract void processLLMMetric(LLMOtelMetric metric);
     protected abstract void processVectordbMetric(VectordbOtelMetric metric);
     protected abstract void processMetrics(int divisor);
-} 
+}

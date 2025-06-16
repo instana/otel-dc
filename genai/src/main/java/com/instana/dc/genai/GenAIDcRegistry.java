@@ -29,4 +29,4 @@ public final class GenAIDcRegistry {
             throw new Exception("Unsupported GenAI system: " + service);
         }
     }
-} 
+}

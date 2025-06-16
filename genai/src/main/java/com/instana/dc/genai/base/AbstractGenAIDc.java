@@ -145,4 +145,4 @@ public abstract class AbstractGenAIDc extends AbstractDc {
     protected abstract String getPlatformName();
 
     protected abstract String getPluginName();
-} 
+}

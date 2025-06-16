@@ -18,10 +18,7 @@ import io.opentelemetry.proto.metrics.v1.Metric;
 import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
 import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +30,7 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
     private static final MetricsCollectorService INSTANCE = new MetricsCollectorService();
     private final Map<String, LLMOtelMetric> llmMetrics = new ConcurrentHashMap<>();
     private final Map<String, VectordbOtelMetric> vectordbMetrics = new ConcurrentHashMap<>();
+    private static final Set<String> VECTOR_DB_SYSTEMS = Set.of("milvus");
 
     private MetricsCollectorService() {
         // Private constructor for singleton
@@ -141,21 +139,44 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
 
     private void logMetricInfo(Metric metric) {
         logger.log(Level.FINE, "Processing metric - Name: {0}, Description: {1}",
-            new Object[]{metric.getName(), metric.getDescription()});
+                new Object[]{metric.getName(), metric.getDescription()});
     }
 
     private void processMetric(Metric metric, String serviceName) {
         if (metric.getName().contains("gen_ai.client")) {
             LLMMetricProcessor.processLLMMetric(metric, llmMetrics, serviceName);
-        } else if (metric.getName().contains("db.milvus")) {
+        } else if (isVectordbMetric(metric)) {
             VectordbMetricProcessor.processVectordbMetric(metric, vectordbMetrics, serviceName);
         } else {
             logger.log(Level.FINE, "Skipping unknown metric type: {0}", metric.getName());
         }
     }
 
+    private boolean isVectordbMetric(Metric metric) {
+        if (!metric.getName().startsWith("db.")) {
+            return false;
+        }
+
+        switch (metric.getDataCase()) {
+            case HISTOGRAM:
+                return metric.getHistogram().getDataPointsList().stream()
+                        .anyMatch(dp -> hasVectordbSystem(dp.getAttributesList()));
+            case SUM:
+                return metric.getSum().getDataPointsList().stream()
+                        .anyMatch(dp -> hasVectordbSystem(dp.getAttributesList()));
+            default:
+                return false;
+        }
+    }
+
+    private boolean hasVectordbSystem(List<io.opentelemetry.proto.common.v1.KeyValue> attributes) {
+        return attributes.stream()
+                .anyMatch(attr -> "db.system".equals(attr.getKey()) &&
+                        VECTOR_DB_SYSTEMS.contains(attr.getValue().getStringValue()));
+    }
+
     private void sendResponse(StreamObserver<ExportMetricsServiceResponse> responseObserver) {
         responseObserver.onNext(ExportMetricsServiceResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
-} 
+}

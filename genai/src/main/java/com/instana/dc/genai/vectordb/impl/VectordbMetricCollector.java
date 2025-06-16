@@ -3,9 +3,9 @@ package com.instana.dc.genai.vectordb.impl;
 import com.instana.dc.RawMetric;
 import com.instana.dc.genai.base.AbstractMetricCollector;
 import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
+import com.instana.dc.genai.vectordb.metrics.MetricValue;
 import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
 import com.instana.dc.genai.vectordb.utils.VectordbDcUtil;
-import com.instana.dc.genai.vectordb.metrics.MetricValue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,14 +13,23 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class VectordbMetricCollector extends AbstractMetricCollector {
-    private final Map<String, VectordbAggregation> vectordbAggrMap;
+    private final Map<String, Map<String, VectordbAggregation>> serviceDbSystemAggrMap;  // service -> (dbSystem -> aggregation)
+    private final Map<String, VectordbAggregation> dbSystemAggrMap;         // dbSystem -> aggregation
     private final Map<String, RawMetric> rawMetricsMap;
     private static final Logger logger = Logger.getLogger(VectordbMetricCollector.class.getName());
+
+    private static final Map<String, String> METRIC_NAME_MAPPING = Map.of(
+            VectordbDcUtil.MILVUS_DB_INSERT_UNITS_NAME, VectordbDcUtil.MILVUS_DB_SERVICE_INSERT_UNITS_NAME,
+            VectordbDcUtil.MILVUS_DB_UPSERT_UNITS_NAME, VectordbDcUtil.MILVUS_DB_SERVICE_UPSERT_UNITS_NAME,
+            VectordbDcUtil.MILVUS_DB_DELETE_UNITS_NAME, VectordbDcUtil.MILVUS_DB_SERVICE_DELETE_UNITS_NAME,
+            VectordbDcUtil.MILVUS_DB_SEARCH_DISTANCE_NAME, VectordbDcUtil.MILVUS_DB_SERVICE_SEARCH_DISTANCE_NAME
+    );
 
     public VectordbMetricCollector(Boolean otelAgentlessMode, Integer otelPollInterval, int listenPort, Map<String, RawMetric> rawMetricsMap) {
         super(otelAgentlessMode, otelPollInterval, listenPort);
         this.rawMetricsMap = rawMetricsMap;
-        this.vectordbAggrMap = new HashMap<>();
+        this.serviceDbSystemAggrMap = new HashMap<>();
+        this.dbSystemAggrMap = new HashMap<>();
     }
 
     @Override
@@ -30,11 +39,17 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
 
     @Override
     protected void processVectordbMetric(VectordbOtelMetric metric) {
-        updateVectordbAggregation(metric);
+        updateServiceDbSystemAggregation(metric);
+        updateDbSystemAggregation(metric);
     }
 
-    private void updateVectordbAggregation(VectordbOtelMetric metric) {
-        VectordbAggregation aggr = vectordbAggrMap.computeIfAbsent(
+    private void updateServiceDbSystemAggregation(VectordbOtelMetric metric) {
+        Map<String, VectordbAggregation> serviceAggrMap = serviceDbSystemAggrMap.computeIfAbsent(
+                metric.getServiceName(),
+                k -> new HashMap<>()
+        );
+
+        VectordbAggregation aggr = serviceAggrMap.computeIfAbsent(
                 metric.getDbSystem(),
                 k -> new VectordbAggregation(k, metric.getServiceName())
         );
@@ -43,7 +58,22 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
 
         for (Map.Entry<String, MetricValue> entry : metric.getMetrics().entrySet()) {
             String metricName = entry.getKey();
-            if (!metricName.equals(VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME)) {  // Skip duration as it's handled separately
+            String serviceMetricName = METRIC_NAME_MAPPING.getOrDefault(metricName, metricName);
+            aggr.addMetricDelta(serviceMetricName, entry.getValue().getDelta());
+        }
+    }
+
+    private void updateDbSystemAggregation(VectordbOtelMetric metric) {
+        VectordbAggregation aggr = dbSystemAggrMap.computeIfAbsent(
+                metric.getDbSystem(),
+                k -> new VectordbAggregation(k, metric.getServiceName())
+        );
+
+        aggr.addDeltaDuration(metric.getDeltaDuration());
+
+        for (Map.Entry<String, MetricValue> entry : metric.getMetrics().entrySet()) {
+            String metricName = entry.getKey();
+            if (!metricName.equals(VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME)) {
                 aggr.addMetricDelta(metricName, entry.getValue().getDelta());
             }
         }
@@ -51,28 +81,35 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
 
     @Override
     protected void processMetrics(int divisor) {
-        vectordbAggrMap.values().forEach(aggr -> {
-            String dbSystem = aggr.getDbSystem();
-            String serviceName = aggr.getServiceName();
-            Map<String, Object> attributes = new HashMap<>();
-            attributes.put("db_system", dbSystem);
+        // Process service+DB system level metrics
+        serviceDbSystemAggrMap.forEach((serviceName, dbSystemMap) ->
+                dbSystemMap.forEach((dbSystem, aggr) -> processAggregationMetrics(aggr, serviceName, dbSystem, divisor, true)));
 
-            double duration = (double) aggr.getDeltaDuration() / divisor;
-            logger.info(String.format("Metrics for DB system %s of %s:", dbSystem, serviceName));
-            logger.info(String.format(" - %s : %.2f ms", VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME, duration));
-            updateMetric(VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME, duration, attributes, dbSystem);
+        // Process DB system level metrics
+        dbSystemAggrMap.values().forEach(aggr -> processAggregationMetrics(aggr, aggr.getServiceName(), aggr.getDbSystem(), divisor, false));
+    }
 
-            for (Map.Entry<String, Long> entry : aggr.getMetricDeltas().entrySet()) {
-                String metricName = entry.getKey();
-                long delta = entry.getValue();
-                double value = (double) delta / divisor;
-                
-                if (rawMetricsMap.containsKey(metricName)) {
-                    updateMetric(metricName, value, attributes, dbSystem);
-                    logger.info(String.format(" - %s : %.2f", metricName, value));
-                }
+    private void processAggregationMetrics(VectordbAggregation aggr, String serviceName, String dbSystem, int divisor, boolean isServiceLevel) {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("db_system", dbSystem);
+        attributes.put("service", serviceName);
+
+        double duration = (double) aggr.getDeltaDuration() / divisor;
+        String durationMetricName = isServiceLevel ? VectordbDcUtil.MILVUS_DB_SERVICE_QUERY_DURATION_NAME : VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME;
+
+        logger.info(String.format(" - %s : %.2f ms", durationMetricName, duration));
+        updateMetric(durationMetricName, duration, attributes, dbSystem);
+
+        for (Map.Entry<String, Long> entry : aggr.getMetricDeltas().entrySet()) {
+            String metricName = entry.getKey();
+            long delta = entry.getValue();
+            double value = (double) delta / divisor;
+
+            if (rawMetricsMap.containsKey(metricName)) {
+                updateMetric(metricName, value, attributes, dbSystem);
+                logger.info(String.format(" - %s : %.2f", metricName, value));
             }
-        });
+        }
     }
 
     private void updateMetric(String metricName, double value, Map<String, Object> attributes, String dbSystem) {
@@ -100,7 +137,10 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
     }
 
     private void resetAggregations() {
-        vectordbAggrMap.values().forEach(VectordbAggregation::resetDeltaValues);
+        serviceDbSystemAggrMap.values().forEach(dbSystemMap ->
+                dbSystemMap.values().forEach(VectordbAggregation::resetDeltaValues)
+        );
+        dbSystemAggrMap.values().forEach(VectordbAggregation::resetDeltaValues);
     }
 
     private static class VectordbAggregation {
@@ -144,4 +184,4 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
             metricDeltas.merge(name, delta, Long::sum);
         }
     }
-} 
+}

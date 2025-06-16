@@ -38,4 +38,4 @@ public class MetricValue {
     public void resetDelta() {
         this.delta = 0;
     }
-} 
+}

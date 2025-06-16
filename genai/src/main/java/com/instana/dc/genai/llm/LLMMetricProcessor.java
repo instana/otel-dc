@@ -130,4 +130,4 @@ public class LLMMetricProcessor {
         metric.setLastDurationSum(durationSum);
         metric.setLastRequestCount(requestCount);
     }
-} 
+}

@@ -45,4 +45,4 @@ public final class LLMRawMetricRegistry {
     public static Map<String, RawMetric> getRawMetrics() {
         return RAW_METRICS;
     }
-} 
+}

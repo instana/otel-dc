@@ -133,4 +133,4 @@ public class VectordbMetricProcessor {
         }
         vectordbOtelMetric.setMetricCount(metricName, dataSum);
     }
-} 
+}

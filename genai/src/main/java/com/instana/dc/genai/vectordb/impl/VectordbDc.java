@@ -40,4 +40,4 @@ public class VectordbDc extends AbstractGenAIDc {
         logger.info("Starting VectorDB metrics collection");
         metricCollector.start();
     }
-} 
+}

@@ -13,4 +13,4 @@ public class GenAIDcUtil {
     public static final String UNIT_S = "s";
     public static final String UNIT_BY = "By";
     public static final String UNIT_1 = "1";
-} 
+}
