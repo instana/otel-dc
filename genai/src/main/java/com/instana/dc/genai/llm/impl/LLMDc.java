@@ -35,6 +35,8 @@ public class LLMDc extends AbstractGenAIDc {
     public Resource getResourceAttributes() {
         Resource resource = super.getResourceAttributes();
         return resource.merge(Resource.create(Attributes.of(
+                stringKey("llm.platform"), getPlatformName()
+        ))).merge(Resource.create(Attributes.of(
                 stringKey(CURRENCY), currencySymbolOf(currencyCode)
         )));
     }
