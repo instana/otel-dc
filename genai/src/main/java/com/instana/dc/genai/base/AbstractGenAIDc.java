@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import static com.instana.dc.DcUtil.*;
 import static com.instana.dc.genai.util.GenAIDcUtil.SERVICE_LISTEN_PORT;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
+import com.instana.dc.RawMetric;
 
 public abstract class AbstractGenAIDc extends AbstractDc {
     private static final Logger logger = Logger.getLogger(AbstractGenAIDc.class.getName());
@@ -49,8 +50,8 @@ public abstract class AbstractGenAIDc extends AbstractDc {
     private final MetricsCollectorService metricsCollector = MetricsCollectorService.getInstance();
     private Server server;
 
-    protected AbstractGenAIDc(Map<String, Object> properties, CustomDcConfig config) {
-        super(Map.of());
+    protected AbstractGenAIDc(Map<String, Object> properties, CustomDcConfig config, Map<String, RawMetric> rawMetricsMap) {
+        super(rawMetricsMap);
         this.config = config;
         this.callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         this.pollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);
@@ -131,7 +132,7 @@ public abstract class AbstractGenAIDc extends AbstractDc {
     @Override
     public void initDC() {
         Resource resource = getResourceAttributes();
-        SdkMeterProvider sdkMeterProvider = getDefaultSdkMeterProvider(resource, otelBackendUrl, callbackInterval, otelUsingHttp, 10);
+        SdkMeterProvider sdkMeterProvider = this.getDefaultSdkMeterProvider(resource, otelBackendUrl, callbackInterval, otelUsingHttp, 10);
         OpenTelemetry openTelemetry = OpenTelemetrySdk.builder().setMeterProvider(sdkMeterProvider).build();
         initMeters(openTelemetry);
         registerMetrics();

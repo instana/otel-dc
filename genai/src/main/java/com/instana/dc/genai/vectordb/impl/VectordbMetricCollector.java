@@ -81,12 +81,14 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
 
     @Override
     protected void processMetrics(int divisor) {
+        logger.info("-----------------------------------------");
         // Process service+DB system level metrics
         serviceDbSystemAggrMap.forEach((serviceName, dbSystemMap) ->
                 dbSystemMap.forEach((dbSystem, aggr) -> processAggregationMetrics(aggr, serviceName, dbSystem, divisor, true)));
-
+        logger.info("-----------------------------------------");
         // Process DB system level metrics
         dbSystemAggrMap.values().forEach(aggr -> processAggregationMetrics(aggr, aggr.getServiceName(), aggr.getDbSystem(), divisor, false));
+        logger.info("-----------------------------------------");
     }
 
     private void processAggregationMetrics(VectordbAggregation aggr, String serviceName, String dbSystem, int divisor, boolean isServiceLevel) {
@@ -97,18 +99,17 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
         double duration = (double) aggr.getDeltaDuration() / divisor;
         String durationMetricName = isServiceLevel ? VectordbDcUtil.MILVUS_DB_SERVICE_QUERY_DURATION_NAME : VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME;
 
-        logger.info(String.format(" - %s : %.2f ms", durationMetricName, duration));
-        updateMetric(durationMetricName, duration, attributes, dbSystem);
+        System.out.printf("Metrics for dbSystem %s of service %s:%n", dbSystem, serviceName);
+        if (aggr.getDeltaDuration() != 0) {
+            System.out.println(" - Duration : " + duration + " ms (" + durationMetricName + ")");
+        }
+        Map<String, Double> nonZeroMetrics = printAndCollectNonZeroMetrics(aggr, divisor, rawMetricsMap);
 
-        for (Map.Entry<String, Long> entry : aggr.getMetricDeltas().entrySet()) {
-            String metricName = entry.getKey();
-            long delta = entry.getValue();
-            double value = (double) delta / divisor;
-
-            if (rawMetricsMap.containsKey(metricName)) {
-                updateMetric(metricName, value, attributes, dbSystem);
-                logger.info(String.format(" - %s : %.2f", metricName, value));
-            }
+        if (aggr.getDeltaDuration() != 0) {
+            updateMetric(durationMetricName, duration, attributes, dbSystem);
+        }
+        for (Map.Entry<String, Double> entry : nonZeroMetrics.entrySet()) {
+            updateMetric(entry.getKey(), entry.getValue(), attributes, dbSystem);
         }
     }
 
@@ -142,6 +143,22 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
         );
         dbSystemAggrMap.values().forEach(VectordbAggregation::resetDeltaValues);
     }
+
+    private Map<String, Double> printAndCollectNonZeroMetrics(
+    VectordbAggregation aggr, int divisor, Map<String, RawMetric> rawMetricsMap
+) {
+    Map<String, Double> nonZeroMetrics = new HashMap<>();
+    for (Map.Entry<String, Long> entry : aggr.getMetricDeltas().entrySet()) {
+        String metricName = entry.getKey();
+        long delta = entry.getValue();
+        double value = (double) delta / divisor;
+        if (rawMetricsMap.containsKey(metricName) && delta != 0) {
+            System.out.println(String.format(" - %s : %.2f", metricName, value));
+            nonZeroMetrics.put(metricName, value);
+        }
+    }
+    return nonZeroMetrics;
+}
 
     private static class VectordbAggregation {
         private final String serviceName;

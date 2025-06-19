@@ -20,13 +20,10 @@ import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.instana.dc.DcUtil.OTEL_EXPORTER_OTLP_HEADERS;
 
 public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceImplBase {
-    private static final Logger logger = Logger.getLogger(MetricsCollectorService.class.getName());
     private static final MetricsCollectorService INSTANCE = new MetricsCollectorService();
     private final Map<String, LLMOtelMetric> llmMetrics = new ConcurrentHashMap<>();
     private final Map<String, VectordbOtelMetric> vectordbMetrics = new ConcurrentHashMap<>();
@@ -133,13 +130,14 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
                 logMetricInfo(metric);
                 processMetric(metric, serviceName);
             }
-            logger.log(Level.FINE, "Completed processing scope metrics");
+            System.out.println("");
         }
     }
 
     private void logMetricInfo(Metric metric) {
-        logger.log(Level.FINE, "Processing metric - Name: {0}, Description: {1}",
-                new Object[]{metric.getName(), metric.getDescription()});
+        System.out.println("-----------------");
+        System.out.println("Recv Metric --- Scope Name: " + metric.getName());
+        System.out.println("Recv Metric --- Scope Desc: " + metric.getDescription());
     }
 
     private void processMetric(Metric metric, String serviceName) {
@@ -148,7 +146,7 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
         } else if (isVectordbMetric(metric)) {
             VectordbMetricProcessor.processVectordbMetric(metric, vectordbMetrics, serviceName);
         } else {
-            logger.log(Level.FINE, "Skipping unknown metric type: {0}", metric.getName());
+            System.out.println("Skipping unknown metric type: "+ metric.getName());
         }
     }
 

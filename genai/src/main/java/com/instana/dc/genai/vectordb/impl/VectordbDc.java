@@ -17,7 +17,7 @@ public class VectordbDc extends AbstractGenAIDc {
     private final VectordbMetricCollector metricCollector;
 
     public VectordbDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
-        super(properties, cdcConfig);
+        super(properties, cdcConfig, VectordbRawMetricRegistry.getRawMetrics());
         Boolean otelAgentlessMode = (Boolean) properties.getOrDefault(OTEL_AGENTLESS_MODE, Boolean.FALSE);
         Integer callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         Integer otelPollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);

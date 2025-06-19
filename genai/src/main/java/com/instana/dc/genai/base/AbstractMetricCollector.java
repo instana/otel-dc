@@ -18,6 +18,7 @@ public abstract class AbstractMetricCollector {
     protected final Integer otelPollInterval;
     protected final int listenPort;
     protected final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+    private boolean started = false;
 
     protected AbstractMetricCollector(Boolean otelAgentlessMode, Integer otelPollInterval, int listenPort) {
         this.metricsCollectorService = MetricsCollectorService.getInstance();
@@ -27,6 +28,10 @@ public abstract class AbstractMetricCollector {
     }
 
     public void start() {
+        synchronized (this) {
+            if (started) return;
+            started = true;
+        }
         exec.scheduleWithFixedDelay(() -> {
             synchronized (METRIC_COLLECTION_LOCK) {
                 try {

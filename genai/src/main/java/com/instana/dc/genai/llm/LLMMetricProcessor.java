@@ -10,10 +10,10 @@ import io.opentelemetry.proto.metrics.v1.Metric;
 
 public class LLMMetricProcessor {
     private static final Logger logger = Logger.getLogger(LLMMetricProcessor.class.getName());
-    private static final String MODEL_ID_KEY = "model.id";
-    private static final String AI_SYSTEM_KEY = "ai.system";
-    private static final String AI_VENDOR_KEY = "ai.vendor";
-    private static final String TOKEN_TYPE_KEY = "token.type";
+    private static final String MODEL_ID_KEY = "gen_ai.response.model";
+    private static final String AI_SYSTEM_KEY = "gen_ai.system";
+    private static final String AI_VENDOR_KEY = "gen_ai.vendor";
+    private static final String TOKEN_TYPE_KEY = "gen_ai.token.type";
 
     private LLMMetricProcessor(){ }
 
@@ -28,19 +28,19 @@ public class LLMMetricProcessor {
                 switch (attr.getKey()) {
                     case MODEL_ID_KEY:
                         modelId[0] = attr.getValue().getStringValue();
-                        logger.log(Level.FINE, "- Model ID: {0}", modelId[0]);
+                        System.out.println("Recv Metric --- Model ID: " + modelId[0]);
                         break;
                     case AI_SYSTEM_KEY:
                         aiSystem[0] = attr.getValue().getStringValue();
-                        logger.log(Level.FINE, "- AI System: {0}", aiSystem[0]);
+                        System.out.println("Recv Metric --- AI System: " + aiSystem[0]);
                         break;
                     case AI_VENDOR_KEY:
                         aiVendor[0] = attr.getValue().getStringValue();
-                        logger.log(Level.FINE, "- AI vendor: {0}", aiVendor[0]);
+                        System.out.println("Recv Metric --- AI vendor: " + aiVendor[0]);
                         break;
                     case TOKEN_TYPE_KEY:
                         tokenType[0] = attr.getValue().getStringValue();
-                        logger.log(Level.FINE, "- Token Type: {0}", tokenType[0]);
+                        System.out.println("Recv Metric --- Token Type: " + tokenType[0]);
                         break;
                     default:
                         logger.log(Level.WARNING, "Invalid attribute key.");
@@ -65,8 +65,10 @@ public class LLMMetricProcessor {
             long startTime = dataPoint.getStartTimeUnixNano();
             long endTime = dataPoint.getTimeUnixNano();
 
-            logger.log(Level.INFO, "- Token Sum: {0}, Request Count: {1}, Start Time: {2}, End Time: {3}",
-                new Object[]{tokenSum, requestCount, startTime, endTime});
+            System.out.println("Recv Metric --- Token Sum: " + tokenSum);
+            System.out.println("Recv Metric --- Request Count: " + requestCount);
+            System.out.println("Recv Metric --- Start Time : " + startTime);
+            System.out.println("Recv Metric --- End Time : " + endTime);
 
             if (metric.getName().contains("token")) {
                 processTokenMetric(llmOtelMetric, tokenType[0], startTime, tokenSum);
@@ -112,8 +114,10 @@ public class LLMMetricProcessor {
     }
 
     private static void processDurationMetric(LLMOtelMetric metric, long startTime, double durationSum, long requestCount) {
-        logger.log(Level.INFO, "- Duration Sum: {0}, Request Count: {1}, Start Time: {2}, End Time: {3}",
-            new Object[]{durationSum, requestCount, startTime, System.currentTimeMillis() * 1_000_000});
+        System.out.println("Recv Metric --- Duration Sum: " + durationSum);
+        System.out.println("Recv Metric --- Request Count: " + requestCount);
+        System.out.println("Recv Metric --- Start Time : " + startTime);
+        System.out.println("Recv Metric --- End Time : " + System.currentTimeMillis() * 1_000_000);
 
         long lastStartTime = metric.getLastDurationStartTime();
         double lastDurationSum = metric.getLastDurationSum();

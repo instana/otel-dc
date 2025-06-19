@@ -93,8 +93,11 @@ public class LLMMetricCollector extends AbstractMetricCollector {
 
     @Override
     protected void processMetrics(int divisor) {
+        logger.info("-----------------------------------------");
         processModelMetrics(divisor);
+        logger.info("-----------------------------------------");
         processServiceMetrics(divisor);
+        logger.info("-----------------------------------------");
     }
 
     private void processModelMetrics(int divisor) {
@@ -106,6 +109,13 @@ public class LLMMetricCollector extends AbstractMetricCollector {
             long deltaDuration = aggr.getDeltaDuration();
             long deltaRequestCount = aggr.getDeltaRequestCount();
             long maxDurationSoFar = aggr.getMaxDurationSoFar();
+
+            // Skip sending metrics if all deltas are zero
+            if (deltaInputTokens == 0 && deltaOutputTokens == 0 && deltaDuration == 0 && deltaRequestCount == 0) {
+                aggr.resetDeltaValues();
+                return;
+            }
+
             aggr.resetDeltaValues();
 
             double intervalReqCount = (double) deltaRequestCount / divisor;
@@ -129,16 +139,16 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                 aggr.setMaxDurationSoFar(maxDurationSoFar);
             }
 
-            logger.info(String.format("Metrics for model %s of %s:", modelId, aiSystem));
-            logger.info(String.format(" - Average Duration : %d ms", avgDurationPerReq));
-            logger.info(String.format(" - Maximum Duration : %d ms", maxDurationSoFar));
-            logger.info(String.format(" - Interval Tokens  : %.2f", intervalTotalTokens));
-            logger.info(String.format(" - Interval Input Tokens  : %.2f", intervalInputTokens));
-            logger.info(String.format(" - Interval Output Tokens  : %.2f", intervalOutputTokens));
-            logger.info(String.format(" - Interval Cost    : %.2f", intervalTotalCost));
-            logger.info(String.format(" - Interval Input Cost    : %.2f", intervalInputCost));
-            logger.info(String.format(" - Interval Output Cost    : %.2f", intervalOutputCost));
-            logger.info(String.format(" - Interval Request : %.2f", intervalReqCount));
+            System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
+            System.out.println(" - Average Duration : " + avgDurationPerReq + " ms");
+            System.out.println(" - Maximum Duration : " + maxDurationSoFar + " ms");
+            System.out.println(" - Interval Tokens  : " + intervalTotalTokens);
+            System.out.println(" - Interval Input Tokens  : " + intervalInputTokens);
+            System.out.println(" - Interval Output Tokens  : " + intervalOutputTokens);
+            System.out.println(" - Interval Cost    : " + intervalTotalCost);
+            System.out.println(" - Interval Input Cost    : " + intervalInputCost);
+            System.out.println(" - Interval Output Cost    : " + intervalOutputCost);
+            System.out.println(" - Interval Request : " + intervalReqCount);
 
             // Update raw metrics
             updateModelRawMetrics(modelId, aiSystem, avgDurationPerReq, maxDurationSoFar,
@@ -179,10 +189,15 @@ public class LLMMetricCollector extends AbstractMetricCollector {
             double serviceIntervalInputCost = 0.0;
             double serviceIntervalOutputCost = 0.0;
 
+            boolean hasNonZero = false;
             for (Map.Entry<String, ModelAggregation> entry : modelAggregationMap.entrySet()) {
                 ModelAggregation aggr = entry.getValue();
                 String modelId = aggr.getModelId();
                 String aiSystem = aggr.getAiSystem();
+
+                if (aggr.getDeltaInputTokens() != 0 || aggr.getDeltaOutputTokens() != 0 || aggr.getDeltaDuration() != 0 || aggr.getDeltaRequestCount() != 0) {
+                    hasNonZero = true;
+                }
 
                 serviceIntervalReqCount += (double) aggr.getDeltaRequestCount() / divisor;
 
@@ -197,6 +212,10 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                 aggr.resetDeltaValues();
             }
 
+            if (!hasNonZero) {
+                return;
+            }
+
             double serviceIntervalTotalTokens = serviceIntervalInputTokens + serviceIntervalOutputTokens;
             double serviceIntervalTotalCost = serviceIntervalInputCost + serviceIntervalOutputCost;
 
@@ -206,14 +225,14 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                 serviceIntervalOutputCost *= 10000;
             }
 
-            logger.info(String.format("Metrics for service %s", serviceName));
-            logger.info(String.format(" - Interval Tokens  : %.2f", serviceIntervalTotalTokens));
-            logger.info(String.format(" - Interval Input Tokens  : %.2f", serviceIntervalInputTokens));
-            logger.info(String.format(" - Interval Output Tokens  : %.2f", serviceIntervalOutputTokens));
-            logger.info(String.format(" - Interval Cost    : %.2f", serviceIntervalTotalCost));
-            logger.info(String.format(" - Interval Input Cost    : %.2f", serviceIntervalInputCost));
-            logger.info(String.format(" - Interval Output Cost    : %.2f", serviceIntervalOutputCost));
-            logger.info(String.format(" - Interval Request : %.2f", serviceIntervalReqCount));
+            System.out.printf("Metrics for service %s", serviceName);
+            System.out.println(" - Interval Tokens  : " + serviceIntervalTotalTokens);
+            System.out.println(" - Interval Input Tokens  : " + serviceIntervalInputTokens);
+            System.out.println(" - Interval Output Tokens  : " + serviceIntervalOutputTokens);
+            System.out.println(" - Interval Cost    : " + serviceIntervalTotalCost);
+            System.out.println(" - Interval Input Cost    : " + serviceIntervalInputCost);
+            System.out.println(" - Interval Output Cost    : " + serviceIntervalOutputCost);
+            System.out.println(" - Interval Request : " + serviceIntervalReqCount);
 
             // Update raw metrics
             updateServiceRawMetrics(serviceName, serviceIntervalTotalCost, serviceIntervalInputCost,

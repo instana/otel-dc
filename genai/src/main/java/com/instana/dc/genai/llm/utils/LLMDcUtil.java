@@ -1,6 +1,7 @@
 package com.instana.dc.genai.llm.utils;
 
 import java.util.Currency;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -92,10 +93,14 @@ public class LLMDcUtil {
 
     public static String currencySymbolOf(String currencyCode) {
         try {
-            return Currency.getInstance(currencyCode).getSymbol();
-        } catch (IllegalArgumentException e) {
-            logger.log(Level.WARNING, "Invalid currency code: {0}, using USD as default", currencyCode);
-            return Currency.getInstance(USD).getSymbol();
+            return Optional.ofNullable(currencyCode).or(() -> Optional.of(USD))
+                    .map(String::trim)
+                    .filter(code -> code.matches("[a-zA-Z]+"))
+                    .map(code -> Currency.getInstance(code.toUpperCase()).getCurrencyCode())
+                    .orElseThrow(() -> new Exception("Invalid currency code"));
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Cannot process currency code {0}: {1}", new String[]{currencyCode, e.getMessage()});
+            return "";
         }
     }
 }

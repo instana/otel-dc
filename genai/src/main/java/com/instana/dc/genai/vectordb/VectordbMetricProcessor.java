@@ -35,6 +35,14 @@ public class VectordbMetricProcessor {
             String databaseSystem = extractDatabaseSystem(dataPoint);
             if (databaseSystem == null) return;
 
+            System.out.println("Recv Metric --- DB System: " + databaseSystem);
+            System.out.println("Recv Metric --- Scope Name: " + metric.getName());
+            System.out.println("Recv Metric --- Scope Desc: " + metric.getDescription());
+            System.out.println("Recv Metric --- Histogram Sum: " + dataPoint.getSum());
+            System.out.println("Recv Metric --- Histogram Count: " + dataPoint.getCount());
+            System.out.println("Recv Metric --- Start Time : " + dataPoint.getStartTimeUnixNano());
+            System.out.println("Recv Metric --- End Time : " + dataPoint.getTimeUnixNano());
+
             String modelKey = String.format("%s:%s", serviceName, databaseSystem);
             VectordbOtelMetric vectordbOtelMetric = getOrCreateMetric(vectordbMetrics, modelKey, serviceName);
 
@@ -46,6 +54,13 @@ public class VectordbMetricProcessor {
         for (NumberDataPoint dataPoint : metric.getSum().getDataPointsList()) {
             String databaseSystem = extractDatabaseSystem(dataPoint);
             if (databaseSystem == null) return;
+
+            System.out.println("Recv Metric --- DB System: " + databaseSystem);
+            System.out.println("Recv Metric --- Scope Name: " + metric.getName());
+            System.out.println("Recv Metric --- Scope Desc: " + metric.getDescription());
+            System.out.println("Recv Metric --- Counter Value: " + dataPoint.getAsInt());
+            System.out.println("Recv Metric --- Start Time : " + dataPoint.getStartTimeUnixNano());
+            System.out.println("Recv Metric --- End Time : " + dataPoint.getTimeUnixNano());
 
             String modelKey = String.format("%s_%s", serviceName, databaseSystem);
             VectordbOtelMetric vectordbOtelMetric = getOrCreateMetric(vectordbMetrics, modelKey, serviceName);
@@ -91,6 +106,9 @@ public class VectordbMetricProcessor {
     }
 
     private static void processDurationMetric(VectordbOtelMetric metric, long startTime, double sum) {
+        System.out.println("Recv Metric --- Duration Sum: " + sum);
+        System.out.println("Recv Metric --- Start Time : " + startTime);
+        System.out.println("Recv Metric --- End Time : " + System.currentTimeMillis() * 1_000_000);
         long lastStartTime = metric.getLastDurationStartTime();
         double lastDurationSum = metric.getLastDurationSum();
 
@@ -105,6 +123,9 @@ public class VectordbMetricProcessor {
 
     private static void processDistanceMetric(VectordbOtelMetric metric, long startTime, double sum) {
         String metricName = VectordbDcUtil.MILVUS_DB_SEARCH_DISTANCE_NAME;
+        System.out.println("Recv Metric --- Distance Sum: " + sum);
+        System.out.println("Recv Metric --- Start Time : " + startTime);
+        System.out.println("Recv Metric --- End Time : " + System.currentTimeMillis() * 1_000_000);
         long lastStartTime = metric.getMetricStartTime(metricName);
         double lastSearchDistanceSum = metric.getMetricCount(metricName);
 
@@ -121,7 +142,10 @@ public class VectordbMetricProcessor {
         long startTime = dataPoint.getStartTimeUnixNano();
         long dataSum = dataPoint.getAsInt();
         String metricName = metric.getName();
-
+        System.out.println("Recv Metric --- Counter Metric Name: " + metricName);
+        System.out.println("Recv Metric --- Counter Value: " + dataSum);
+        System.out.println("Recv Metric --- Start Time : " + startTime);
+        System.out.println("Recv Metric --- End Time : " + System.currentTimeMillis() * 1_000_000);
         long lastStartTime = vectordbOtelMetric.getMetricStartTime(metricName);
         long lastCount = vectordbOtelMetric.getMetricCount(metricName);
 

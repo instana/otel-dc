@@ -22,7 +22,7 @@ public class LLMDc extends AbstractGenAIDc {
     private final String currencyCode;
 
     public LLMDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
-        super(properties, cdcConfig);
+        super(properties, cdcConfig, LLMRawMetricRegistry.getRawMetrics());
         Boolean otelAgentlessMode = (Boolean) properties.getOrDefault(OTEL_AGENTLESS_MODE, Boolean.FALSE);
         Integer callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         Integer otelPollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);
@@ -48,7 +48,7 @@ public class LLMDc extends AbstractGenAIDc {
 
     @Override
     protected String getPluginName() {
-        return "llm";
+        return "llmonitor";
     }
 
     @Override
