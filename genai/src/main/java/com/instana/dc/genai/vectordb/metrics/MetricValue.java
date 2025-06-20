@@ -1,22 +1,22 @@
 package com.instana.dc.genai.vectordb.metrics;
 
 public class MetricValue {
-    private long count;
+    private double sum;
     private long startTime;
-    private long delta;
+    private double delta;
 
     public MetricValue() {
-        this.count = 0;
+        this.sum = 0;
         this.startTime = 0;
         this.delta = 0;
     }
 
-    public long getCount() {
-        return count;
+    public double getSum() {
+        return sum;
     }
 
-    public void setCount(long count) {
-        this.count = count;
+    public void setSum(double sum) {
+        this.sum = sum;
     }
 
     public long getStartTime() {
@@ -27,11 +27,11 @@ public class MetricValue {
         this.startTime = startTime;
     }
 
-    public long getDelta() {
+    public double getDelta() {
         return delta;
     }
 
-    public void addDelta(long delta) {
+    public void addDelta(double delta) {
         this.delta += delta;
     }
 

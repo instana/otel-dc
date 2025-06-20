@@ -29,20 +29,20 @@ public class VectordbOtelMetric extends OtelMetric {
         return metrics.computeIfAbsent(name, k -> new MetricValue());
     }
 
-    public void setMetricCount(String name, long count) {
-        getMetric(name).setCount(count);
+    public void setMetricSum(String name, double count) {
+        getMetric(name).setSum(count);
     }
 
     public void setMetricStartTime(String name, long startTime) {
         getMetric(name).setStartTime(startTime);
     }
 
-    public void addMetricDelta(String name, long delta) {
+    public void addMetricDelta(String name, double delta) {
         getMetric(name).addDelta(delta);
     }
 
-    public long getMetricCount(String name) {
-        return getMetric(name).getCount();
+    public double getMetricSum(String name) {
+        return getMetric(name).getSum();
     }
 
     public long getMetricStartTime(String name) {

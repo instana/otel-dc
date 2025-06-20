@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 
 public class VectordbMetricProcessor {
     private static final String DB_SYSTEM_KEY = "db.system";
-    private static final String VECTORDB_SYSTEM = "vectordb";
     private static final Logger logger = Logger.getLogger(VectordbMetricProcessor.class.getName());
 
     private VectordbMetricProcessor() { }
@@ -38,7 +37,7 @@ public class VectordbMetricProcessor {
             System.out.println("Recv Metric --- DB System: " + databaseSystem);
 
             String modelKey = String.format("%s:%s", serviceName, databaseSystem);
-            VectordbOtelMetric vectordbOtelMetric = getOrCreateMetric(vectordbMetrics, modelKey, serviceName);
+            VectordbOtelMetric vectordbOtelMetric = getOrCreateMetric(vectordbMetrics, modelKey, serviceName, databaseSystem);
 
             processHistogramMetric(metric, dataPoint, vectordbOtelMetric);
         }
@@ -55,7 +54,7 @@ public class VectordbMetricProcessor {
             System.out.println("Recv Metric --- End Time : " + dataPoint.getTimeUnixNano());
 
             String modelKey = String.format("%s_%s", serviceName, databaseSystem);
-            VectordbOtelMetric vectordbOtelMetric = getOrCreateMetric(vectordbMetrics, modelKey, serviceName);
+            VectordbOtelMetric vectordbOtelMetric = getOrCreateMetric(vectordbMetrics, modelKey, serviceName, databaseSystem);
 
             processCounterMetric(metric, dataPoint, vectordbOtelMetric);
         }
@@ -77,11 +76,11 @@ public class VectordbMetricProcessor {
                 .orElse(null);
     }
 
-    private static VectordbOtelMetric getOrCreateMetric(Map<String, VectordbOtelMetric> vectordbMetrics, String modelKey, String serviceName) {
+    private static VectordbOtelMetric getOrCreateMetric(Map<String, VectordbOtelMetric> vectordbMetrics, String modelKey, String serviceName, String databaseSystem) {
         return vectordbMetrics.computeIfAbsent(modelKey, k -> {
             VectordbOtelMetric metric = new VectordbOtelMetric();
             metric.setServiceName(serviceName);
-            metric.setDbSystem(VECTORDB_SYSTEM);
+            metric.setDbSystem(databaseSystem);
             return metric;
         });
     }
@@ -119,15 +118,15 @@ public class VectordbMetricProcessor {
         System.out.println("Recv Metric --- Start Time : " + startTime);
         System.out.println("Recv Metric --- End Time : " + System.currentTimeMillis() * 1_000_000);
         long lastStartTime = metric.getMetricStartTime(metricName);
-        double lastSearchDistanceSum = metric.getMetricCount(metricName);
+        double lastSearchDistanceSum = metric.getMetricSum(metricName);
 
         if (startTime != lastStartTime) {
             metric.setMetricStartTime(metricName, startTime);
-            metric.addMetricDelta(metricName, (long)sum);
+            metric.addMetricDelta(metricName, sum);
         } else {
-            metric.addMetricDelta(metricName, (long)(sum - lastSearchDistanceSum));
+            metric.addMetricDelta(metricName, (sum - lastSearchDistanceSum));
         }
-        metric.setMetricCount(metricName, (long)sum);
+        metric.setMetricSum(metricName, sum);
     }
 
     private static void processCounterMetric(Metric metric, NumberDataPoint dataPoint, VectordbOtelMetric vectordbOtelMetric) {
@@ -135,7 +134,7 @@ public class VectordbMetricProcessor {
         long dataSum = dataPoint.getAsInt();
         String metricName = metric.getName();
         long lastStartTime = vectordbOtelMetric.getMetricStartTime(metricName);
-        long lastCount = vectordbOtelMetric.getMetricCount(metricName);
+        double lastCount = vectordbOtelMetric.getMetricSum(metricName);
 
         if (startTime != lastStartTime) {
             vectordbOtelMetric.setMetricStartTime(metricName, startTime);
@@ -143,6 +142,6 @@ public class VectordbMetricProcessor {
         } else {
             vectordbOtelMetric.addMetricDelta(metricName, dataSum - lastCount);
         }
-        vectordbOtelMetric.setMetricCount(metricName, dataSum);
+        vectordbOtelMetric.setMetricSum(metricName, dataSum);
     }
 }
