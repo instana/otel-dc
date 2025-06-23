@@ -4,6 +4,10 @@ public class VectordbDcUtil {
 
     private VectordbDcUtil() { }
 
+    public static final String VECTORDB_STATUS_NAME = "vectordb.status";
+    public static final String VECTORDB_STATUS_DESC = "The status of the VectorDB dc";
+    public static final String VECTORDB_STATUS_UNIT = "{status}";
+
     // Milvus metrics
     public static final String MILVUS_DB_QUERY_DURATION_NAME = "db.milvus.query.duration";
     public static final String MILVUS_DB_QUERY_DURATION_DESC = "Duration of Milvus queries";

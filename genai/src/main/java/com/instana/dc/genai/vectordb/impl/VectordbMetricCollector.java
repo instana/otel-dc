@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static com.instana.dc.genai.vectordb.utils.VectordbDcUtil.VECTORDB_STATUS_NAME;
+
 public class VectordbMetricCollector extends AbstractMetricCollector {
     private final Map<String, VectordbAggregation> serviceAggrMap;
     private final Map<String, RawMetric> rawMetricsMap;
@@ -59,6 +61,7 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
         if (aggr.getDeltaDuration() != 0) {
             System.out.println(" - Duration : " + duration + " ms (" + durationMetricName + ")");
         }
+        getRawMetric(VECTORDB_STATUS_NAME).setValue(1);
         Map<String, Double> nonZeroMetrics = printAndCollectNonZeroMetrics(aggr, divisor, rawMetricsMap);
         if (aggr.getDeltaDuration() != 0) {
             updateMetric(durationMetricName, duration, attributes, serviceName);

@@ -15,6 +15,7 @@ public final class VectordbRawMetricRegistry {
     
     static {
         Map<String, RawMetric> metrics = new ConcurrentHashMap<>();
+        metrics.put(VECTORDB_STATUS_NAME, new RawMetric(GAUGE, VECTORDB_STATUS_NAME, VECTORDB_STATUS_DESC, VECTORDB_STATUS_UNIT, true, null));
         metrics.put(MILVUS_DB_QUERY_DURATION_NAME, new RawMetric(GAUGE, MILVUS_DB_QUERY_DURATION_NAME, MILVUS_DB_QUERY_DURATION_DESC, MILVUS_DB_QUERY_DURATION_UNIT, false, "service_name"));
         metrics.put(MILVUS_DB_SEARCH_DISTANCE_NAME, new RawMetric(GAUGE, MILVUS_DB_SEARCH_DISTANCE_NAME, MILVUS_DB_SEARCH_DISTANCE_DESC, MILVUS_DB_SEARCH_DISTANCE_UNIT, false, "service_name"));
         metrics.put(MILVUS_DB_INSERT_UNITS_NAME, new RawMetric(UPDOWN_COUNTER, MILVUS_DB_INSERT_UNITS_NAME, MILVUS_DB_INSERT_UNITS_DESC, MILVUS_DB_INSERT_UNITS_UNIT, false, "service_name"));
