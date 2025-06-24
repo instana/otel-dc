@@ -273,7 +273,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
             if (!metrics.isEmpty()) {
                 metrics.forEach(this::processLLMMetric);
                 processMetrics(otelPollInterval);
-                metricsCollectorService.resetDeltaMetrics();
+                metricsCollectorService.resetLLMMetrics();
             }
         } catch (Exception e) {
             logger.severe("Error collecting metrics: " + e.getMessage());

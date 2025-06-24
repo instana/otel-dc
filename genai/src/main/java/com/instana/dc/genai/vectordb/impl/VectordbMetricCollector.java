@@ -87,7 +87,7 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
             if (!metrics.isEmpty()) {
                 metrics.forEach(this::processVectordbMetric);
                 processMetrics(otelPollInterval);
-                metricsCollectorService.resetDeltaMetrics();
+                metricsCollectorService.resetVectordbMetrics();
             }
         } catch (Exception e) {
             logger.severe("Error collecting metrics: " + e.getMessage());

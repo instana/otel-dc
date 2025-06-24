@@ -11,7 +11,6 @@ import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
 
 public abstract class AbstractMetricCollector {
     private static final Logger logger = Logger.getLogger(AbstractMetricCollector.class.getName());
-    private static final Object METRIC_COLLECTION_LOCK = new Object();
 
     protected final MetricsCollectorService metricsCollectorService;
     protected final Boolean otelAgentlessMode;
@@ -33,12 +32,10 @@ public abstract class AbstractMetricCollector {
             started = true;
         }
         exec.scheduleWithFixedDelay(() -> {
-            synchronized (METRIC_COLLECTION_LOCK) {
-                try {
-                    collectMetrics();
-                } catch (Exception e) {
-                    logger.severe("Error in metric collection: " + e.getMessage());
-                }
+            try {
+                collectMetrics();
+            } catch (Exception e) {
+                logger.severe("Error in metric collection: " + e.getMessage());
             }
         }, 1, otelPollInterval, TimeUnit.SECONDS);
     }

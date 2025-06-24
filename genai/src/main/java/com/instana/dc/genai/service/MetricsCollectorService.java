@@ -52,18 +52,13 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
         return llmMetrics.values().stream().collect(ImmutableList.toImmutableList());
     }
 
-    public void resetDeltaMetrics() {
-        resetLLMMetrics();
-        resetVectordbMetrics();
-    }
-
-    private void resetLLMMetrics() {
+    public void resetLLMMetrics() {
         for (LLMOtelMetric metric : llmMetrics.values()) {
             metric.resetDeltaValues();
         }
     }
 
-    private void resetVectordbMetrics() {
+    public void resetVectordbMetrics() {
         for (VectordbOtelMetric metric : vectordbMetrics.values()) {
             metric.resetDeltaValues();
         }
