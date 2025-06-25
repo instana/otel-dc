@@ -197,15 +197,10 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                 double serviceIntervalInputCost = 0.0;
                 double serviceIntervalOutputCost = 0.0;
 
-                boolean hasNonZero = false;
                 for (Map.Entry<String, ModelAggregation> entry : modelAggregationMap.entrySet()) {
                     ModelAggregation aggr = entry.getValue();
                     String modelId = aggr.getModelId();
                     String aiSystem = aggr.getAiSystem();
-
-                    if (aggr.getDeltaInputTokens() != 0 || aggr.getDeltaOutputTokens() != 0 || aggr.getDeltaDuration() != 0 || aggr.getDeltaRequestCount() != 0) {
-                        hasNonZero = true;
-                    }
 
                     serviceIntervalReqCount += (double) aggr.getDeltaRequestCount() / divisor;
 
@@ -218,10 +213,6 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                     serviceIntervalOutputCost += intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
 
                     aggr.resetDeltaValues();
-                }
-
-                if (!hasNonZero) {
-                    return;
                 }
 
                 double serviceIntervalTotalTokens = serviceIntervalInputTokens + serviceIntervalOutputTokens;

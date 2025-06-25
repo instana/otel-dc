@@ -63,15 +63,13 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
         System.out.println("Metrics of " + aggr.getDbSystem() + " for service " + serviceName + ":");
         double duration = (double) aggr.getDeltaDuration() / divisor;
         String durationMetricName = VectordbDcUtil.MILVUS_DB_QUERY_DURATION_NAME;
-        if (aggr.getDeltaDuration() != 0) {
-            System.out.println(" - Duration : " + duration + " ms (" + durationMetricName + ")");
-        }
+        System.out.println(" - Duration : " + duration + " ms (" + durationMetricName + ")");
         getRawMetric(VECTORDB_STATUS_NAME).setValue(1);
-        Map<String, Double> nonZeroMetrics = printAndCollectNonZeroMetrics(aggr, divisor, rawMetricsMap);
-        if (aggr.getDeltaDuration() != 0) {
-            updateMetric(durationMetricName, duration, attributes, serviceName);
-        }
-        for (Map.Entry<String, Double> entry : nonZeroMetrics.entrySet()) {
+        
+        Map<String, Double> metricsToProcess = collectMetricsToProcess(aggr, divisor, rawMetricsMap);
+
+        updateMetric(durationMetricName, duration, attributes, serviceName);
+        for (Map.Entry<String, Double> entry : metricsToProcess.entrySet()) {
             updateMetric(entry.getKey(), entry.getValue(), attributes, serviceName);
         }
     }
@@ -105,20 +103,20 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
         }
     }
 
-    private Map<String, Double> printAndCollectNonZeroMetrics(
+    private Map<String, Double> collectMetricsToProcess(
             VectordbAggregation aggr, int divisor, Map<String, RawMetric> rawMetricsMap
     ) {
-        Map<String, Double> nonZeroMetrics = new HashMap<>();
+        Map<String, Double> metricsToProcess = new HashMap<>();
         for (Map.Entry<String, Double> entry : aggr.getMetricDeltas().entrySet()) {
             String metricName = entry.getKey();
             double delta = entry.getValue();
             double value = delta / divisor;
-            if (rawMetricsMap.containsKey(metricName) && delta != 0) {
-                System.out.printf(" - %s : %.2f%n", metricName, value);
-                nonZeroMetrics.put(metricName, value);
+            if (rawMetricsMap.containsKey(metricName)) {
+                System.out.printf(" - %s : %.2f%n", entry.getKey(), entry.getValue());
+                metricsToProcess.put(metricName, value);
             }
         }
-        return nonZeroMetrics;
+        return metricsToProcess;
     }
 
     private static class VectordbAggregation {

@@ -14,8 +14,8 @@ public class VectordbDcUtil {
     public static final String MILVUS_DB_QUERY_DURATION_UNIT = "ms";
 
     public static final String MILVUS_DB_SEARCH_DISTANCE_NAME = "db.milvus.search.distance";
-    public static final String MILVUS_DB_SEARCH_DISTANCE_DESC = "Cosine distance between search query vector and matched vectors";
-    public static final String MILVUS_DB_SEARCH_DISTANCE_UNIT = "{cosine}";
+    public static final String MILVUS_DB_SEARCH_DISTANCE_DESC = "Distance between search query vector and matched vectors";
+    public static final String MILVUS_DB_SEARCH_DISTANCE_UNIT = "{distance}";
 
     public static final String MILVUS_DB_INSERT_UNITS_NAME = "db.milvus.usage.insert_units";
     public static final String MILVUS_DB_INSERT_UNITS_DESC = "Insert units used by Milvus";
