@@ -36,6 +36,11 @@ public class VectordbDc extends AbstractGenAIDc {
     }
 
     @Override
+    protected String getServiceName(Map<String, Object> properties) {
+        return getPlatformName() + ":" + properties.get(OTEL_SERVICE_NAME);
+    }
+
+    @Override
     public void collectData() {
         logger.info("Starting VectorDB metrics collection");
         metricCollector.start();

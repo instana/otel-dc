@@ -52,6 +52,11 @@ public class LLMDc extends AbstractGenAIDc {
     }
 
     @Override
+    protected String getServiceName(Map<String, Object> properties) {
+        return (String) properties.get(OTEL_SERVICE_NAME);
+    }
+
+    @Override
     public void collectData() {
         logger.info("Starting LLM metrics collection");
         metricCollector.start();

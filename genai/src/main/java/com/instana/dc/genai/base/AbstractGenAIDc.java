@@ -58,7 +58,7 @@ public abstract class AbstractGenAIDc extends AbstractDc {
         this.otelBackendUrl = (String) properties.get(OTEL_BACKEND_URL);
         this.listenPort = (int) properties.getOrDefault(SERVICE_LISTEN_PORT, DEFAULT_SERVICE_LISTEN_PORT);
         this.otelUsingHttp = Boolean.parseBoolean(properties.getOrDefault(OTEL_BACKEND_USING_HTTP, "false").toString());
-        this.serviceName = (String) properties.get(OTEL_SERVICE_NAME);
+        this.serviceName = getServiceName(properties);
         this.serviceInstanceId = serviceName + "@" + getHostName();
     }
 
@@ -146,4 +146,6 @@ public abstract class AbstractGenAIDc extends AbstractDc {
     protected abstract String getPlatformName();
 
     protected abstract String getPluginName();
+
+    protected abstract String getServiceName(Map<String, Object> properties);
 }

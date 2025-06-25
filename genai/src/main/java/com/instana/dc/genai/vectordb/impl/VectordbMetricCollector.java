@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.instana.dc.genai.vectordb.utils.VectordbDcUtil.VECTORDB_STATUS_NAME;
 
@@ -22,7 +23,7 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
     public VectordbMetricCollector(Boolean otelAgentlessMode, Integer otelPollInterval, int listenPort, Map<String, RawMetric> rawMetricsMap) {
         super(otelAgentlessMode, otelPollInterval, listenPort);
         this.rawMetricsMap = rawMetricsMap;
-        this.serviceAggrMap = new HashMap<>();
+        this.serviceAggrMap = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -36,18 +37,22 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
     }
 
     private void updateServiceAggregation(VectordbOtelMetric metric) {
-        VectordbAggregation aggr = serviceAggrMap.computeIfAbsent(metric.getServiceName(), k -> new VectordbAggregation(metric.getDbSystem()));
-        aggr.addDeltaDuration(metric.getDeltaDuration());
-        for (Map.Entry<String, MetricValue> entry : metric.getMetrics().entrySet()) {
-            String metricName = entry.getKey();
-            aggr.addMetricDelta(metricName, entry.getValue().getDelta());
+        synchronized (serviceAggrMap) {
+            VectordbAggregation aggr = this.serviceAggrMap.computeIfAbsent(metric.getServiceName(), k -> new VectordbAggregation(metric.getDbSystem()));
+            aggr.addDeltaDuration(metric.getDeltaDuration());
+            for (Map.Entry<String, MetricValue> entry : metric.getMetrics().entrySet()) {
+                String metricName = entry.getKey();
+                aggr.addMetricDelta(metricName, entry.getValue().getDelta());
+            }
         }
     }
 
     @Override
     protected void processMetrics(int divisor) {
         logger.info("-----------------------------------------");
-        serviceAggrMap.forEach((serviceName, aggr) -> processAggregationMetrics(aggr, serviceName, divisor));
+        synchronized (serviceAggrMap) {
+            this.serviceAggrMap.forEach((serviceName, aggr) -> processAggregationMetrics(aggr, serviceName, divisor));
+        }
         logger.info("-----------------------------------------");
     }
 
@@ -82,11 +87,11 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
     @Override
     protected void collectMetrics() {
         try {
-            resetAggregations();
+            this.resetAggregations();
             List<VectordbOtelMetric> metrics = metricsCollectorService.getVectordbDeltaMetrics();
             if (!metrics.isEmpty()) {
                 metrics.forEach(this::processVectordbMetric);
-                processMetrics(otelPollInterval);
+                this.processMetrics(otelPollInterval);
                 metricsCollectorService.resetVectordbMetrics();
             }
         } catch (Exception e) {
@@ -95,7 +100,9 @@ public class VectordbMetricCollector extends AbstractMetricCollector {
     }
 
     private void resetAggregations() {
-        serviceAggrMap.values().forEach(VectordbAggregation::resetDeltaValues);
+        synchronized (serviceAggrMap) {
+            this.serviceAggrMap.values().forEach(VectordbAggregation::resetDeltaValues);
+        }
     }
 
     private Map<String, Double> printAndCollectNonZeroMetrics(

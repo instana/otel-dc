@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import static com.instana.dc.genai.llm.utils.LLMDcUtil.*;
@@ -25,9 +26,9 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     public LLMMetricCollector(Boolean otelAgentlessMode, Integer otelPollInterval, int listenPort, Map<String, RawMetric> rawMetricsMap) {
         super(otelAgentlessMode, otelPollInterval, listenPort);
         this.rawMetricsMap = rawMetricsMap;
-        this.modelAggrMap = new HashMap<>();
-        this.serviceModelAggrMap = new HashMap<>();
-        this.llmTokenPrices = new HashMap<>();
+        this.modelAggrMap = new ConcurrentHashMap<>();
+        this.serviceModelAggrMap = new ConcurrentHashMap<>();
+        this.llmTokenPrices = new ConcurrentHashMap<>();
         loadTokenPricesFromConfig();
     }
 
@@ -73,22 +74,26 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     }
 
     private void updateModelAggregation(LLMOtelMetric metric) {
-        ModelAggregation modelAggr = modelAggrMap.computeIfAbsent(metric.getModelId(),
-                k -> new ModelAggregation(k, metric.getAiSystem()));
-        modelAggr.addDeltaInputTokens(metric.getDeltaInputTokens());
-        modelAggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
-        modelAggr.addDeltaDuration(metric.getDeltaDuration());
-        modelAggr.addDeltaRequestCount(metric.getDeltaRequestCount());
+        synchronized (modelAggrMap) {
+            ModelAggregation aggr = this.modelAggrMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem()));
+            aggr.addDeltaInputTokens(metric.getDeltaInputTokens());
+            aggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
+            aggr.addDeltaDuration(metric.getDeltaDuration());
+            aggr.addDeltaRequestCount(metric.getDeltaRequestCount());
+        }
     }
 
     private void updateServiceModelAggregation(LLMOtelMetric metric) {
-        Map<String, ModelAggregation> serviceAggrMap = serviceModelAggrMap.computeIfAbsent(metric.getServiceName(), k -> new HashMap<>());
-        ModelAggregation modelAggr = serviceAggrMap.computeIfAbsent(metric.getModelId(),
-                k -> new ModelAggregation(k, metric.getAiSystem()));
-        modelAggr.addDeltaInputTokens(metric.getDeltaInputTokens());
-        modelAggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
-        modelAggr.addDeltaDuration(metric.getDeltaDuration());
-        modelAggr.addDeltaRequestCount(metric.getDeltaRequestCount());
+        synchronized (serviceModelAggrMap) {
+            Map<String, ModelAggregation> modelAggregationMap = this.serviceModelAggrMap.computeIfAbsent(metric.getServiceName(), k -> new ConcurrentHashMap<>());
+            synchronized (modelAggregationMap) {
+                ModelAggregation aggr = modelAggregationMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem()));
+                aggr.addDeltaInputTokens(metric.getDeltaInputTokens());
+                aggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
+                aggr.addDeltaDuration(metric.getDeltaDuration());
+                aggr.addDeltaRequestCount(metric.getDeltaRequestCount());
+            }
+        }
     }
 
     @Override
@@ -101,61 +106,63 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     }
 
     private void processModelMetrics(int divisor) {
-        modelAggrMap.forEach((modelId, aggr) -> {
-            String aiSystem = aggr.getAiSystem();
+        synchronized (modelAggrMap) {
+            this.modelAggrMap.forEach((modelId, aggr) -> {
+                String aiSystem = aggr.getAiSystem();
 
-            long deltaInputTokens = aggr.getDeltaInputTokens();
-            long deltaOutputTokens = aggr.getDeltaOutputTokens();
-            long deltaDuration = aggr.getDeltaDuration();
-            long deltaRequestCount = aggr.getDeltaRequestCount();
-            long maxDurationSoFar = aggr.getMaxDurationSoFar();
+                long deltaInputTokens = aggr.getDeltaInputTokens();
+                long deltaOutputTokens = aggr.getDeltaOutputTokens();
+                long deltaDuration = aggr.getDeltaDuration();
+                long deltaRequestCount = aggr.getDeltaRequestCount();
+                long maxDurationSoFar = aggr.getMaxDurationSoFar();
 
-            // Skip sending metrics if all deltas are zero
-            if (deltaInputTokens == 0 && deltaOutputTokens == 0 && deltaDuration == 0 && deltaRequestCount == 0) {
+                // Skip sending metrics if all deltas are zero
+                if (deltaInputTokens == 0 && deltaOutputTokens == 0 && deltaDuration == 0 && deltaRequestCount == 0) {
+                    aggr.resetDeltaValues();
+                    return;
+                }
+
                 aggr.resetDeltaValues();
-                return;
-            }
 
-            aggr.resetDeltaValues();
+                double intervalReqCount = (double) deltaRequestCount / divisor;
+                double intervalInputTokens = (double) deltaInputTokens / divisor;
+                double intervalOutputTokens = (double) deltaOutputTokens / divisor;
+                double intervalTotalTokens = intervalInputTokens + intervalOutputTokens;
 
-            double intervalReqCount = (double) deltaRequestCount / divisor;
-            double intervalInputTokens = (double) deltaInputTokens / divisor;
-            double intervalOutputTokens = (double) deltaOutputTokens / divisor;
-            double intervalTotalTokens = intervalInputTokens + intervalOutputTokens;
+                double intervalInputCost = intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
+                double intervalOutputCost = intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
+                double intervalTotalCost = intervalInputCost + intervalOutputCost;
 
-            double intervalInputCost = intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
-            double intervalOutputCost = intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
-            double intervalTotalCost = intervalInputCost + intervalOutputCost;
+                if (!isForceBackwardCompatible()) {
+                    intervalTotalCost *= 10000;
+                    intervalInputCost *= 10000;
+                    intervalOutputCost *= 10000;
+                }
 
-            if (!isForceBackwardCompatible()) {
-                intervalTotalCost *= 10000;
-                intervalInputCost *= 10000;
-                intervalOutputCost *= 10000;
-            }
+                long avgDurationPerReq = deltaRequestCount == 0 ? 0 : deltaDuration / deltaRequestCount;
+                if (avgDurationPerReq > maxDurationSoFar) {
+                    maxDurationSoFar = avgDurationPerReq;
+                    aggr.setMaxDurationSoFar(maxDurationSoFar);
+                }
 
-            long avgDurationPerReq = deltaRequestCount == 0 ? 0 : deltaDuration / deltaRequestCount;
-            if (avgDurationPerReq > maxDurationSoFar) {
-                maxDurationSoFar = avgDurationPerReq;
-                aggr.setMaxDurationSoFar(maxDurationSoFar);
-            }
+                System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
+                System.out.println(" - Average Duration : " + avgDurationPerReq + " ms");
+                System.out.println(" - Maximum Duration : " + maxDurationSoFar + " ms");
+                System.out.println(" - Interval Tokens  : " + intervalTotalTokens);
+                System.out.println(" - Interval Input Tokens  : " + intervalInputTokens);
+                System.out.println(" - Interval Output Tokens  : " + intervalOutputTokens);
+                System.out.println(" - Interval Cost    : " + intervalTotalCost);
+                System.out.println(" - Interval Input Cost    : " + intervalInputCost);
+                System.out.println(" - Interval Output Cost    : " + intervalOutputCost);
+                System.out.println(" - Interval Request : " + intervalReqCount);
 
-            System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
-            System.out.println(" - Average Duration : " + avgDurationPerReq + " ms");
-            System.out.println(" - Maximum Duration : " + maxDurationSoFar + " ms");
-            System.out.println(" - Interval Tokens  : " + intervalTotalTokens);
-            System.out.println(" - Interval Input Tokens  : " + intervalInputTokens);
-            System.out.println(" - Interval Output Tokens  : " + intervalOutputTokens);
-            System.out.println(" - Interval Cost    : " + intervalTotalCost);
-            System.out.println(" - Interval Input Cost    : " + intervalInputCost);
-            System.out.println(" - Interval Output Cost    : " + intervalOutputCost);
-            System.out.println(" - Interval Request : " + intervalReqCount);
-
-            // Update raw metrics
-            updateModelRawMetrics(modelId, aiSystem, avgDurationPerReq, maxDurationSoFar,
-                    intervalTotalCost, intervalInputCost, intervalOutputCost,
-                    intervalTotalTokens, intervalInputTokens, intervalOutputTokens,
-                    intervalReqCount);
-        });
+                // Update raw metrics
+                updateModelRawMetrics(modelId, aiSystem, avgDurationPerReq, maxDurationSoFar,
+                        intervalTotalCost, intervalInputCost, intervalOutputCost,
+                        intervalTotalTokens, intervalInputTokens, intervalOutputTokens,
+                        intervalReqCount);
+            });
+        }
     }
 
     private void updateModelRawMetrics(String modelId, String aiSystem, long avgDuration, long maxDuration,
@@ -181,65 +188,67 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     }
 
     private void processServiceMetrics(int divisor) {
-        serviceModelAggrMap.forEach((serviceName, modelAggregationMap) -> {
+        synchronized (serviceModelAggrMap) {
+            this.serviceModelAggrMap.forEach((serviceName, modelAggregationMap) -> {
 
-            double serviceIntervalReqCount = 0.0;
-            double serviceIntervalInputTokens = 0.0;
-            double serviceIntervalOutputTokens = 0.0;
-            double serviceIntervalInputCost = 0.0;
-            double serviceIntervalOutputCost = 0.0;
+                double serviceIntervalReqCount = 0.0;
+                double serviceIntervalInputTokens = 0.0;
+                double serviceIntervalOutputTokens = 0.0;
+                double serviceIntervalInputCost = 0.0;
+                double serviceIntervalOutputCost = 0.0;
 
-            boolean hasNonZero = false;
-            for (Map.Entry<String, ModelAggregation> entry : modelAggregationMap.entrySet()) {
-                ModelAggregation aggr = entry.getValue();
-                String modelId = aggr.getModelId();
-                String aiSystem = aggr.getAiSystem();
+                boolean hasNonZero = false;
+                for (Map.Entry<String, ModelAggregation> entry : modelAggregationMap.entrySet()) {
+                    ModelAggregation aggr = entry.getValue();
+                    String modelId = aggr.getModelId();
+                    String aiSystem = aggr.getAiSystem();
 
-                if (aggr.getDeltaInputTokens() != 0 || aggr.getDeltaOutputTokens() != 0 || aggr.getDeltaDuration() != 0 || aggr.getDeltaRequestCount() != 0) {
-                    hasNonZero = true;
+                    if (aggr.getDeltaInputTokens() != 0 || aggr.getDeltaOutputTokens() != 0 || aggr.getDeltaDuration() != 0 || aggr.getDeltaRequestCount() != 0) {
+                        hasNonZero = true;
+                    }
+
+                    serviceIntervalReqCount += (double) aggr.getDeltaRequestCount() / divisor;
+
+                    double intervalInputTokens = (double) aggr.getDeltaInputTokens() / divisor;
+                    serviceIntervalInputTokens += intervalInputTokens;
+                    serviceIntervalInputCost += intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
+
+                    double intervalOutputTokens = (double) aggr.getDeltaOutputTokens() / divisor;
+                    serviceIntervalOutputTokens += intervalOutputTokens;
+                    serviceIntervalOutputCost += intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
+
+                    aggr.resetDeltaValues();
                 }
 
-                serviceIntervalReqCount += (double) aggr.getDeltaRequestCount() / divisor;
+                if (!hasNonZero) {
+                    return;
+                }
 
-                double intervalInputTokens = (double) aggr.getDeltaInputTokens() / divisor;
-                serviceIntervalInputTokens += intervalInputTokens;
-                serviceIntervalInputCost += intervalInputTokens / 1000 * getTokenPrice(aiSystem, modelId, "input");
+                double serviceIntervalTotalTokens = serviceIntervalInputTokens + serviceIntervalOutputTokens;
+                double serviceIntervalTotalCost = serviceIntervalInputCost + serviceIntervalOutputCost;
 
-                double intervalOutputTokens = (double) aggr.getDeltaOutputTokens() / divisor;
-                serviceIntervalOutputTokens += intervalOutputTokens;
-                serviceIntervalOutputCost += intervalOutputTokens / 1000 * getTokenPrice(aiSystem, modelId, "output");
+                if (!isForceBackwardCompatible()) {
+                    serviceIntervalTotalCost *= 10000;
+                    serviceIntervalInputCost *= 10000;
+                    serviceIntervalOutputCost *= 10000;
+                }
 
-                aggr.resetDeltaValues();
-            }
+                System.out.printf("Metrics for service %s", serviceName);
+                System.out.println(" - Interval Tokens  : " + serviceIntervalTotalTokens);
+                System.out.println(" - Interval Input Tokens  : " + serviceIntervalInputTokens);
+                System.out.println(" - Interval Output Tokens  : " + serviceIntervalOutputTokens);
+                System.out.println(" - Interval Cost    : " + serviceIntervalTotalCost);
+                System.out.println(" - Interval Input Cost    : " + serviceIntervalInputCost);
+                System.out.println(" - Interval Output Cost    : " + serviceIntervalOutputCost);
+                System.out.println(" - Interval Request : " + serviceIntervalReqCount);
 
-            if (!hasNonZero) {
-                return;
-            }
-
-            double serviceIntervalTotalTokens = serviceIntervalInputTokens + serviceIntervalOutputTokens;
-            double serviceIntervalTotalCost = serviceIntervalInputCost + serviceIntervalOutputCost;
-
-            if (!isForceBackwardCompatible()) {
-                serviceIntervalTotalCost *= 10000;
-                serviceIntervalInputCost *= 10000;
-                serviceIntervalOutputCost *= 10000;
-            }
-
-            System.out.printf("Metrics for service %s", serviceName);
-            System.out.println(" - Interval Tokens  : " + serviceIntervalTotalTokens);
-            System.out.println(" - Interval Input Tokens  : " + serviceIntervalInputTokens);
-            System.out.println(" - Interval Output Tokens  : " + serviceIntervalOutputTokens);
-            System.out.println(" - Interval Cost    : " + serviceIntervalTotalCost);
-            System.out.println(" - Interval Input Cost    : " + serviceIntervalInputCost);
-            System.out.println(" - Interval Output Cost    : " + serviceIntervalOutputCost);
-            System.out.println(" - Interval Request : " + serviceIntervalReqCount);
-
-            // Update raw metrics
-            updateServiceRawMetrics(serviceName, serviceIntervalTotalCost, serviceIntervalInputCost,
-                    serviceIntervalOutputCost, serviceIntervalTotalTokens,
-                    serviceIntervalInputTokens, serviceIntervalOutputTokens,
-                    serviceIntervalReqCount);
-        });
+                // Update raw metrics
+                updateServiceRawMetrics(serviceName, serviceIntervalTotalCost, serviceIntervalInputCost,
+                        serviceIntervalOutputCost, serviceIntervalTotalTokens,
+                        serviceIntervalInputTokens, serviceIntervalOutputTokens,
+                        serviceIntervalReqCount);
+            });
+        }
     }
 
     private void updateServiceRawMetrics(String serviceName, double totalCost, double inputCost,
@@ -267,12 +276,12 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     @Override
     protected void collectMetrics() {
         try {
-            resetAggregations();
+            this.resetAggregations();
             List<LLMOtelMetric> metrics = metricsCollectorService.getLLMDeltaMetrics();
 
             if (!metrics.isEmpty()) {
                 metrics.forEach(this::processLLMMetric);
-                processMetrics(otelPollInterval);
+                this.processMetrics(otelPollInterval);
                 metricsCollectorService.resetLLMMetrics();
             }
         } catch (Exception e) {
@@ -281,7 +290,14 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     }
 
     private void resetAggregations() {
-        modelAggrMap.values().forEach(ModelAggregation::resetDeltaValues);
+        synchronized (modelAggrMap) {
+            this.modelAggrMap.values().forEach(ModelAggregation::resetDeltaValues);
+        }
+        synchronized (serviceModelAggrMap) {
+            this.serviceModelAggrMap.values().forEach(modelAggregationMap ->
+                modelAggregationMap.values().forEach(ModelAggregation::resetDeltaValues)
+            );
+        }
     }
 
     private static class ModelAggregation {
