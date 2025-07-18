@@ -60,20 +60,15 @@ public class LLMMetricProcessor {
             llmOtelMetric.setModelId(modelId[0]);
             llmOtelMetric.setAiSystem(aiSystem[0]);
 
-            double tokenSum = dataPoint.getSum();
+            double metricSum = dataPoint.getSum();
             long requestCount = dataPoint.getCount();
             long startTime = dataPoint.getStartTimeUnixNano();
             long endTime = dataPoint.getTimeUnixNano();
 
-            System.out.println("Recv Metric --- Token Sum: " + tokenSum);
-            System.out.println("Recv Metric --- Request Count: " + requestCount);
-            System.out.println("Recv Metric --- Start Time : " + startTime);
-            System.out.println("Recv Metric --- End Time : " + endTime);
-
-            if (metric.getName().contains("token")) {
-                processTokenMetric(llmOtelMetric, tokenType[0], startTime, tokenSum);
-            } else if (metric.getName().contains("duration")) {
-                processDurationMetric(llmOtelMetric, startTime, tokenSum, requestCount);
+            if (metric.getName().compareTo("gen_ai.client.token.usage") == 0) {
+                processTokenMetric(llmOtelMetric, tokenType[0], startTime, endTime, metricSum, requestCount);
+            } else if (metric.getName().compareTo("gen_ai.client.operation.duration") == 0) {
+                processDurationMetric(llmOtelMetric, startTime, endTime, metricSum, requestCount);
             }
         }
     }
@@ -86,7 +81,11 @@ public class LLMMetricProcessor {
         });
     }
 
-    private static void processTokenMetric(LLMOtelMetric metric, String tokenType, long startTime, double tokenSum) {
+    private static void processTokenMetric(LLMOtelMetric metric, String tokenType, long startTime, long endTime, double tokenSum, long requestCount) {
+        System.out.println("Recv Metric --- Token Sum: " + tokenSum);
+        System.out.println("Recv Metric --- Request Count: " + requestCount);
+        System.out.println("Recv Metric --- Start Time : " + startTime);
+        System.out.println("Recv Metric --- End Time : " + endTime);
         long lastStartTime = "input".equals(tokenType) ? metric.getLastInputTokenStartTime() : metric.getLastOutputTokenStartTime();
         double lastTokenSum = "input".equals(tokenType) ? metric.getLastInputTokenSum() : metric.getLastOutputTokenSum();
 
@@ -113,11 +112,11 @@ public class LLMMetricProcessor {
         }
     }
 
-    private static void processDurationMetric(LLMOtelMetric metric, long startTime, double durationSum, long requestCount) {
+    private static void processDurationMetric(LLMOtelMetric metric, long startTime, long endTime, double durationSum, long requestCount) {
         System.out.println("Recv Metric --- Duration Sum: " + durationSum);
         System.out.println("Recv Metric --- Request Count: " + requestCount);
         System.out.println("Recv Metric --- Start Time : " + startTime);
-        System.out.println("Recv Metric --- End Time : " + System.currentTimeMillis() * 1_000_000);
+        System.out.println("Recv Metric --- End Time : " + endTime);
 
         long lastStartTime = metric.getLastDurationStartTime();
         double lastDurationSum = metric.getLastDurationSum();

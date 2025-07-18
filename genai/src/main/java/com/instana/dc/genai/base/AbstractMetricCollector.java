@@ -7,7 +7,9 @@ import java.util.logging.Logger;
 
 import com.instana.dc.genai.service.MetricsCollectorService;
 import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
+
 import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
+
 
 public abstract class AbstractMetricCollector {
     private static final Logger logger = Logger.getLogger(AbstractMetricCollector.class.getName());
@@ -42,6 +44,8 @@ public abstract class AbstractMetricCollector {
 
     protected abstract void collectMetrics();
     protected abstract void processLLMMetric(LLMOtelMetric metric);
-    protected abstract void processVectordbMetric(VectordbOtelMetric metric);
+
+    protected abstract void processMilvusMetric(VectordbOtelMetric metric);
+
     protected abstract void processMetrics(int divisor);
 }

@@ -1,38 +1,38 @@
-package com.instana.dc.genai.vectordb.impl;
+package com.instana.dc.genai.vectordb.milvus.impl;
 
 import java.util.Map;
 import java.util.logging.Logger;
 
 import com.instana.dc.genai.DataCollector.CustomDcConfig;
 import com.instana.dc.genai.base.AbstractGenAIDc;
-import com.instana.dc.genai.vectordb.metrics.VectordbRawMetricRegistry;
+import com.instana.dc.genai.vectordb.milvus.metrics.MilvusRawMetricRegistry;
 
 import static com.instana.dc.DcUtil.*;
 import static com.instana.dc.genai.util.GenAIDcUtil.OTEL_AGENTLESS_MODE;
 import static com.instana.dc.genai.util.GenAIDcUtil.SERVICE_LISTEN_PORT;
 
-public class VectordbDc extends AbstractGenAIDc {
-    private static final Logger logger = Logger.getLogger(VectordbDc.class.getName());
+public class MilvusDc extends AbstractGenAIDc {
+    private static final Logger logger = Logger.getLogger(MilvusDc.class.getName());
     private static final int DEFAULT_PORT = 8000;
-    private final VectordbMetricCollector metricCollector;
+    private final MilvusMetricCollector metricCollector;
 
-    public VectordbDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
-        super(properties, cdcConfig, VectordbRawMetricRegistry.getRawMetrics());
+    public MilvusDc(Map<String, Object> properties, CustomDcConfig cdcConfig) {
+        super(properties, cdcConfig, MilvusRawMetricRegistry.getRawMetrics());
         Boolean otelAgentlessMode = (Boolean) properties.getOrDefault(OTEL_AGENTLESS_MODE, Boolean.FALSE);
         Integer callbackInterval = (Integer) properties.getOrDefault(CALLBACK_INTERVAL, DEFAULT_CALLBACK_INTERVAL);
         Integer otelPollInterval = (Integer) properties.getOrDefault(POLLING_INTERVAL, callbackInterval);
         int listenPort = (int) properties.getOrDefault(SERVICE_LISTEN_PORT, DEFAULT_PORT);
-        this.metricCollector = new VectordbMetricCollector(otelAgentlessMode, otelPollInterval, listenPort, VectordbRawMetricRegistry.getRawMetrics());
+        this.metricCollector = new MilvusMetricCollector(otelAgentlessMode, otelPollInterval, listenPort, MilvusRawMetricRegistry.getRawMetrics());
     }
 
     @Override
     protected String getPlatformName() {
-        return "VectorDB";
+        return "Milvus";
     }
 
     @Override
     protected String getPluginName() {
-        return "vectordb";
+        return "milvus";
     }
 
     @Override
@@ -42,7 +42,7 @@ public class VectordbDc extends AbstractGenAIDc {
 
     @Override
     public void collectData() {
-        logger.info("Starting VectorDB metrics collection");
+        logger.info("Starting Milvus metrics collection");
         metricCollector.start();
     }
-}
+} 

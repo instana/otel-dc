@@ -69,9 +69,11 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     }
 
     @Override
-    protected void processVectordbMetric(VectordbOtelMetric metric) {
-        // LLM collector doesn't process VectorDB metrics
+    protected void processMilvusMetric(VectordbOtelMetric metric) {
+        // LLM collector doesn't process Milvus metrics
     }
+
+
 
     private void updateModelAggregation(LLMOtelMetric metric) {
         synchronized (modelAggrMap) {

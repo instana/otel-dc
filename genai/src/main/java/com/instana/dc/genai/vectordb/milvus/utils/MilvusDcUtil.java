@@ -1,12 +1,12 @@
-package com.instana.dc.genai.vectordb.utils;
+package com.instana.dc.genai.vectordb.milvus.utils;
 
-public class VectordbDcUtil {
+public class MilvusDcUtil {
 
-    private VectordbDcUtil() { }
+    private MilvusDcUtil() { }
 
-    public static final String VECTORDB_STATUS_NAME = "vectordb.status";
-    public static final String VECTORDB_STATUS_DESC = "The status of the VectorDB dc";
-    public static final String VECTORDB_STATUS_UNIT = "{status}";
+    public static final String MILVUS_STATUS_NAME = "milvus.status";
+    public static final String MILVUS_STATUS_DESC = "The status of the Milvus dc";
+    public static final String MILVUS_STATUS_UNIT = "{status}";
 
     // Milvus metrics
     public static final String MILVUS_DB_QUERY_DURATION_NAME = "db.milvus.query.duration";
@@ -28,4 +28,4 @@ public class VectordbDcUtil {
     public static final String MILVUS_DB_DELETE_UNITS_NAME = "db.milvus.usage.delete_units";
     public static final String MILVUS_DB_DELETE_UNITS_DESC = "Delete units used by Milvus";
     public static final String MILVUS_DB_DELETE_UNITS_UNIT = "{count}";
-}
+} 

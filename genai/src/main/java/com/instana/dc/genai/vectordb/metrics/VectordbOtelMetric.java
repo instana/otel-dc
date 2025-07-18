@@ -41,6 +41,10 @@ public class VectordbOtelMetric extends OtelMetric {
         getMetric(name).addDelta(delta);
     }
 
+    public void incrementMetricCount(String name) {
+        getMetric(name).incrementCount();
+    }
+
     public double getMetricSum(String name) {
         return getMetric(name).getSum();
     }
@@ -54,4 +58,4 @@ public class VectordbOtelMetric extends OtelMetric {
         super.resetDeltaValues();
         metrics.values().forEach(MetricValue::resetDelta);
     }
-}
+} 

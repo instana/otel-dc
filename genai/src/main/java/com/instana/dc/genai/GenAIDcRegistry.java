@@ -2,7 +2,9 @@ package com.instana.dc.genai;
 
 import com.instana.dc.genai.base.AbstractGenAIDc;
 import com.instana.dc.genai.llm.impl.LLMDc;
-import com.instana.dc.genai.vectordb.impl.VectordbDc;
+
+import com.instana.dc.genai.vectordb.milvus.impl.MilvusDc;
+
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,8 +17,9 @@ public final class GenAIDcRegistry {
         Map<String, Class<? extends AbstractGenAIDc>> tempMap = new HashMap<>();
         // Register LLM DCs
         tempMap.put("LLM", LLMDc.class);
-        // Register VectorDB DCs
-        tempMap.put("VECTORDB", VectordbDc.class);
+        // Register Milvus DCs
+        tempMap.put("MILVUS", MilvusDc.class);
+
         // More DCs can be registered here
         map = Collections.unmodifiableMap(tempMap);
     }

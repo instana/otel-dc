@@ -5,6 +5,7 @@ public abstract class OtelMetric {
     protected double durationSum;
     protected long durationStartTime;
     protected long deltaDuration;
+    protected long durationCount;
 
     protected OtelMetric() {}
 
@@ -13,6 +14,7 @@ public abstract class OtelMetric {
         this.durationSum = other.durationSum;
         this.durationStartTime = other.durationStartTime;
         this.deltaDuration = other.deltaDuration;
+        this.durationCount = other.durationCount;
     }
 
     public String getServiceName() {
@@ -31,6 +33,10 @@ public abstract class OtelMetric {
         return deltaDuration;
     }
 
+    public long getDurationCount() {
+        return durationCount;
+    }
+
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
     }
@@ -45,6 +51,10 @@ public abstract class OtelMetric {
 
     public void addDeltaDuration(double deltaDuration) {
         this.deltaDuration += (long)(deltaDuration*1000); // seconds to milliseconds
+    }
+
+    public void incrementDurationCount() {
+        this.durationCount++;
     }
 
     public void resetDeltaValues() {

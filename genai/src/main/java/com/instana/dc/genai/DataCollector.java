@@ -46,7 +46,7 @@ public class DataCollector {
         for (Map<String, Object> props : cdcConfig.getInstances()) {
             try {
                 collectors.add(createLLMCollector(props));
-                collectors.add(createVectorDBCollector(props));
+                collectors.add(createMilvusCollector(props));
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to initialize collector: {0}", e.getMessage());
             }
@@ -71,12 +71,14 @@ public class DataCollector {
                 .newInstance(props, cdcConfig);
     }
 
-    private IDc createVectorDBCollector(Map<String, Object> props) throws Exception {
+    private IDc createMilvusCollector(Map<String, Object> props) throws Exception {
         return new GenAIDcRegistry()
-                .findGenAIDc("VECTORDB")
+                .findGenAIDc("MILVUS")
                 .getConstructor(Map.class, CustomDcConfig.class)
                 .newInstance(props, cdcConfig);
     }
+
+
 
     public static void main(String[] args) {
         try {

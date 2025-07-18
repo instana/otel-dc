@@ -5,8 +5,10 @@ import com.instana.dc.HeadersSupplier;
 import com.instana.dc.genai.llm.LLMMetricProcessor;
 import com.instana.dc.genai.llm.metrics.LLMOtelMetric;
 import com.instana.dc.genai.metrics.OtelMetric;
+
 import com.instana.dc.genai.vectordb.VectordbMetricProcessor;
 import com.instana.dc.genai.vectordb.metrics.VectordbOtelMetric;
+
 import com.linecorp.armeria.common.HttpRequest;
 import com.linecorp.armeria.common.RequestContext;
 import com.linecorp.armeria.common.RequestHeaders;
@@ -44,8 +46,10 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
         return metrics;
     }
 
-    public List<VectordbOtelMetric> getVectordbDeltaMetrics() {
-        return vectordbMetrics.values().stream().collect(ImmutableList.toImmutableList());
+    public List<VectordbOtelMetric> getMilvusDeltaMetrics() {
+        return vectordbMetrics.values().stream()
+                .filter(metric -> "milvus".equalsIgnoreCase(metric.getDbSystem()))
+                .collect(ImmutableList.toImmutableList());
     }
 
     public List<LLMOtelMetric> getLLMDeltaMetrics() {
@@ -58,9 +62,11 @@ public class MetricsCollectorService extends MetricsServiceGrpc.MetricsServiceIm
         }
     }
 
-    public void resetVectordbMetrics() {
+    public void resetMilvusMetrics() {
         for (VectordbOtelMetric metric : vectordbMetrics.values()) {
-            metric.resetDeltaValues();
+            if ("milvus".equalsIgnoreCase(metric.getDbSystem())) {
+                metric.resetDeltaValues();
+            }
         }
     }
 

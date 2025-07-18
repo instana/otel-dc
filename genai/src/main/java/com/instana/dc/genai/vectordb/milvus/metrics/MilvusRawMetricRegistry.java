@@ -1,8 +1,8 @@
-package com.instana.dc.genai.vectordb.metrics;
+package com.instana.dc.genai.vectordb.milvus.metrics;
 
 import static com.instana.dc.InstrumentType.GAUGE;
 import static com.instana.dc.InstrumentType.UPDOWN_COUNTER;
-import static com.instana.dc.genai.vectordb.utils.VectordbDcUtil.*;
+import static com.instana.dc.genai.vectordb.milvus.utils.MilvusDcUtil.*;
 
 import java.util.Collections;
 import java.util.Map;
@@ -10,12 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.instana.dc.RawMetric;
 
-public final class VectordbRawMetricRegistry {
+public final class MilvusRawMetricRegistry {
     private static final Map<String, RawMetric> RAW_METRICS;
     
     static {
         Map<String, RawMetric> metrics = new ConcurrentHashMap<>();
-        metrics.put(VECTORDB_STATUS_NAME, new RawMetric(GAUGE, VECTORDB_STATUS_NAME, VECTORDB_STATUS_DESC, VECTORDB_STATUS_UNIT, true, null));
+        metrics.put(MILVUS_STATUS_NAME, new RawMetric(GAUGE, MILVUS_STATUS_NAME, MILVUS_STATUS_DESC, MILVUS_STATUS_UNIT, true, null));
         metrics.put(MILVUS_DB_QUERY_DURATION_NAME, new RawMetric(GAUGE, MILVUS_DB_QUERY_DURATION_NAME, MILVUS_DB_QUERY_DURATION_DESC, MILVUS_DB_QUERY_DURATION_UNIT, false, "service_name"));
         metrics.put(MILVUS_DB_SEARCH_DISTANCE_NAME, new RawMetric(GAUGE, MILVUS_DB_SEARCH_DISTANCE_NAME, MILVUS_DB_SEARCH_DISTANCE_DESC, MILVUS_DB_SEARCH_DISTANCE_UNIT, false, "service_name"));
         metrics.put(MILVUS_DB_INSERT_UNITS_NAME, new RawMetric(UPDOWN_COUNTER, MILVUS_DB_INSERT_UNITS_NAME, MILVUS_DB_INSERT_UNITS_DESC, MILVUS_DB_INSERT_UNITS_UNIT, false, "service_name"));
@@ -24,11 +24,11 @@ public final class VectordbRawMetricRegistry {
         RAW_METRICS = Collections.unmodifiableMap(metrics);
     }
 
-    private VectordbRawMetricRegistry() {
+    private MilvusRawMetricRegistry() {
         // Private constructor to prevent instantiation
     }
 
     public static Map<String, RawMetric> getRawMetrics() {
         return RAW_METRICS;
     }
-}
+} 
