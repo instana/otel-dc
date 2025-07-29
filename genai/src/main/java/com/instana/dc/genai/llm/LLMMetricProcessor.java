@@ -1,6 +1,7 @@
 package com.instana.dc.genai.llm;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,46 +20,46 @@ public class LLMMetricProcessor {
 
     public static void processLLMMetric(Metric metric, Map<String, LLMOtelMetric> llmMetrics, String serviceName) {
         for (HistogramDataPoint dataPoint : metric.getHistogram().getDataPointsList()) {
-            String[] modelId = new String[1];
-            String[] aiSystem = new String[1];
-            String[] aiVendor = new String[1];
-            String[] tokenType = new String[1];
+            AtomicReference<String> modelId = new AtomicReference<>();
+            AtomicReference<String> aiSystem = new AtomicReference<>();
+            AtomicReference<String> aiVendor = new AtomicReference<>();
+            AtomicReference<String> tokenType = new AtomicReference<>();
 
             dataPoint.getAttributesList().forEach(attr -> {
                 switch (attr.getKey()) {
                     case MODEL_ID_KEY:
-                        modelId[0] = attr.getValue().getStringValue();
-                        System.out.println("Recv Metric --- Model ID: " + modelId[0]);
+                        modelId.set(attr.getValue().getStringValue());
+                        System.out.println("Recv Metric --- Model ID: " + modelId.get());
                         break;
                     case AI_SYSTEM_KEY:
-                        aiSystem[0] = attr.getValue().getStringValue();
-                        System.out.println("Recv Metric --- AI System: " + aiSystem[0]);
+                        aiSystem.set(attr.getValue().getStringValue());
+                        System.out.println("Recv Metric --- AI System: " + aiSystem.get());
                         break;
                     case AI_VENDOR_KEY:
-                        aiVendor[0] = attr.getValue().getStringValue();
-                        System.out.println("Recv Metric --- AI vendor: " + aiVendor[0]);
+                        aiVendor.set(attr.getValue().getStringValue());
+                        System.out.println("Recv Metric --- AI vendor: " + aiVendor.get());
                         break;
                     case TOKEN_TYPE_KEY:
-                        tokenType[0] = attr.getValue().getStringValue();
-                        System.out.println("Recv Metric --- Token Type: " + tokenType[0]);
+                        tokenType.set(attr.getValue().getStringValue());
+                        System.out.println("Recv Metric --- Token Type: " + tokenType.get());
                         break;
                     default:
                         logger.log(Level.WARNING, "Invalid attribute key.");
                 }
             });
 
-            if (modelId[0] != null && aiVendor[0] != null) {
-                modelId[0] = aiVendor[0] + "." + modelId[0];
+            if (modelId.get() != null && aiVendor.get() != null) {
+                modelId.set(aiVendor.get() + "." + modelId.get());
             }
 
-            if (modelId[0] == null) {
+            if (modelId.get() == null) {
                 return;
             }
 
-            String modelKey = String.format("%s:%s:%s", serviceName, aiSystem[0], modelId[0]);
+            String modelKey = String.format("%s:%s:%s", serviceName, aiSystem.get(), modelId.get());
             LLMOtelMetric llmOtelMetric = getOrCreateMetric(llmMetrics, modelKey, serviceName);
-            llmOtelMetric.setModelId(modelId[0]);
-            llmOtelMetric.setAiSystem(aiSystem[0]);
+            llmOtelMetric.setModelId(modelId.get());
+            llmOtelMetric.setAiSystem(aiSystem.get());
 
             double metricSum = dataPoint.getSum();
             long requestCount = dataPoint.getCount();
@@ -66,7 +67,7 @@ public class LLMMetricProcessor {
             long endTime = dataPoint.getTimeUnixNano();
 
             if (metric.getName().compareTo("gen_ai.client.token.usage") == 0) {
-                processTokenMetric(llmOtelMetric, tokenType[0], startTime, endTime, metricSum, requestCount);
+                processTokenMetric(llmOtelMetric, tokenType.get(), startTime, endTime, metricSum, requestCount);
             } else if (metric.getName().compareTo("gen_ai.client.operation.duration") == 0) {
                 processDurationMetric(llmOtelMetric, startTime, endTime, metricSum, requestCount);
             }
