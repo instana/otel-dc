@@ -58,7 +58,7 @@ nohup ./bin/otel-dc-genai &
 
 This project was previously named otel-dc-llm. Starting from version 1.0.8, it has been renamed to otel-dc-genai. 
 The versioning continues seamlessly from the previous package, with otel-dc-genai-1.0.8 being the successor to otel-dc-llm-1.0.7.
-If you're upgrading from llm, simply switch to genai version 1.0.8 or later.
+If you're upgrading from the previous package (otel-dc-llm), switch to otel-dc-genai starting from version 1.0.8 or later.
 
 ## Reference
 If your platform is not supported by the pre-built binaries or if you prefer to compile from source, you can follow the steps in [DEVELOP.md](DEVELOP.md)
