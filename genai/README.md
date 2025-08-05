@@ -15,18 +15,18 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/v1.0.9/otel-dc-genai-1.0.0.tar
+curl -O https://github.com/instana/otel-dc/releases/download/v1.0.9/otel-dc-genai-1.0.8.tar
 ```
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-genai-1.0.0.tar
+tar vxf otel-dc-genai-1.0.8.tar
 ```
 
 ## Configuration
 
 ### Configure otel dc
 ```bash
-cd otel-dc-genai-1.0.0
+cd otel-dc-genai-1.0.8
 vi config/config.yaml
 ```
 The following options are required：
@@ -53,6 +53,12 @@ Run the Data Collector with the following command according to your current syst
 ```bash
 nohup ./bin/otel-dc-genai &
 ```
+
+## Package Renaming notice
+
+This project was previously named otel-dc-llm. Starting from version 1.0.8, it has been renamed to otel-dc-genai. 
+The versioning continues seamlessly from the previous package, with otel-dc-genai-1.0.8 being the successor to otel-dc-llm-1.0.7.
+If you're upgrading from the previous package (otel-dc-llm), switch to otel-dc-genai starting from version 1.0.8 or later.
 
 ## Reference
 If your platform is not supported by the pre-built binaries or if you prefer to compile from source, you can follow the steps in [DEVELOP.md](DEVELOP.md)
