@@ -10,14 +10,17 @@ import com.instana.dc.SimpleQueryResult;
 import com.instana.dc.rdb.AbstractDbDc;
 import com.instana.dc.rdb.DbDcUtil;
 import com.instana.dc.rdb.impl.Constants;
-import com.instana.dc.rdb.impl.informix.metric.collection.*;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricCollectionMode;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricDataConfig;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataConfigRegister;
+import com.instana.dc.rdb.impl.informix.metric.collection.MetricsDataQueryConfig;
 import com.instana.dc.rdb.impl.informix.metric.collection.strategy.MetricsCollector;
 import org.apache.commons.dbcp2.BasicDataSource;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -25,6 +28,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static com.instana.dc.rdb.DbDcUtil.*;
 import static com.instana.dc.rdb.impl.Constants.ACTIVE_SESSION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.DISK_READ_SCRIPT;
@@ -36,8 +40,6 @@ import static com.instana.dc.rdb.impl.Constants.SQL_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.TASK_WAIT_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.TOTAL_SESSION_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.TRANSACTION_COUNT_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.DISK_READ_SCRIPT;
-import static com.instana.dc.rdb.impl.Constants.DISK_WRITE_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.LOCK_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.OVERFLOW_LOCK_COUNT_SCRIPT;
 import static com.instana.dc.rdb.impl.Constants.OVERFLOW_USER_COUNT_SCRIPT;
@@ -293,8 +295,8 @@ public class InformixDc extends AbstractDbDc {
         if(sqlTraceEnabled) {
             getRawMetric(DB_SQL_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_COUNT_NAME));
             getRawMetric(DB_SQL_ELAPSED_TIME_NAME).setValue((List<SimpleQueryResult>) metricCollector.collectMetrics(DB_SQL_ELAPSED_TIME_NAME));
+            getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME));
         }
-        getRawMetric(DB_SQL_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_SQL_RATE_NAME));
         getRawMetric(DB_TRANSACTION_COUNT_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
         getRawMetric(DB_TRANSACTION_RATE_NAME).setValue((Number) metricCollector.collectMetrics(DB_TRANSACTION_COUNT_NAME));
     }
