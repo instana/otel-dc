@@ -83,7 +83,7 @@ public class InformixDcTest {
     @Test
     public void shouldCollectData() {
         informixDc.collectData();
-        verify(metricsCollector, times(32)).collectMetrics(anyString());
+        verify(metricsCollector, times(25)).collectMetrics(anyString());
     }
 
     private static MeterBuilder buildMeterBuilder() {

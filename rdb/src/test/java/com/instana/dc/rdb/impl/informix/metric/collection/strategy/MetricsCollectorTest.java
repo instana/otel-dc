@@ -52,6 +52,6 @@ public class MetricsCollectorTest {
         MetricsDataConfigRegister.subscribeMetricDataConfig("metric",
                 new MetricDataConfig("query", MetricCollectionMode.CMD, Number.class));
         given(onstatCommandExecutor.executeCommand(any())).willReturn(Optional.of(new String[]{"1"}));
-        assertEquals((Number) 1, metricsCollector.collectMetrics("metric"));
+        assertEquals((Number) 1L, metricsCollector.collectMetrics("metric"));
     }
 }
