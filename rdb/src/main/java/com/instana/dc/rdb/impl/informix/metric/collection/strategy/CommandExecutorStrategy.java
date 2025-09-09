@@ -27,8 +27,8 @@ public class CommandExecutorStrategy extends MetricsExecutionStrategy {
             if(TypeChecker.isDouble(metricDataConfig.getReturnType())){
                 return Double.parseDouble(result.get()[0]);
             }
-            else if (TypeChecker.isNumber(metricDataConfig.getReturnType())) {
-                return Integer.parseInt(result.get()[0]);
+            else if (TypeChecker.isNumber(metricDataConfig.getReturnType())){
+                return Long.parseLong(result.get()[0]);
             }
         }
         return null;

@@ -28,7 +28,7 @@ public class CommandExecutorStrategyTest {
     public void shouldCollectNumberMetrics() {
         MetricDataConfig metricDataConfig = new MetricDataConfig("query", MetricCollectionMode.CMD, Number.class);
         given(onstatCommandExecutor.executeCommand(any())).willReturn(Optional.of(new String[]{"1"}));
-        assertEquals((Number) 1, commandExecutorStrategy.collectMetrics(metricDataConfig));
+        assertEquals((Number) 1L, commandExecutorStrategy.collectMetrics(metricDataConfig));
     }
 
     @Test
