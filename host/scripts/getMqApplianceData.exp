@@ -218,6 +218,10 @@ spawn ssh -o StrictHostKeyChecking=no ${appliance1}
 set a1id $spawn_id
 sshLogin $a1id $userid $password appliance1_name
 
+
+# Output sample of the complete data
+# 2:0.06:0.04:0.06:3552:8224;1:0:0:0:0:0:1:0:1:6:0;lo|79578807|79578807:eth0|153337289|72906014;lo|1146666|1146666:eth0|1765354|397044;lo|0|0:eth0|0|0;lo|0|0:eth0|130659|0;
+
 set carry_on_looping 1
 while { $carry_on_looping == 1 } {
     getSystemMetric $a1id
