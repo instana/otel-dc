@@ -62,14 +62,14 @@ proc getSystemMetric {id} {
     set variable [lindex $lines 1]
     foreach line $lines {
         set current_line $line
-        if {[string match "*usage*" ${current_line}]} {
-            regexp "usage: *(.*) %" $current_line matched_line cpu_usage
-        } elseif {[string match "*(1m)*" ${current_line}]} {
-            regexp "\\(1m\\): *(.*) %" $current_line matched_line cpu_load_ave_1m
-        } elseif {[string match "*(5m)*" ${current_line}]} {
-            regexp "\\(5m\\): *(.*) %" $current_line matched_line cpu_load_ave_5m
-        } elseif {[string match "*(15m)*" ${current_line}]} {
-            regexp "\\(15m\\): *(.*) %" $current_line matched_line cpu_load_ave_15m
+        if {[string match "*Current*" ${current_line}]} {
+            regexp "Current: *(.*) %" $current_line matched_line cpu_usage
+        } elseif {[string match "* 1 min*" ${current_line}]} {
+            regexp "1 min: *(.*) %" $current_line matched_line cpu_load_ave_1m
+        } elseif {[string match "* 5 min*" ${current_line}]} {
+            regexp "5 min: *(.*) %" $current_line matched_line cpu_load_ave_5m
+        } elseif {[string match "* 15 min*" ${current_line}]} {
+            regexp "15 min: *(.*) %" $current_line matched_line cpu_load_ave_15m
         }
     }
 
