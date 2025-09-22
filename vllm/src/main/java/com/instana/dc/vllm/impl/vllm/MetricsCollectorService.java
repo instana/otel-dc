@@ -166,8 +166,26 @@ public class MetricsCollectorService {
     private void scrapeSingleEndpoint(String endpoint) {
         try {
             URI uri = validateEndpoint(endpoint);
-            String metricsData = fetchMetrics(uri);
-            List<Metric> metrics = parsePrometheusFile(metricsData);
+            boolean isHealthy = healthCheck(uri);
+            List<Metric> metrics = new ArrayList<>();
+            metrics.add(Metric.newBuilder()
+                    .setName("vllm.health")
+                    .setDescription("Health check status of the Prometheus endpoint")
+                    .setGauge(Gauge.newBuilder()
+                            .addDataPoints(NumberDataPoint.newBuilder()
+                                    .setAsDouble(isHealthy ? 1 : 0)
+                                    .setTimeUnixNano(System.currentTimeMillis() * 1_000_000L)
+                                    .addAttributes(KeyValue.newBuilder()
+                                            .setKey("instance")
+                                            .setValue(AnyValue.newBuilder().setStringValue(uri.getAuthority()).build())
+                                            .build())
+                                    .build())
+                            .build())
+                    .build());
+            if (isHealthy) {
+                String metricsData = fetchMetrics(uri);
+                metrics.addAll(parsePrometheusFile(metricsData));
+            }
             ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics, uri.getAuthority());
             processMetrics(serviceRequest);
         } catch (Exception e) {
@@ -198,6 +216,26 @@ public class MetricsCollectorService {
             }
             throw new IOException("HTTP status: " + response.code());
         }
+    }
+
+    private boolean healthCheck(URI uri) {
+        Request request = new Request.Builder()
+                .url(uri.toString() + "/health")
+                .header("Accept", TextFormat.CONTENT_TYPE_004)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            System.out.println("response: " + response);
+            System.out.println(response.isSuccessful());
+            System.out.println(response.body());
+            System.out.println(response.code());
+            if (response.isSuccessful() && response.body() != null) {
+                return true;
+            }
+        } catch (IOException ignored) {
+
+        }
+        return false;
     }
 
     private static final Pattern HELP_PATTERN = Pattern.compile("^# HELP (\\S+) (.+)$");
@@ -465,7 +503,7 @@ public class MetricsCollectorService {
         Map<String, MetricsCollectorService.MetricsAggregation.Measurement> measurement = metricsAggregation.getMetrics()
                 .computeIfAbsent(metric.getName(), key -> new ConcurrentHashMap<>());
         for (NumberDataPoint dataPoint : metric.getGauge().getDataPointsList()) {
-            dataPoint.getAttributesList().stream().filter(attribute -> attribute.getKey().equals(MODEL_NAME))
+            dataPoint.getAttributesList().stream().filter(attribute -> Arrays.asList(MODEL_NAME, "instance").contains(attribute.getKey()))
                     .map(KeyValue::getValue).map(AnyValue::getStringValue).findAny().ifPresent(model -> {
                         MetricsCollectorService.MetricsAggregation.Measurement modelMeasurement = measurement.computeIfAbsent(model, key -> new MetricsCollectorService.MetricsAggregation.Measurement());
                         recordGauge(dataPoint, modelMeasurement);

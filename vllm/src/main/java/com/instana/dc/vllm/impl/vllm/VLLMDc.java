@@ -10,6 +10,7 @@ import static com.instana.dc.vllm.VLLMDcConstants.*;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_GENERATION_TOKENS;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_GPU_CACHE_HIT_RATE;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_GPU_CACHE_USAGE_PERC;
+import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_HEALTH;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_PROMPT_TOKENS;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_REQUEST_LATENCY;
 import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_REQUEST_TTFT;
@@ -62,6 +63,7 @@ public class VLLMDc extends AbstractVLLMDc {
         for (MetricsCollectorService.MetricsAggregation metric : metricsAggregations) {
             Map<String, Object> attributes = Map.of(SERVICE_NAME, metric.getInstance());
 
+            getRawMetric(VLLM_HEALTH.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm.health", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);
             getRawMetric(VLLM_RUNNING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_running", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);
             getRawMetric(VLLM_WAITING_REQUESTS.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:num_requests_waiting", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);
             getRawMetric(VLLM_GPU_CACHE_USAGE_PERC.getName()).getDataPoint(metric.getInstance()).setValue(aggregate(metric, "vllm:gpu_cache_usage_perc", MetricsCollectorService.MetricsAggregation.Measurement::getValue), attributes);

@@ -22,6 +22,7 @@ public class VLLMDcConstants {
     public enum VllmMetric {
 
         VLLM_STATUS("vllm.status", "The status of the vLLM data collector", "{status}"),
+        VLLM_HEALTH("vllm.health", "The health of the vLLM data collector", "{status}"),
         VLLM_RUNNING_REQUESTS("vllm.request.running.count", "Number of requests currently running on GPU", "{count}"),
         VLLM_WAITING_REQUESTS("vllm.request.waiting.count", "Number of requests waiting to be processed", "{count}"),
         VLLM_GPU_CACHE_USAGE_PERC("vllm.gpu.cache.usage.perc", "GPU KV-cache usage", "{perc}"),
