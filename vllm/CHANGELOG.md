@@ -6,3 +6,6 @@ Changelog
 
 ## Version 1.0.1
 - Add support to scrape metrics from multiple vLLM instances
+
+## Version 1.0.2
+- Add a new metric to monitor vLLM instance health
