@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static com.instana.dc.vllm.VLLMDcConstants.INSTANCE_ID;
 import static com.instana.dc.vllm.VLLMDcConstants.MODEL_NAME;
+import static com.instana.dc.vllm.VLLMDcConstants.VllmMetric.VLLM_HEALTH;
 
 public class MetricsCollectorService {
     private final OkHttpClient client;
@@ -166,13 +167,49 @@ public class MetricsCollectorService {
     private void scrapeSingleEndpoint(String endpoint) {
         try {
             URI uri = validateEndpoint(endpoint);
-            String metricsData = fetchMetrics(uri);
-            List<Metric> metrics = parsePrometheusFile(metricsData);
-            ExportMetricsServiceRequest serviceRequest = exportToOTLP(metrics, uri.getAuthority());
+            ExportMetricsServiceRequest serviceRequest = exportToOTLP(getMetrics(uri), uri.getAuthority());
             processMetrics(serviceRequest);
         } catch (Exception e) {
             System.err.println("[" + endpoint + "] Error scraping metrics: " + e.getMessage());
         }
+    }
+
+    private List<Metric> getMetrics(URI uri) {
+        List<Metric> metrics = new ArrayList<>();
+        metrics.add(getInstanceHealth(uri));
+        metrics.addAll(getInstanceMetrics(uri));
+        return metrics;
+    }
+
+    private List<Metric> getInstanceMetrics(URI uri) {
+        try {
+            return parsePrometheusFile(fetchMetrics(uri));
+        } catch (Exception e) {
+            System.err.println("[" + uri + "] Error fetching/parsing metrics: " + e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    private Metric getInstanceHealth(URI uri) {
+        return createGaugeMetric(
+                VLLM_HEALTH.getName(),
+                String.join("=", MODEL_NAME, "all"),
+                isInstanceHealthy(uri) ? 1 : 0,
+                VLLM_HEALTH.getDescription(),
+                System.currentTimeMillis() * 1_000_000L);
+    }
+
+    private boolean isInstanceHealthy(URI uri) {
+        Request request = new Request.Builder()
+                .url(uri.toString() + "/health")
+                .header("Accept", TextFormat.CONTENT_TYPE_004)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            return response.isSuccessful() && response.body() != null;
+        } catch (Exception e) {
+            System.err.println("Health check failed: " + e.getMessage());
+        }
+        return false;
     }
 
     private URI validateEndpoint(String endpoint) throws URISyntaxException {
