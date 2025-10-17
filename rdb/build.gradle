@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.instana.dc"
-version = "0.5.4"
+version = "0.5.5"
 
 repositories {
     mavenCentral()
@@ -45,9 +45,13 @@ applicationDistribution.from("config") {
 
 applicationDistribution.from("scripts/informix") {
     into "scripts"
+    include "*.sh"
+    fileMode = 0755
 }
 applicationDistribution.from("scripts/informix_solaris10") {
     into "scripts_solaris10"
+    include "*.sh"
+    fileMode = 0755
 }
 test {
     useJUnitPlatform()
