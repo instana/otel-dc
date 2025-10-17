@@ -136,6 +136,9 @@ ls -l ~/*-dc*.log*
 ```
 
 ## Troubleshooting 
+General troubleshooting guide for the Relational Database (RDB).
+
+### Informix DB
 If the main script encounters any issues and you want to validate the setup directly on the system, you can use the following script to manually configure the Informix environment.
 
 Copy and execute this script on the system where the Informix database is installed:
@@ -180,18 +183,19 @@ echo "You can now run the Informix scripts in rdb/scripts/informix/"
 
 ### Running Informix Scripts
 
-Once the environment variables are set, you can run any Informix-related script located in the configured path.
-For example:
+Once the environment variables are set, you can execute any Informix-related script from the configured environment.
+
+Before running a command such as `onstat`, ensure that you are in the directory where the `onstat` binary is located — typically under:``$INFORMIXDIR/bin``
 
 ```dtd
 #!/bin/bash
-result=$(cd $1 &&
-  ./onstat -g his 1 | head -n 10 | awk '{a[NR]=$0} END{print a[NR-1]}' | awk '{print $4}')
-
+result=$(onstat -g his 1 | head -n 10 | awk '{a[NR]=$0} END{print a[NR-1]}' | awk '{print $4}')
 echo $result
 ```
-#### Explanation:
 
-$1 represents the directory path passed as an argument (where onstat resides).
+**Notes:**
+* The script navigates to the directory containing the onstat command to ensure it executes correctly.
 
-The command retrieves recent history statistics using onstat -g his, processes the output, and extracts a specific field for quick validation.
+* The awk commands process and extract a specific field from the onstat -g his output for validation or troubleshooting purposes.
+
+* You can modify the command or parsing logic as needed for deeper diagnostics.
