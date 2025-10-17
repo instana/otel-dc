@@ -134,3 +134,64 @@ ps -ef | grep otel-dc | grep -v grep | awk '{printf " "$2" "}' | xargs kill -9
 ```bash
 ls -l ~/*-dc*.log*
 ```
+
+## Troubleshooting 
+If the main script encounters any issues and you want to validate the setup directly on the system, you can use the following script to manually configure the Informix environment.
+
+Copy and execute this script on the system where the Informix database is installed:
+
+```dtd
+#!/bin/bash
+# Informix Environment Setup Script
+# Fill in the values below before running
+
+# === Configuration (Edit these values) ===
+DB_PATH=""        # Example: /opt/IBM/Informix_Software_Bundle
+SERVER_NAME=""    # Example: ol_informix1410
+
+# Validate inputs
+if [ -z "$DB_PATH" ]; then
+  echo "Error: Please set DB_PATH in the script before running"
+  exit 1
+fi
+
+if [ -z "$SERVER_NAME" ]; then
+  echo "Error: Please set SERVER_NAME in the script before running"
+  exit 1
+fi
+
+# Export Informix environment variables
+export INFORMIXDIR=$DB_PATH
+export ONCONFIG=onconfig.$SERVER_NAME
+export INFORMIXSERVER=$SERVER_NAME
+export PATH=$INFORMIXDIR/bin:$PATH
+export INFORMIXSQLHOSTS=$INFORMIXDIR/etc/sqlhosts.$SERVER_NAME
+
+echo "Informix environment variables set successfully:"
+echo "INFORMIXDIR=$INFORMIXDIR"
+echo "ONCONFIG=$ONCONFIG"
+echo "INFORMIXSERVER=$INFORMIXSERVER"
+echo "INFORMIXSQLHOSTS=$INFORMIXSQLHOSTS"
+echo "PATH includes $INFORMIXDIR/bin"
+echo ""
+echo "You can now run the Informix scripts in rdb/scripts/informix/"
+```
+
+
+### Running Informix Scripts
+
+Once the environment variables are set, you can run any Informix-related script located in the configured path.
+For example:
+
+```dtd
+#!/bin/bash
+result=$(cd $1 &&
+  ./onstat -g his 1 | head -n 10 | awk '{a[NR]=$0} END{print a[NR-1]}' | awk '{print $4}')
+
+echo $result
+```
+#### Explanation:
+
+$1 represents the directory path passed as an argument (where onstat resides).
+
+The command retrieves recent history statistics using onstat -g his, processes the output, and extracts a specific field for quick validation.
