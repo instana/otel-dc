@@ -141,7 +141,7 @@ General troubleshooting guide for the Relational Database (RDB).
 ### Informix DB
 If the main script encounters any issues and you want to validate the setup directly on the system, you can use the following script to manually configure the Informix environment.
 
-Copy and execute this script on the system where the Informix database is installed:
+Copy and execute this script as `source` on the system where the Informix database is installed:
 
 ```dtd
 #!/bin/bash
@@ -180,20 +180,23 @@ echo ""
 echo "You can now run the Informix scripts in rdb/scripts/informix/"
 ```
 
+Make sure to run the script as `source`. For example `source ./setEnv.sh`
+{: note}
 
 ### Running Informix Scripts
 
 Once the environment variables are set, you can execute any Informix-related script from the configured environment.
 
-Before running a command such as `onstat`, ensure that you are in the directory where the `onstat` binary is located — typically under:``$INFORMIXDIR/bin``
+Before running a command make sure, the current user has permission to execute `onstat` command. 
 
+Below is an example command which can be executed directly in the shell.
 ```dtd
-#!/bin/bash
-result=$(onstat -g his 1 | head -n 10 | awk '{a[NR]=$0} END{print a[NR-1]}' | awk '{print $4}')
-echo $result
+onstat -g ses | awk 'NR==2 {linecount = NF -2; if (linecount>0) print linecount; else print 0}'
 ```
 
 **Notes:**
+*  The sample command given in the above example is from the script - `rdb/scripts/informix/session_count.sh`
+
 * The script navigates to the directory containing the onstat command to ensure it executes correctly.
 
 * The awk commands process and extract a specific field from the onstat -g his output for validation or troubleshooting purposes.
