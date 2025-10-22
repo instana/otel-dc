@@ -180,8 +180,8 @@ echo ""
 echo "You can now run the Informix scripts in rdb/scripts/informix/"
 ```
 
-Make sure to run the script as `source`. For example `source ./setEnv.sh`
-{: note}
+**Note:** Make sure to run the script as `source`, for example `source ./setEnv.sh`
+
 
 ### Running Informix Scripts
 
