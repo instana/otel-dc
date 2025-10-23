@@ -197,7 +197,7 @@ onstat -g ses | awk 'NR==2 {linecount = NF -2; if (linecount>0) print linecount;
 **Notes:**
 *  The sample command given in the above example is from the script - `rdb/scripts/informix/session_count.sh`
 
-* The script navigates to the directory containing the onstat command to ensure it executes correctly.
+* The environment script updates the PATH variable to include the directory where the onstat command resides, ensuring it can be executed successfully from any location.
 
 * The awk commands process and extract a specific field from the onstat -g his output for validation or troubleshooting purposes.
 
