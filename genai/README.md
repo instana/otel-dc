@@ -15,18 +15,18 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/v1.0.9/otel-dc-genai-1.0.8.tar
+curl -O https://github.com/instana/otel-dc/releases/download/v1.0.10/otel-dc-genai-1.0.9.tar
 ```
 2) Extract the package to the desired deployment location:
 ```bash
-tar vxf otel-dc-genai-1.0.8.tar
+tar vxf otel-dc-genai-1.0.9.tar
 ```
 
 ## Configuration
 
 ### Configure otel dc
 ```bash
-cd otel-dc-genai-1.0.8
+cd otel-dc-genai-1.0.9
 vi config/config.yaml
 ```
 The following options are required：
