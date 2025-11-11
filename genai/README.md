@@ -15,7 +15,7 @@ java -version
 
 1) Download the installation package:
 ```bash
-curl -O https://github.com/instana/otel-dc/releases/download/v1.0.10/otel-dc-genai-1.0.9.tar
+curl -O https://github.com/instana/otel-dc/releases/download/v1.0.12/otel-dc-genai-1.0.9.tar
 ```
 2) Extract the package to the desired deployment location:
 ```bash
