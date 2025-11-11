@@ -118,12 +118,6 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                 long deltaRequestCount = aggr.getDeltaRequestCount();
                 long maxDurationSoFar = aggr.getMaxDurationSoFar();
 
-                // Skip sending metrics if all deltas are zero
-                if (deltaInputTokens == 0 && deltaOutputTokens == 0 && deltaDuration == 0 && deltaRequestCount == 0) {
-                    aggr.resetDeltaValues();
-                    return;
-                }
-
                 aggr.resetDeltaValues();
 
                 double intervalReqCount = (double) deltaRequestCount / divisor;
