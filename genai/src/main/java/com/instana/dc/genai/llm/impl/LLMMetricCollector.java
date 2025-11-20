@@ -77,7 +77,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
 
     private void updateModelAggregation(LLMOtelMetric metric) {
         synchronized (modelAggrMap) {
-            ModelAggregation aggr = this.modelAggrMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem()));
+            ModelAggregation aggr = this.modelAggrMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem(), metric.getServiceName()));
             aggr.addDeltaInputTokens(metric.getDeltaInputTokens());
             aggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
             aggr.addDeltaDuration(metric.getDeltaDuration());
@@ -89,7 +89,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
         synchronized (serviceModelAggrMap) {
             Map<String, ModelAggregation> modelAggregationMap = this.serviceModelAggrMap.computeIfAbsent(metric.getServiceName(), k -> new ConcurrentHashMap<>());
             synchronized (modelAggregationMap) {
-                ModelAggregation aggr = modelAggregationMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem()));
+                ModelAggregation aggr = modelAggregationMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem(), metric.getServiceName()));
                 aggr.addDeltaInputTokens(metric.getDeltaInputTokens());
                 aggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
                 aggr.addDeltaDuration(metric.getDeltaDuration());
@@ -111,6 +111,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
         synchronized (modelAggrMap) {
             this.modelAggrMap.forEach((modelId, aggr) -> {
                 String aiSystem = aggr.getAiSystem();
+                String serviceName = aggr.getServiceName();
 
                 long deltaInputTokens = aggr.getDeltaInputTokens();
                 long deltaOutputTokens = aggr.getDeltaOutputTokens();
@@ -153,7 +154,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                 System.out.println(" - Interval Request : " + intervalReqCount);
 
                 // Update raw metrics
-                updateModelRawMetrics(modelId, aiSystem, avgDurationPerReq, maxDurationSoFar,
+                updateModelRawMetrics(modelId, aiSystem, serviceName, avgDurationPerReq, maxDurationSoFar,
                         intervalTotalCost, intervalInputCost, intervalOutputCost,
                         intervalTotalTokens, intervalInputTokens, intervalOutputTokens,
                         intervalReqCount);
@@ -161,7 +162,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
         }
     }
 
-    private void updateModelRawMetrics(String modelId, String aiSystem, long avgDuration, long maxDuration,
+    private void updateModelRawMetrics(String modelId, String aiSystem, String serviceName, long avgDuration, long maxDuration,
                                        double totalCost, double inputCost, double outputCost,
                                        double totalTokens, double inputTokens, double outputTokens,
                                        double reqCount) {
@@ -170,6 +171,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
         String modelIdExt = aiSystem + ":" + replacedId;
         attributes.put("model_id", modelIdExt);
         attributes.put("ai_system", aiSystem);
+        attributes.put("service_name", serviceName);
 
         rawMetricsMap.get(LLM_STATUS_NAME).setValue(1);
         rawMetricsMap.get(LLM_DURATION_NAME).getDataPoint(modelIdExt).setValue(avgDuration, attributes);
@@ -290,15 +292,17 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     private static class ModelAggregation {
         private final String modelId;
         private final String aiSystem;
+        private final String serviceName;
         private long deltaInputTokens;
         private long deltaOutputTokens;
         private long deltaDuration;
         private long deltaRequestCount;
         private long maxDurationSoFar;
 
-        public ModelAggregation(String modelId, String aiSystem) {
+        public ModelAggregation(String modelId, String aiSystem, String serviceName) {
             this.modelId = modelId;
             this.aiSystem = aiSystem;
+            this.serviceName = serviceName;
         }
 
         public String getModelId() {
@@ -307,6 +311,10 @@ public class LLMMetricCollector extends AbstractMetricCollector {
 
         public String getAiSystem() {
             return aiSystem;
+        }
+
+        public String getServiceName() {
+            return serviceName;
         }
 
         public long getDeltaInputTokens() {
