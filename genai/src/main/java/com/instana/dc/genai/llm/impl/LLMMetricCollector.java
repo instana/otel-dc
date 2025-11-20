@@ -77,7 +77,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
 
     private void updateModelAggregation(LLMOtelMetric metric) {
         synchronized (modelAggrMap) {
-            ModelAggregation aggr = this.modelAggrMap.computeIfAbsent(metric.getModelId(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem(), metric.getServiceName()));
+            ModelAggregation aggr = this.modelAggrMap.computeIfAbsent(metric.getAggregationKey(), k -> new ModelAggregation(metric.getModelId(), metric.getAiSystem(), metric.getServiceName()));
             aggr.addDeltaInputTokens(metric.getDeltaInputTokens());
             aggr.addDeltaOutputTokens(metric.getDeltaOutputTokens());
             aggr.addDeltaDuration(metric.getDeltaDuration());
@@ -110,6 +110,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
     private void processModelMetrics(int divisor) {
         synchronized (modelAggrMap) {
             this.modelAggrMap.forEach((modelId, aggr) -> {
+                String modelName = aggr.getModelId();
                 String aiSystem = aggr.getAiSystem();
                 String serviceName = aggr.getServiceName();
 
@@ -142,7 +143,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                     aggr.setMaxDurationSoFar(maxDurationSoFar);
                 }
 
-                System.out.printf("Metrics for model %s of %s:%n", modelId, aiSystem);
+                System.out.printf("Metrics for model %s of %s:%n", modelName, aiSystem);
                 System.out.println(" - Average Duration : " + avgDurationPerReq + " ms");
                 System.out.println(" - Maximum Duration : " + maxDurationSoFar + " ms");
                 System.out.println(" - Interval Tokens  : " + intervalTotalTokens);
@@ -154,7 +155,7 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                 System.out.println(" - Interval Request : " + intervalReqCount);
 
                 // Update raw metrics
-                updateModelRawMetrics(modelId, aiSystem, serviceName, avgDurationPerReq, maxDurationSoFar,
+                updateModelRawMetrics(modelName, aiSystem, serviceName, avgDurationPerReq, maxDurationSoFar,
                         intervalTotalCost, intervalInputCost, intervalOutputCost,
                         intervalTotalTokens, intervalInputTokens, intervalOutputTokens,
                         intervalReqCount);
@@ -168,8 +169,8 @@ public class LLMMetricCollector extends AbstractMetricCollector {
                                        double reqCount) {
         Map<String, Object> attributes = new HashMap<>();
         String replacedId = modelId.replace(".", "/");
-        String modelIdExt = aiSystem + ":" + replacedId;
-        attributes.put("model_id", modelIdExt);
+        String modelIdExt = String.join(":", aiSystem, replacedId, serviceName);
+        attributes.put("model_id", String.join(":", aiSystem, replacedId));
         attributes.put("ai_system", aiSystem);
         attributes.put("service_name", serviceName);
 

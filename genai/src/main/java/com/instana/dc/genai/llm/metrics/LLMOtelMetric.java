@@ -98,6 +98,10 @@ public class LLMOtelMetric extends OtelMetric {
         this.outputTokenStartTime = startTime;
     }
 
+    public String getAggregationKey() {
+        return String.format("%s:%s:%s", serviceName, aiSystem, modelId);
+    }
+
     @Override
     public void resetDeltaValues() {
         super.resetDeltaValues();
